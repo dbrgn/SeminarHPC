@@ -1,0 +1,158 @@
+%
+% skript.tex -- Skript ueber High Performance Computing
+%
+% (c) 2012 Prof. Dr. Andreas Mueller, HSR
+% $Id: ws-skript.tex,v 1.34 2008/11/02 22:46:16 afm Exp $
+%
+%\documentclass[a4paper,12pt]{book}
+\documentclass[a4paper]{book}
+\usepackage{geometry}
+\geometry{papersize={170mm,240mm},total={130mm,200mm}}
+\usepackage{ngerman}
+\usepackage{times}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsfonts}
+\usepackage{amsthm}
+\usepackage{graphicx}
+\usepackage{fancyhdr}
+\usepackage{textcomp}
+\usepackage[all]{xy}
+\usepackage{txfonts}
+\usepackage{alltt}
+\usepackage{verbatim}
+\usepackage{paralist}
+\usepackage{makeidx}
+\usepackage{array}
+\usepackage{hyperref}
+\usepackage{tikz}
+\usetikzlibrary{arrows,decorations.pathmorphing,positioning,fit,petri}
+\usetikzlibrary{calc,intersections,through,backgrounds,graphs}
+\usetikzlibrary{patterns,decorations.pathreplacing}
+\usetikzlibrary{shapes,snakes,trees}
+\usetikzlibrary{decorations.pathreplacing}
+\usetikzlibrary{patterns}
+\usepackage{listings}
+\lstdefinestyle{Matlab}{
+  numbers=left,
+  belowcaptionskip=1\baselineskip,
+  breaklines=true,
+  frame=L,
+  xleftmargin=\parindent,
+  language=Matlab,
+  showstringspaces=false,
+  basicstyle=\footnotesize\ttfamily,
+  keywordstyle=\bfseries\color{green!40!black},
+  commentstyle=\itshape\color{purple!40!black},
+  identifierstyle=\color{blue},
+  stringstyle=\color{orange},
+  numberstyle=\ttfamily\tiny
+}
+\usepackage{caption}
+\usepackage{subcaption}
+%\usepackage{cite}
+\usepackage{standalone}
+\usepackage[sorting=none,backend=bibtex]{biblatex}
+%\addbibresource{sample/bib.bib}
+\AtEndDocument{\clearpage\ifodd\value{page}\else\null\clearpage\fi}
+\makeindex
+\begin{document}
+\pagestyle{fancy}
+%\lhead{Optimierung}
+\frontmatter
+\newcommand\HRule{\noindent\rule{\linewidth}{1.5pt}}
+\begin{titlepage}
+\vspace*{\stretch{1}}
+\HRule
+\vspace*{5pt}
+\begin{flushright}
+{
+\LARGE
+Mathematisches Seminar\\
+\vspace*{20pt}
+\Huge
+High Performance Computing}
+\end{flushright}
+\HRule
+\begin{flushright}
+\vspace{60pt}
+\Large
+Leitung: Andreas M"uller\\
+\vspace{40pt}
+\Large
+%Dorian Amiet,
+%Hannes Badertscher,
+%Gregor Dengler,\\
+%Roman Gassmann,
+%Lukas Loser,
+%Selina Malacarne,\\
+%Tabea M\'endez,
+%Raphael Nestler,
+%Philip Riedel,\\
+%Christian Schmid,
+%Armin Stocklin,
+%Dario Wikart
+\end{flushright}
+\vspace*{\stretch{2}}
+\begin{center}
+Hochschule f"ur Technik, Rapperswil, 2014
+\end{center}
+\end{titlepage}
+\hypersetup{
+    colorlinks=true,
+    linktoc=all,
+    linkcolor=blue
+}
+\newcounter{beispiel}
+\newenvironment{beispiele}{
+\bgroup\smallskip\parindent0pt\bf Beispiele\egroup
+
+\begin{list}{\arabic{beispiel}.}
+  {\usecounter{beispiel}
+  \setlength{\labelsep}{5mm}
+  \setlength{\rightmargin}{0pt}
+}}{\end{list}}
+
+\newenvironment{teilaufgaben}{
+\begin{enumerate}
+\renewcommand{\labelenumi}{\alph{enumi})}
+}{\end{enumerate}}
+% Loesung
+\def\swallow#1{
+%nothing
+}
+\newenvironment{loesung}{%
+\begin{proof}[L"osung]%
+\renewcommand{\qedsymbol}{$\bigcirc$}
+}{\end{proof}}
+\def\keineloesungen{%
+\renewenvironment{loesung}{\swallow\begingroup}{\endgroup}%
+}
+
+\newenvironment{beispiel}{%
+\begin{proof}[Beispiel]%
+\renewcommand{\qedsymbol}{$\bigcirc$}
+}{\end{proof}}
+
+\tableofcontents
+\newtheorem{satz}{Satz}[chapter]
+\newtheorem{hilfssatz}{Hilfssatz}[chapter]
+\newtheorem{definition}{Definition}[chapter]
+\newtheorem{annahme}{Annahme}[chapter]
+\mainmatter
+\input vorwort.tex
+\part{Grundlagen}
+\input einleitung.tex
+\input maschinen.tex
+\input sprachen.tex
+\input daten.tex
+\input algorithm.tex
+\part{Anwendungen und Weiterf"uhrende Themen}
+\lhead{Anwendungen}
+\def\chapterauthor#1{{\large #1}\bigskip\bigskip}
+\input sample/sample.tex
+\lhead{Index}
+\rhead{}
+\input skript.ind
+
+\end{document}
