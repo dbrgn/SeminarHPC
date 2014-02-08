@@ -4,10 +4,150 @@ wiederum auf Unterst"utzung durch die Programmiersprachen in Form von
 Bibliotheken oder speziellen Sprachkonstrukten angewiesen sind.
 In diesem Kapitel wird eine Reihe von solchen Rechenmitteln vorgestellt.
 
+Ziel dieses Kapitels ist nicht, alle behandelten Techniken im Detail
+darzustellen, dazu gibt es bessere Quellen auf dem Internet oder in
+Form von B"uchern.
+Diese Quellen erkl"aren die APIs im Detail, beschreiben, wie man Programme
+kompiliert und wie man sie startet. Sie gehen jedoch davon aus, dass der
+Entwickler sich bereits dar"uber klar geworden ist, welches Framework
+f"ur das vorliegende Problem am besten geeignet ist.
+Welche Kriterien anzuwenden sind, um zu dieser Entscheidung zu gelangen,
+ist jedoch normalerweise nicht Inhalt der Dokumentation.
+
+Alle Frameworks stellen eine Vielzahl von M"oglichkeiten zur
+Verf"ugung, oft mehr als man "uberblicken kann, wenn man sich f"ur
+eines entscheiden muss.
+Auf welche Features muss man speziell achten? Um diese Auswahl
+zu vereinfachen, soll ein typisches Problem in allen zu diskutierenden
+APIs gel"ost werden. Dabei zeigen sich St"arken und Schw"achen  in
+exemplarischer Weise.
+
+\section{Fallstudie}
+Als Fallbeispiel soll der Gauss Algorithmus zur Berechnung der Inversen
+einer $n\times n$-Matrix verwendet werden. Dabei ist das Ziel weniger,
+den letzten Rest Performance herauszuholen, sondern vielmehr zu
+illustrieren, welche Art von Konstrukten in einem API zur Verf"ugung
+gestellt werden muss, damit die parallele Implementierung effizient
+von Statten gehen kann.
+
+\subsection{Der Gauss-Algorithmus}
+Wir erinnern grundlegenden Gauss-Algorithmus. Gegeben ist eine regul"are
+$n\times n$-Matrix $A$, gesucht wird ihre Inverse $A^{-1}$.
+Der Gauss-Algorithmus formt ein Tableau der Form
+\[
+\begin{tabular}{|>{$}c<{$}>{$}c<{$}>{$}c<{$}>{$}c<{$}|>{$}c<{$}>{$}c<{$}>{$}c<{$}>{$}c<{$}|}
+\hline
+a_{11}&a_{12}&\dots &a_{1n}&1     &0     &\dots &0\\
+a_{21}&a_{22}&\dots &a_{2n}&0     &1     &\dots &0\\
+\vdots&\vdots&\ddots&\vdots&\vdots&\vdots&\ddots&\vdots\\
+a_{n1}&a_{n2}&\dots &a_{nn}&0     &0     &\dots &1\\
+\hline
+\end{tabular}
+\]
+Mit Hilfe von Zeilenoperationen in ein Tableau der Form
+\begin{equation}
+\begin{tabular}{|>{$}c<{$}>{$}c<{$}>{$}c<{$}>{$}c<{$}|>{$}c<{$}>{$}c<{$}>{$}c<{$}>{$}c<{$}|}
+\hline
+1     &0     &\dots &0     & c_{11}&c_{12}&\dots &c_{1n}\\
+0     &1     &\dots &0     & c_{21}&c_{22}&\dots &c_{2n}\\
+\vdots&\vdots&\ddots&\vdots& \vdots&\vdots&\ddots&\vdots\\
+0     &0     &\dots &1     & c_{n1}&c_{n2}&\dots &c_{nn}\\
+\hline
+\end{tabular}
+\label{targettableau}
+\end{equation}
+Die Matrix $C$ ist die gesuchte Inverse: $C=A^{-1}$.
+
+Die Zeilenoperationen beginnen damit, dass ein Pivot-Element ausgew"ahlt
+werden muss.
+Die Wahl des Pivot-Elements kann die Genauigkeit des Resultates beeinflussen,
+entsprechend sind ausgekl"ugelte Strategien entwickelt worden, wie die
+Pivot-Elemente am Besten ausgew"ahlt werden sollen. Da dieser Aspekt in
+diesem Kapitel nicht wesentlich ist, verwenden wir als Pivot-Elemente die
+Diagonalelemente der Matrix. Es werden also der Reihe nach Zeilen-Operationen
+mit den Pivot-Elementen $a_{11}$, $a_{22}$ ,$\dots$ ,$a_{nn}$ 
+durchgef"uhrt.
+
+Die Pivot-Zeile wird zun"achst durch das
+Pivot-Element geteilt wird. Die Matrix-Elemente der Zeile $i$ werden
+also nach der Regel
+\begin{equation}
+a_{ij}'=\frac{a_{ij}}{a_{ii}}
+\label{red}
+\end{equation}
+ersetzt.
+An der Stelle des Pivot-Elements steht jetzt eine 1.
+
+In Zeile $k$ steht in der Pivot-Spalte $a_{ki}$. Dieses Element kann
+zu $0$ gemacht werden, indem das $a_{ki}$-fache der Pivot-Zeile
+subtrahiert wird. Die Elemente der Zeile $k$ werden also nach
+der Regel
+\begin{equation}
+a_{kj}' = a_{kj} - a_{ki}a_{ij}' 
+=a_{kj} - a_{ki}\frac{a_{ij}}{a_{ii}}.
+\label{blau}
+\end{equation}
+Damit werden alle Elemente unter dem Pivot-Elemente zu 0 gemacht.
+
+Durch Wiederholung der Operationen (\ref{rot}) und (\ref{blau}) f"ur
+alle Pivot-Elemente erreicht man die Tableau-Form
+\[
+\begin{tabular}{|>{$}c<{$}>{$}c<{$}>{$}c<{$}>{$}c<{$}|>{$}c<{$}>{$}c<{$}>{$}c<{$}>{$}c<{$}|}
+\hline
+1     &*     &\dots &*     & c_{11}&0     &\dots &0     \\
+0     &1     &\dots &*     & c_{21}&c_{22}&\dots &0     \\
+\vdots&\vdots&\ddots&\vdots& \vdots&\vdots&\ddots&\vdots\\
+0     &0     &\dots &1     & c_{n1}&c_{n2}&\dots &c_{nn}\\
+\hline
+\end{tabular}
+\]
+Die linke untere H"alfte des Tableau hat jetzt bereits die gem"asst
+(\ref{targettableau}) angestrebte Form.
+Man nennt den bisher durchgef"uhrten Teil die Vorw"arts-Reduktion.
+
+Um die rechte obere H"alfte auch noch zu 0 zu machen,
+m"ussen weitere Zeilenoperationen angewendet werden. Man nennt diese
+Phase des Algorithmus das R"uckw"artseinsetzen.
+Da die Diagonal-Elemente immer noch Wert 1 haben, kann dies in Spalte
+$i$ mit den Ersetzungen
+\begin{equation}
+a_{kj}'' = a_{kj}' - a_{ki}'a_{ij}'
+\label{green}
+\end{equation}
+geschehen.
+
+Wir sch"atzen den Rechenaufwand f"ur die Durchf"uhrung des Algorithmus ab.
+Die Division durch das Pivot-Element (\ref{red}) ben"otigt $2n$ Operationen.
+Damit werden in den $n-i$ Zeilen unter dem Pivot-Element jeweils
+$2n\cdot 2=4n$ Operationen durchgef"uhrt.
+F"ur das R"uckw"artseinsetzen sind nochmals jeweils $(i-1)\cdot 4n$ Operationen
+notwendig. Insgesamt braucht der Algorithmus also
+\[
+2n^2
++
+\sum_{i=1}^n4n(n-i)+\sum_{i=1}^n 4n(i-1)
+=2n^2+4n(n-1)\sum_{i=1}^n1=2n^2+4n(n-1)n=4n^3-2n^2
+\]
+Operationen.
+
+Nat"urlich hat der Algorithmus in dieser Form noch einiges
+Optimierungspotential. So ist es zum Beispiel nicht n"otig, jeweils
+die ganze Zeile zu berechnen, es reicht, diejenigen Teile zu
+berechnen, die in sp"ateren Schritten ben"otigt werden. 
+
+\subsection{Implementation}
+Die Implementation des Algorithmus in C ist unproblematisch. Der Quellcode
+kann im zu diesem Skript geh"orenden Repository auf Github gefunden
+werden. 
+
+\subsection{Parallelisierung}
+
+
 \section{Thread-Programmierung}
 
 \section{OpenMP}
 
-\section{Message Passing}
+\section{Message Passing: OpenMPI}
 
-\section{Open Compute Language}
+\section{OpenCL}
+

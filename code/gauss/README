@@ -1,0 +1,25 @@
+Gauss-Algorithmus zum Invertieren einer Matrix
+
+Dieses Verzeichnis enthaelt verschiedenen parallele Implementierungen
+des Gaussalgorithmus.
+
+common
+	einige gemeinsam genutzte Funtionen
+
+c
+	einfache, niche parallelisierte Implementation, wird als
+	Basis fuer die parallelisierten Versionen benoetigt
+
+pthread
+	Parallelisierte Loesung, die explizit Threads mit Hilfe des
+	pthreads-API verwaltet.
+
+openmp
+	Parallelisierte Loesung mit Hilfe von OpenMP.
+
+opencl
+	Implementation mit Hilfe der Open Compute Language.
+
+openmpi
+	Parallelisierung mit Hilfe von OpenMPI.
+

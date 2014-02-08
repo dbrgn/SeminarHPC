@@ -1,0 +1,21 @@
+#
+# perform measurement runs for many combinations of parameters
+#
+# (c) 2014 Prof Dr Andreas Mueller, Hochschule Rapperswil
+#
+runall () {
+	for n in $*
+	do
+		mpirun -np 8 ./gauss -n ${n}
+	done
+}
+
+(
+	runall `seq 20 10 500` 
+	runall `seq 20 10 500` 
+	runall `seq 520 20 1000`
+	runall `seq 1050 50 2000`
+	runall `seq 2100 100 3000`
+	runall `seq 2200 200 5000`
+	runall `seq 6000 1000 10000`
+) > results

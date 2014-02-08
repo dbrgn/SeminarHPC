@@ -1,0 +1,14 @@
+#
+# perform measurement runs for many combinations of parameters
+#
+# (c) 2014 Prof Dr Andreas Mueller, Hochschule Rapperswil
+#
+for nthreads in 16 14 12 10 8 6 4 2 1
+do
+#	./gauss -t ${nthreads} `seq 20 10 500` 
+#	./gauss -t ${nthreads} `seq 520 20 1000`
+#	./gauss -t ${nthreads} `seq 1050 50 2000`
+#	./gauss -t ${nthreads} `seq 2100 100 3000`
+#	./gauss -t ${nthreads} `seq 2200 200 5000`
+	./gauss -t ${nthreads} `seq 6000 1000 10000`
+done > results

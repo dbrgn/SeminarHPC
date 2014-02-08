@@ -1,0 +1,124 @@
+/*
+ * gauss.cl -- opencl kernel implementing gauss algorithm
+ *
+ * (c) 2014 Prof Dr Andreas Mueller, Hochschule Rapperswil
+ */
+
+#ifdef DEBUG
+// display function used for debugging
+void	display(__global float *a, const unsigned int n);
+void	display(__global float *a, const unsigned int n) {
+	unsigned int	i, j;
+	printf("[\n");
+	for (i = 0; i < n; i++) {
+		for (j = 0; j < n; j++) {
+			if (j) { printf(","); }
+			printf("%6.3f", a[j + n * i]);
+		}
+		printf("\n");
+	}
+	printf("];\n");
+}
+#endif
+
+__kernel void	invert(__global float *input, __global float *output,
+	const unsigned int n) {
+	// compute the range of indices this work item is reponsible for
+	__local size_t	local_size;
+	__local unsigned int	min_row;
+	__local unsigned int	max_row;
+
+	local_size = get_local_size(0);
+	unsigned int	blocksize = n / local_size;
+	min_row = get_local_id(0) * blocksize;
+	max_row = min_row + blocksize;
+
+	// initialize the output array with a unit matrix
+	unsigned int	i, j;
+	for (i = min_row; i < max_row; i++) {
+		for (j = 0; j < n; j++) {
+			output[j + i * n] = (i == j) ? 1 : 0;
+		}
+	}
+
+	barrier(CLK_GLOBAL_MEM_FENCE);
+
+	i = 0;
+	while (i < n) {
+		if (get_local_id(0) == 0) {
+			float	pivot = 1 / input[i + i * n];
+			for (j = 0; j < n; j++) {
+				input[j + i * n] = input[j + i * n] * pivot;
+				output[j + i * n] = output[j + i * n] * pivot;
+			}
+		}
+
+
+#ifdef DEBUG
+		barrier(CLK_GLOBAL_MEM_FENCE);
+
+		if (0 == get_local_id(0)) {
+			display(input, n);
+		}
+#endif
+
+		barrier(CLK_GLOBAL_MEM_FENCE);
+
+		unsigned int	k = min_row;
+		for (; k < max_row; k++) {
+			__global float	*outp = output + n * i;
+			__global float	*inp = input + n * i;
+			if (k != i) {
+				j = 0; 
+				__global float	*out = output + n * k;
+				__global float	*in = input + n * k;
+				float	b = in[i];
+#if 0
+				unsigned int l = 0;
+				while (j < n) {
+					float2	v = vload2(l, out);
+					float2	p = vload2(l, outp);
+					v = v - b * p;
+					vstore2(v, l, out);
+
+					v = vload2(l, in);
+					p = vload2(l, inp);
+					v -= b * p;
+					vstore2(v, l, in);
+
+					j += 2;
+					l++;
+				}
+#endif
+				while (j < n) {
+					out[j] -= b * outp[j];
+					in[j] -= b * inp[j];
+					j++;
+				}
+			}
+		}
+		while (k < max_row) {
+		}
+
+#ifdef DEBUG
+		barrier(CLK_GLOBAL_MEM_FENCE);
+		if (0 == get_local_id(0)) {
+			display(input, n);
+		}
+#endif
+
+		barrier(CLK_GLOBAL_MEM_FENCE);
+		i++;
+	}
+
+
+	barrier(CLK_GLOBAL_MEM_FENCE);
+
+	// now perform the gauss algorithm
+	unsigned int row = get_local_id(0)
+		+ get_local_size(0) * get_global_id(0);
+
+	barrier(CLK_GLOBAL_MEM_FENCE);
+	
+}
+
