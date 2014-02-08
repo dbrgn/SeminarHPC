@@ -48,7 +48,7 @@ cl_program	cluCreateProgramWithFile(cl_context context,
 
 	// use the clCreateProgramWithSource function to create the program
 	cl_program	program;
-	program = clCreateProgramWithSource(context, 1, source, length, err);
+	program = clCreateProgramWithSource(context, 1, (const char **)source, length, err);
 
 	return program;
 }
@@ -151,7 +151,7 @@ int	main(int argc, char *argv[]) {
 			fprintf(stderr, "cannot retrieve log: %d\n", err);
 			return EXIT_FAILURE;
 		}
-		fprintf(stderr, "compile log:\n%*s\n", l, log);
+		fprintf(stderr, "compile log:\n%*s\n", (int)l, log);
 		return EXIT_FAILURE;
 	}
 	if (debug) { printf("compiled the program\n"); }

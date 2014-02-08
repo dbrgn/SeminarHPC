@@ -87,7 +87,7 @@ __kernel void	invert(__global float *input, __global float *output,
 				__global float	*out = output + n * k;
 				__global float	*in = input + n * k;
 				float	b = in[i];
-#if 0
+#if 1
 				// do as many operations as possible using
 				// vector operations, as they allow for more
 				// parallelism
