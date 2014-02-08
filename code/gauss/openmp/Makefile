@@ -10,4 +10,4 @@ gauss:	gauss.c
 	$(CC) $(CFLAGS) -o gauss gauss.c -L../common -lgauss
 
 test:	gauss
-	./gauss 
+	./gauss 10

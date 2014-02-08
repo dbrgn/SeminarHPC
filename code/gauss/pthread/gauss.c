@@ -23,6 +23,9 @@
 #define random_matrix	random_float_matrix
 #endif
 
+/**
+ * \brief common information, needed in all threads
+ */
 typedef struct {
 	F	*a;	// array
 	int	n;	// dimensions
@@ -32,6 +35,9 @@ typedef struct {
 } common_info;
 common_info	common;
 
+/**
+ * \brief Information needed within a thread
+ */
 typedef struct {
 	int	min;
 	int	max;
@@ -40,9 +46,14 @@ typedef struct {
 
 thread_info	*info;
 
+// forward declaration of the thread main function
 void	*thread_main(void *info);
 
+/**
+ * \brief Start a number of threads
+ */
 void	start_threads(int nthreads) {
+	// allocate array with thread information
 	common.nthreads = nthreads;
 	info = (thread_info *)malloc(nthreads * sizeof(thread_info));
 	memset(info, 0, nthreads * sizeof(thread_info));
@@ -51,6 +62,8 @@ void	start_threads(int nthreads) {
 	pthread_barrier_init(&common.barrier1, NULL, common.nthreads);
 	pthread_barrier_init(&common.barrier1, NULL, common.nthreads);
 
+	// fill the info structure for each thread, including launching
+	// the thread
 	info[0].min = 0;
 	info[nthreads - 1].max = common.n;
 	double	step = common.n / (double)nthreads;
@@ -84,48 +97,70 @@ void	join_threads() {
  * \brief Thread main function
  */
 void	*thread_main(void *arg) {
+	// get info about the thread
 	thread_info	*this = (thread_info *)arg;
+
+	// start measuring the time
 	double	start = gettime();
-	int	i = 0;
+	int	i = 0; // current pivot row
 	F	*a = common.a;
 	int	n = common.n;
 	do {
+		// the first thread das the pivot row operation
 		if (pthread_self() == info[0].thread) {
 			F	pivot = a[i + 2 * n * i];
 			for (int j = i; j < 2 * n; j++) {
 				a[j + 2 * n * i] /= pivot;
 			}
 		}
+
+		// barrier to ensure that the pivot row operation is complete
 		pthread_barrier_wait(&common.barrier1);
 		F	*a = common.a;
 		int	n = common.n;
 		for (int k = this->min; k < this->max; k++) {
 			if (k != i) {
 				F	b = a[i + 2 * n * k];
-//				for (int j = i + 1; j < 2 * n; j++) {
 				for (int j = i; j < 2 * n; j++) {
 					a[j + 2 * n * k] -= b * a[j + 2 * n * i];
 				}
 			}
 		}
+
+		// barrier to ensure that the row operations have copmleted...
 		pthread_barrier_wait(&common.barrier2);
+
+		// ...before the next pivot is started
 		i++;
 	} while (i < n);
+
+	// let thread 0 display the tiem information
 	double	end = gettime();
 	if (pthread_self() == info[0].thread) {
 		printf("%d,%.6f,%d\n", common.n, end - start, common.nthreads);
 	}
+
+	// that's it, return the structure to indicate that there was no
+	// problem
 	return info;
 }
 
 /**
  * \brief threaded Gauss algorithm implementation
+ *
+ * \param nthreads	number of threads to launch
  */
 void	gauss(int nthreads) {
 	start_threads(nthreads);
 	join_threads();
 }
 
+/**
+ * \brief perform a Gauss experiment
+ *
+ * \param n		size of the matrix
+ * \param nthreads	number of threads to use during the computation
+ */
 void	experiment(int n, int nthreads) {
 	/* create a system to solve */
 	common.n = n;
@@ -147,10 +182,15 @@ void	experiment(int n, int nthreads) {
 	free(common.a);
 }
 
+/**
+ * \brief main function
+ */
 int	main(int argc, char *argv[]) {
 	int	n = 10;
-	int	c;
 	int	nthreads = 1;
+
+	// parse the command line
+	int	c;
 	while (EOF != (c = getopt(argc, argv, "p:t:")))
 		switch (c) {
 		case 'p':
@@ -161,6 +201,8 @@ int	main(int argc, char *argv[]) {
 			break;
 		}
 
+	// each subsequent argument is a to be interpreted as a number giving
+	// the dimension of the matrix
 	while (optind < argc) {
 		n = atoi(argv[optind]);
 		if (n <= 0) {

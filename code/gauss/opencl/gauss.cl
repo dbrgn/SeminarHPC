@@ -21,6 +21,13 @@ void	display(__global float *a, const unsigned int n) {
 }
 #endif
 
+/**
+ * \brief Kernel for Gauss algorithm
+ *
+ * \param input		input array n x n
+ * \param output	output array n x n
+ * \param n		matrix dimension
+ */
 __kernel void	invert(__global float *input, __global float *output,
 	const unsigned int n) {
 	// compute the range of indices this work item is reponsible for
@@ -28,6 +35,8 @@ __kernel void	invert(__global float *input, __global float *output,
 	__local unsigned int	min_row;
 	__local unsigned int	max_row;
 
+	// compute the dimensions of the block that this thread is
+	// responsible for computing
 	local_size = get_local_size(0);
 	unsigned int	blocksize = n / local_size;
 	min_row = get_local_id(0) * blocksize;
@@ -41,10 +50,13 @@ __kernel void	invert(__global float *input, __global float *output,
 		}
 	}
 
+	// wait for all threads to complete initialization of their
+	// part of the block
 	barrier(CLK_GLOBAL_MEM_FENCE);
 
 	i = 0;
 	while (i < n) {
+		// local id 0 does the pivot operation
 		if (get_local_id(0) == 0) {
 			float	pivot = 1 / input[i + i * n];
 			for (j = 0; j < n; j++) {
@@ -62,8 +74,10 @@ __kernel void	invert(__global float *input, __global float *output,
 		}
 #endif
 
+		// barrier to wait for the pivot row operation to complete
 		barrier(CLK_GLOBAL_MEM_FENCE);
 
+		// now perform the row operations all over the matrix
 		unsigned int	k = min_row;
 		for (; k < max_row; k++) {
 			__global float	*outp = output + n * i;
@@ -74,6 +88,9 @@ __kernel void	invert(__global float *input, __global float *output,
 				__global float	*in = input + n * k;
 				float	b = in[i];
 #if 0
+				// do as many operations as possible using
+				// vector operations, as they allow for more
+				// parallelism
 				unsigned int l = 0;
 				while (j < n) {
 					float2	v = vload2(l, out);
@@ -90,14 +107,14 @@ __kernel void	invert(__global float *input, __global float *output,
 					l++;
 				}
 #endif
+				// do the remining operations by scalar
+				// operations
 				while (j < n) {
 					out[j] -= b * outp[j];
 					in[j] -= b * inp[j];
 					j++;
 				}
 			}
-		}
-		while (k < max_row) {
 		}
 
 #ifdef DEBUG
@@ -107,18 +124,11 @@ __kernel void	invert(__global float *input, __global float *output,
 		}
 #endif
 
+		// barrier to wait for the row operations to complete
 		barrier(CLK_GLOBAL_MEM_FENCE);
+
+		// go to the next 
 		i++;
 	}
-
-
-	barrier(CLK_GLOBAL_MEM_FENCE);
-
-	// now perform the gauss algorithm
-	unsigned int row = get_local_id(0)
-		+ get_local_size(0) * get_global_id(0);
-
-	barrier(CLK_GLOBAL_MEM_FENCE);
-	
 }
 

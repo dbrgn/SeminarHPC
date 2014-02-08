@@ -19,11 +19,9 @@
 #define random_matrix	random_float_matrix
 #endif
 
-typedef struct {
-	F	*a;
-	int	n;
-} common_t;
-common_t	common;
+// global data
+F	*a;
+int	n;
 
 /**
  * \brief threaded Gauss algorithm implementation
@@ -31,13 +29,14 @@ common_t	common;
 void	gauss() {
 	double	start = gettime();
 	int	i = 0;
-	F	*a = common.a;
-	int	n = common.n;
 	do {
-		F	pivot = M(a, 2 * n, i, i);
+		// divide pivot row by the pivot elemnt
+		F	pivot = M(a, 2 * n, i, i); // pivot element
 		for (int j = i; j < 2 * n; j++) {
 			M(a, 2 * n, i, j) /= pivot;
 		}
+
+		// parallel loop: perform row operations all over the matrix
 #pragma omp parallel for
 		for (int k = 0; k < n; k++) {
 			if (k != i) {
@@ -47,20 +46,26 @@ void	gauss() {
 				}
 			}
 		}
+
+		// go to the next pivot element
 		i++;
 	} while (i < n);
 	double	end = gettime();
 	printf("%d,%.6f\n", n, end - start);
 }
 
+/**
+ * \brief perform a gauss experiment with n x n matrix
+ *
+ * \param n	dimension of the matrix the inverse
+ */
 void	experiment(int n) {
 	/* create a system to solve */
-	common.n = n;
-	common.a = random_matrix(n, 2 * n);
+	a = random_matrix(n, 2 * n);
 
 	/* display the matrix */
 	if (n <= 10) {
-		display_matrix(stdout, common.a, n, 2 * n);
+		display_matrix(stdout, a, n, 2 * n);
 	}
 
 	/* perform the Gauss algorithm */
@@ -68,14 +73,19 @@ void	experiment(int n) {
 
 	/* display the matrix */
 	if (n <= 10) {
-		display_matrix(stdout, common.a, n, 2 * n);
+		display_matrix(stdout, a, n, 2 * n);
 	}
 
-	free(common.a);
+	free(a);
 }
 
+/**
+ * \brief main function
+ */
 int	main(int argc, char *argv[]) {
-	int	n = 10;
+	n = 10;
+
+	// parse the command line
 	int	c;
 	while (EOF != (c = getopt(argc, argv, "p:")))
 		switch (c) {
@@ -84,6 +94,8 @@ int	main(int argc, char *argv[]) {
 			break;
 		}
 
+	// each subsequent argument is a matrix size for which to perform
+	// an experiment and measure run time
 	while (optind < argc) {
 		n = atoi(argv[optind]);
 		if (n <= 0) {
