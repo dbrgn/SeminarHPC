@@ -42,6 +42,7 @@ typedef struct {
 	int	min;
 	int	max;
 	pthread_t	thread;
+	float	b;
 } thread_info;
 
 thread_info	*info;
@@ -60,7 +61,7 @@ void	start_threads(int nthreads) {
 
 	// initialize the barrier
 	pthread_barrier_init(&common.barrier1, NULL, common.nthreads);
-	pthread_barrier_init(&common.barrier1, NULL, common.nthreads);
+	pthread_barrier_init(&common.barrier2, NULL, common.nthreads);
 
 	// fill the info structure for each thread, including launching
 	// the thread
@@ -120,9 +121,9 @@ void	*thread_main(void *arg) {
 		int	n = common.n;
 		for (int k = this->min; k < this->max; k++) {
 			if (k != i) {
-				F	b = a[i + 2 * n * k];
+				this->b = a[i + 2 * n * k];
 				for (int j = i; j < 2 * n; j++) {
-					a[j + 2 * n * k] -= b * a[j + 2 * n * i];
+					a[j + 2 * n * k] -= this->b * a[j + 2 * n * i];
 				}
 			}
 		}

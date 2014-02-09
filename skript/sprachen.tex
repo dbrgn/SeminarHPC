@@ -34,7 +34,7 @@ von Statten gehen kann.
 Wir erinnern grundlegenden Gauss-Algorithmus. Gegeben ist eine regul"are
 $n\times n$-Matrix $A$, gesucht wird ihre Inverse $A^{-1}$.
 Der Gauss-Algorithmus formt ein Tableau der Form
-\[
+\begin{equation}
 \begin{tabular}{|>{$}c<{$}>{$}c<{$}>{$}c<{$}>{$}c<{$}|>{$}c<{$}>{$}c<{$}>{$}c<{$}>{$}c<{$}|}
 \hline
 a_{11}&a_{12}&\dots &a_{1n}&1     &0     &\dots &0\\
@@ -43,7 +43,8 @@ a_{21}&a_{22}&\dots &a_{2n}&0     &1     &\dots &0\\
 a_{n1}&a_{n2}&\dots &a_{nn}&0     &0     &\dots &1\\
 \hline
 \end{tabular}
-\]
+\label{starttableau}
+\end{equation}
 Mit Hilfe von Zeilenoperationen in ein Tableau der Form
 \begin{equation}
 \begin{tabular}{|>{$}c<{$}>{$}c<{$}>{$}c<{$}>{$}c<{$}|>{$}c<{$}>{$}c<{$}>{$}c<{$}>{$}c<{$}|}
@@ -85,11 +86,11 @@ der Regel
 \begin{equation}
 a_{kj}' = a_{kj} - a_{ki}a_{ij}' 
 =a_{kj} - a_{ki}\frac{a_{ij}}{a_{ii}}.
-\label{blau}
+\label{blue}
 \end{equation}
 Damit werden alle Elemente unter dem Pivot-Elemente zu 0 gemacht.
 
-Durch Wiederholung der Operationen (\ref{rot}) und (\ref{blau}) f"ur
+Durch Wiederholung der Operationen (\ref{red}) und (\ref{blue}) f"ur
 alle Pivot-Elemente erreicht man die Tableau-Form
 \[
 \begin{tabular}{|>{$}c<{$}>{$}c<{$}>{$}c<{$}>{$}c<{$}|>{$}c<{$}>{$}c<{$}>{$}c<{$}>{$}c<{$}|}
@@ -140,14 +141,682 @@ Die Implementation des Algorithmus in C ist unproblematisch. Der Quellcode
 kann im zu diesem Skript geh"orenden Repository auf Github gefunden
 werden. 
 
+Der Inhalt des Tableau (\ref{starttableau}) wird in einem Array {\tt a}
+abgelegt. Das Makro {\tt M} mit der Defintion
+\verbatiminput{M.c}
+vereinfacht den Zugriff auf den Array {\tt a}. Damit l"asst sich die 
+Vorw"artsredunktion wie folgt formulieren:
+\verbatiminput{sequentialforward.c}
+Das R"uckw"artseinsetzen ist noch einfacher, weil die Pivot-Zeile
+nicht erst dividiert werden muss.
+\verbatiminput{sequentialbackward.c}
+Die Laufzeit des Algorithmus (Abbildung~\ref{laufzeit-sequentiell})
+zeigt die erwartete $O(n^3)$ Abh"angigkeit. Lineare Regression f"ur 
+die Messpunkte liefert den Exponenten $2.985$, als sehr nahe am
+theoretischen Exponenten 3.
+\begin{figure}
+\begin{center}
+\includegraphics[width=\hsize]{images/gauss-seq.pdf}
+\end{center}
+\caption{Laufzeit des Gauss-Algorithmus, sequentielle Implementation
+\label{laufzeit-sequentiell}}
+\end{figure}
+
 \subsection{Parallelisierung}
+Die Zeilenoperationen des Gaussalgorithmus k"onnen mit folgenden
+Einschr"ankungen parallelisiert werden:
+\begin{enumerate}
+\item Mit den Zeilenoperationen darf erst dann begonnen werden,
+wenn die Pivot-Zeile dividiert worden ist. Genauer: die Elemente
+in der Spalte $j$ k"onnen erst berechnet werden, wenn das Element in Spalte
+$j$ in der Pivot-Zeile berechnet worden ist.
+\item Bei der Bearbeitung von Zeile $k$ darf das Matrixelement $a_{ki}$
+erst dann ver"andert werden, wenn es nicht mehr f"ur die Durchf"uhrung
+der Zeilenoperation ben"otigt wird. Dies kann auf verschiedene Arten
+geschehen.
+Das Element $a_{ki}$, mit dem alle Elemente
+der Pivot-Zeile multipliziert werden, bevor sie von der Zeile $k$ subtrahiert
+werden, wird nach dieser Zeilen-Operation gar nicht mehr ben"otigt.
+Die ganze Spalte $i$ wird nach der Zeilen-Operation nicht mehr ben"otig,
+daher m"ussen die Operationen (\ref{blue}) auf die Spalte gar nicht
+angewendet werden. Damit verschiendet auch das Problem.
+\end{enumerate}
 
+Jeder Gauss-Schritt hat eine kleinere Menge von Zeilen-Operationen auszuf"uhren,
+da ja nur die Zeilen $k>i$ bearbeitet werden m"ussen.
+Beim R"uckw"artseinsetzen steht dann erst eine grosse Zahl von
+Zeilenoperationen an, deren Zahl laufend kleiner wird.
+Wie auch immer
+man dies parallelisiert, steht mit zunehmendem Fortschritt immer
+weniger Arbeit zur Parallelisierung zur Verf"ugung.
 
-\section{Thread-Programmierung}
+Die Operationen des R"uckw"artseinsetzens werden erst nach vollst"andiger
+Vorw"artsreduktion ausgef"uhrt, weil sich damit die kleinstm"ogliche
+Anzahl Operationen in einem sequentiellen Programm realisieren l"asst.
+In einem parallelisierten Algorithmus kann jedoch mit den Operationen
+des R"uckw"artseinsetzens bereits vorher begonnen werden. Zwar werden damit
+im linken Teil des Tableau einige "uberfl"ussige Operationen ausgef"uhrt,
+diese k"onnen aber parallel zu den Operationen der Vorw"artsreduktion
+ausgef"uhrt werden.
+Da das R"uckw"arts\-einsetzen entf"allt, entsteht ein einfacherer Algorithmus,
+mit vergleichbarer Laufzeit:
+\verbatiminput{unidirectional.c}
+Dieser unidirektionale Algorithmus ist einfacher zu parallelisieren, hat
+aber praktisch die gleiche Laufzeit, wie man in Abbildung~\ref{gauss-uni}.
+\begin{figure}
+\begin{center}
+\includegraphics[width=\hsize]{images/gauss-uni.pdf}
+\end{center}
+\caption{Laufzeit des unidirektionalen Gauss-Algorithmus. Die blaue Kurve
+zeigt zum Vergleich die Daten des originalen Algorithmus, f"ur grosse
+$n$ ist kein Unterschied feststellbar.
+Lineare Regression (rote Gerade) liefert den Exponenten $2.990$.
+\label{gauss-uni}}
+\end{figure}
+\subsection{Notwendige Sprachkonstrukte}
+Um den parallelisierten Algorithmus umzusetzen, sind folgende wesentlichen
+Konstrukte notwendig:
+\begin{enumerate}
+\item Methoden, um Threads zu starten und die in der inneren Schleife "uber
+$k$ notwendige Arbeit auf die einzelnen Threads zu verteilen.
+\item Eine Methode um sicherzustellen, dass die Threads nicht weiter 
+arbeiten, bevor die Division der Pivot-Zeile durch das Pivot-Element
+abgeschlossen ist.
+\label{barrier}
+\end{enumerate}
+Konstrukte, die \ref{barrier} implementieren, werden normalerweise
+Barrier genannt.
+Verschiedene Threads in einem Programm laufen
+unabh"angig voneinander bis zur Barrier. Erst wenn alle Threads
+bei der Barrier angekommen sind, k"onnen die Threads weiterfahren.
 
-\section{OpenMP}
+\section{Pthreads}
+Posix Threads sind die das standardisierte API f"ur Thread-Programmierung
+und Posix-Systemen.
+Das API ist vollst"andig in den Manual-Pages dokumentiert, wir gehen
+daher nur auf die Funktionen ein, die f"ur die Beispielimplementation
+ben"otigt werden. Im Laufe der Rechnung muss eine Anzahl von Threads
+gestartet werden, die am Ende wieder beendet werden m"ussen.
+
+\subsection{Erzeugung von Threads}
+Damit alle Threads ordnungsgem"ass beendet werden k"onnen, wird die Information
+"uber die Threads in einer Struktur
+\begin{verbatim}
+typedef struct {
+        int        min;
+        int        max;
+        pthread_t  thread;
+} thread_info;
+\end{verbatim}
+gesammelt. Das {\tt thread}-Member ist ein Handle f"ur einen Thread, die
+beiden Werte {\tt min} und {\tt max} geben das Interval von $k$-Indizes
+an, f"ur die dieser Thread zust"andig ist.
+
+Da eine grosse Zahl von Threads an der Berechnung beteiligt sein kann,
+wird ein ganzer Array von \verb+thread_info+-Strukturen in einer
+Struktur
+\begin{verbatim}
+typedef struct {
+        float   *a;     // array
+        int     n;      // dimensions
+        int     nthreads;
+        pthread_barrier_t       barrier1;
+        pthread_barrier_t       barrier2;
+} common_info;
+common_info     common;
+\end{verbatim}
+gespeichert. Diese Struktur enth"alt auch die zwei Barriers, die
+im n"achsten Abschnitt besprochen werden. Das Member {\tt a}
+zeigt auf den Array mit dem Tableauinhalt, das Member {\tt n} 
+bestimmt die Dimensionen des Tableau.
+
+Zum Starten der Threads dient die Funktion \verb+pthread_create+.
+Sie verlangt ein Argument, welches Attribute des neu zu startenden
+Thread beinhaltet. In unserem Fall sind keine speziellen Attribute
+n"otig, so dass die Threads mit dem Befehl
+\begin{verbatim}
+pthread_attr_t  attr;
+pthread_attr_init(&attr);
+pthread_create(&info[i].thread, &attr, thread_main, &info[i]);
+\end{verbatim}
+Das Symbol \verb+thread_main+ ist die Funktion, die vom Thread
+ausgf"uhrt werden soll, das vierte Argument ist das Pointer-Argument,
+welches der Funktion "ubergeben wird.
+Die Funktion muss also als erstes das Argument auf den Typ \verb+thread_info+
+casten:
+\begin{verbatim}
+void    *thread_main(void *arg) {
+        // get info about the thread
+        thread_info     *this = (thread_info *)arg;
+\end{verbatim}
+Nat"urlich darf nur ein Thread die Division des Pivot-Elements durchf"uhren.
+Man k"onnte dies als klassisches Locking-Problem betrachten, dies ist
+jedoch nicht korrekt. Ein Mutex stellt nur sicher, dass nicht mehr als
+ein Thread an diesem Teilproblem arbeitet. Ein sp"at an diesem Punkt
+im Code ankommender Thread w"urde die Division nochmals durchf"uhren.
+Sie h"atte zwar keine Wirkung, weil das Pivot-Element an diesem Punkt
+bereits 1 ist. Eine der Optimierungsm"oglichkeiten des Algorithmus
+besteht aber darin, das Pivot-Element gar nicht zu dividieren, was
+dann zu einem Fehler bei mehrfacher Ausf"uhrung der Pivot-Division
+f"uhren w"urde.
+
+Das Pthreads-API erlaubt aber auch, den Handle des aktuellen Threads
+zu erhalten und mit den global verf"ugbaren Thread-Handles zu
+vergleichen. Damit kann man sicherstellen, dass nur der erste der
+gestarteten Threads die Pivot-Division durchf"uhrt:
+\begin{verbatim}
+if (pthread_self() == info[0].thread) {
+        float   pivot = a[i + 2 * n * i];
+        for (int j = i; j < 2 * n; j++) {
+                a[j + 2 * n * i] /= pivot;
+        }
+}
+\end{verbatim}
+
+Erst wenn der erste Thread die Zeilendivision durchgef"uhrt hat, darf 
+die Zeilenoperation in den anderen Zeilen durchgef"uhrt werden. Dazu
+dient der API-Aufruf \verb+pthread_barrier_wait+.
+Die Members {\tt min} und {\tt max} geben jetzt an, f"ur welche Zeilen
+der Thread die Zeilen-Operationen durchf"uhren muss, allerdings erst
+\begin{verbatim}
+pthread_barrier_wait(&common.barrier1);
+for (int k = this->min; k < this->max; k++) {
+        if (k != i) {
+                float   b = a[i + 2 * n * k];
+                for (int j = i; j < 2 * n; j++) {
+                        a[j + 2 * n * k] -= this->b * a[j + 2 * n * i];
+                }
+        }
+}
+pthread_barrier_wait(&common.barrier2);
+\end{verbatim}
+Hier wird eine Zeilen-Operation in allen Zeilen durchgef"uhrt.
+Jeder Thread arbeitet mit einem anderen $b$, da aber $b$ ohnehin
+eine lokale Variable ist, die auf dem Thread-Stack alloziert wird,
+entsteht kein Konflikt.
+
+Das Pthread API stellt auch einen Mechanismus zur Verwaltung von
+Thread-spezifischem Speicher zur Verf"ugung. Um solchen Speicher
+zu verwenden, muss erst ein \verb+pthread_key_t+ erzeugt werden,
+welcher in allen Threads als Handle f"ur den Thread-spezifischen
+Speicher dient.
+Mit dem Key ist auch ein Destruktor verbunden,
+der sicherstellt, dass Thread-spezifischer Speicher bei Thread-Ende 
+dealloziert wird. Die Zuweisung von Speicher als Thread-spezifischer
+Speicher geschieht mit der Funktion \verb+pthread_setspecific+,
+f"ur den Zugriff darauf verwendet man die Funktion \verb+pthread_getspecific+.
+
+\subsection{Barriers}
+Der Pthreads-Standard definiert auch ein Barrier-Konstrukt, welches
+jedoch nicht in allen Pthread-Implementationen tats"achlich vorhanden ist%
+\footnote{Barriers fehlen zum Beispiel in FreeBSD und Mac OS X.
+In der Beispiel-Implementation im Repository wird im File
+{\tt barrier.h} eine Ersatz-Implementation bereitgestellt, welche nur
+auf Mutexes und Conditiona variables basiert.}.
+
+Die Verwendung der Barriers ist oben bereits dargestellt worden, es fehlt
+nur noch die Initialisierung:
+\begin{verbatim}
+// initialize the barriers
+pthread_barrier_init(&common.barrier1, NULL, common.nthreads);
+pthread_barrier_init(&common.barrier2, NULL, common.nthreads);
+\end{verbatim}
+Die Initialisierung legt die Anzahl der Threads fest, auf die die Barrier
+wartet. Das zweite Argument der \verb+pthread_barrier_init+-Funktion
+beinhaltet Attribute, im aktuellen Standard sind jedoch keine Werte
+f"ur dieses Argument definiert.
+
+\subsection{Rechenleistung}
+\begin{figure}
+\begin{center}
+\includegraphics[width=\hsize]{images/gauss-pthread.pdf}
+\end{center}
+\caption{Laufzeit des mit Pthreads implementierten Gauss-Algorithmus.
+Im Vergleich dazu die Laufzeit der sequentiellen Implementierung 
+in rot\label{gauss-pthread}}
+\end{figure}
+
+\section{OpenMP\label{openmp-intro}}
+OpenMP ist eine API-Spezifikation f"ur parallele Programmierung.
+Die erste Spezifikation f"ur Fortran erschien 1997, die j"ungste 
+Version 4.0 wurde im Juli 2013 ver"offentlicht.
+Die Spezifikation kann von der OpenMP Website \url{http://www.openmp.org}
+heruntergeladen werden.
+
+Gegen"uber Pthreads verlagert OpenMP die Hauptarbeit der Parallelisierung
+in den Compiler. 
+Im einfachsten Fall gen"ugt es, den Source-Code eines sequentiellen Programs
+mit einigen wenigen Pragmas auszuzeichnen, die parallelisierbare
+Konstrukte markieren. Der Compiler kann dann daraus parallelen Code
+generieren. Insbesondere soll der Programmierer nicht wissen m"ussen, wieviele
+Threads an einem parallelen Konstrukt arbeiten, es wird der Implementation
+"uberlassen, die optimale Anzahl von Threads zu w"ahlen.
+
+Im Beispiel-Problem ist die Parallelisierung besonders einfach, da
+OpenMP Konstrukte f"ur parallel auszuf"uhrende Schleifen bereitstellt.
+Durch hinzuf"ugen eines einzelnen Pragmas entsteht paralleler Code:
+\begin{verbatim}
+#pragma omp parallel for
+for (int k = 0; k < n; k++) {
+        if (k != i) {
+                float   b = M(a, 2 * n, k, i);
+                for (int j = i; j < 2 * n; j++) {
+                        M(a, 2 * n, k, j) -= b * M(a, 2 * n, i, j);
+                }
+        }
+}
+\end{verbatim}
+Das OpenMP Runtime parallelisiert die {\tt for}-Schleife. Dabei wird
+angenommen, dass die einzelnen Zeilen voneinander unabh"angig sind, dass
+also jeder von OpenMP gestartete Thread eine Zeile bearbeiten kann,
+ohne auf Resultate eines anderen Threads warten zu m"ussen.
+
+Auf die Problematik der Variable {\tt b} wurde schon im Pthread-Fall
+hingewiesen. Auch hier ist {\tt b} eine lokale Variable, die auf
+dem Thread-Stack alloziert wird. W"urde man hingegen $b$ ausserhalb
+der Schleife allozieren, w"are nicht mehr klar, dass jeder Thread
+eine eigene Kopie der Variable braucht. In diesem Fall m"usste man
+mit Hilfe der Direktive {\tt threadprivate} sicherstellen, dass
+das OpenMP Runtime jedem Thread eine eigene Kopie der Variable $b$
+bereitstellt.
+
+Schaut man sich den Code genauer an, den der Compiler f"ur die Schleife
+generiert, stellt sich heraus, dass der Optimizer die Variable $b$
+ohnehin entfernt. Sie wird ja in jedem Schleifendurchgang der inneren
+Schleife gebraucht, so dass es sich lohnt, den Wert von $b$ in einem
+Register zu behalten.
+
+\section{OpenCL\label{opencl-intro}}
+Rechenleistung wird nicht nur von Mikroprozessoren bereitgestellt, in den
+letzten Jahren wurde immer bedeutendere Floating-Point Kapazit"at 
+aus anderen Hardware-Komponenten verf"ugbar:
+\begin{itemize}
+\item Moderne Prozessoren verf"ugen oft "uber ``Vektoreinheiten'', 
+die die gleichen Rechenoperationen parallel mit einer Reihe von Datenelementen
+durchf"uhren k"onnen.
+Da ein einzelner Instruktionsstrom die Verarbeitung mehrerer Datenstr"ome
+steuert, spricht von SIMD: Single Instruction Multiple Data.
+Ohne spezielle Unterst"utzung durch Programmierumgebungen sind diese
+Vektoreinheiten nur durch Assembler-Programmierung nutzbar, was den
+Code unportable und schwer wartbar macht.
+OpenMP unterst"utzt SIMD einheiten mit den {\tt simd} Direktiven.
+\item 3D-Graphikkarten m"ussen f"ur die Darstellung einer dreidimensionalen
+Szene eine grosse Zahle von Operationen mit 3D-Vektoren durchf"uhren. 
+Daher bestehen 3D-Graphikkarten aus einer grossen Zahl von SIMD Einheiten,
+die diese immer gleichen Operationen parallel durchf"uhren k"onnen. 
+Normalerweise sind die Resultate dieser Rechnung jedoch ausschliesslich
+als Pixel-Buffer zugreifbar, es ist also spezieller zus"atzlicher Aufwand
+n"otig, die Rechenresultate direkt zug"anglich zu machen.
+\item Einige Prozessoren besitzen spezielle Koprozessoren mit besonderer
+paralleler Rechenleistung. Der Cell-Prozessor basiert auf einem 64bit PowerPC
+Kern, der zusammen mit 8 4-fach SIMD-Einheiten auf einem Chip integriert ist, 
+die Synergistic Processing Element (SPE) genannt werden.
+Durch die enge Integration mit der CPU ist der Cell-Prozessor zu einer hohen
+Rechenleistung f"ahig, wenigstens f"ur Anwendungen, die nicht auf grosse
+Datenmengen angewiesen sind.
+\item Digitale Signalprozessoren k"onnen einen Datenstrom mit einer immer
+gleich bleibenden Folge von Instruktionen bearbeiten. Prozessoren
+f"ur Multimedia-Ger"ate integrieren solche Prozessoren oft mit auf dem
+Chip, zum Beispiel f"ur hoch performante Audio-Verarbeitung. 
+Enge Schleifen in einer Berechnung k"onnten von so einem Signalprozessor 
+besonders effizient gerechnet werden.
+\item Anwendungen im Hochgeschwindigkeitsb"orsenhandel verlangen noch
+schnellere Antwortzeiten.
+Hierzu werden manchmal FPGAs eingesetzt. Der Algorithmus wird dabei
+in eine Verschaltung der Recheneinheiten des FPGA "ubersetzt, und das
+FPGA zur Laufzeit programmiert.
+Damit wird es m"oglich, ein Rechenresultat mit jedem Taktzyklus 
+zu bekommen.
+\end{itemize}
+Diese Rechenleistung ist nur beschr"ankt nutzbar, wenn nicht ein
+API zur Verf"ugung steht, in dem man m"oglichst unabh"angig von der
+spezifischen Hardware programmieren kann.
+
+Open Compute Language (OpenCL) ist ein solches API.
+OpenCL definiert einerseits eine Laufzeit-Umgebung, um auf 
+Rechen-Hardware zuzugreifen, als auch eine Sprache, in der parallele
+Algorithmen formuliert werden k"onnen. 
+
+OpenCL geht von einem Plattform-Modell aus, welches dem Host
+eine Reihe von Compute-Devices beistellt.
+Compute Devices k"onnen Graphikkarten, spezielle Compute-Karten
+auf der Basis von 3D-Graphikprozessoren.
+Jedes Compute-Device besteht aus einem oder mehreren Compute-Units.
+Eine Compute-Unit kann einen Instruktionsstrom ausf"uhren.
+Je mehr Compute Units zur Verf"ugung stehen, desto mehr unabh"angige
+Threads kann das Compute-Device unterst"utzen.
+Jede Compute-Unit besteht aus einem oder mehreren Processing Elements,
+die von den Compute-Units als SIMD Einheiten genutzt werden.
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.7\hsize]{images/opencl-platform.pdf}
+\end{center}
+\caption{Plattform-Modell von OpenCL\label{opencl-platform}}
+\end{figure}
+
+\subsection{Gauss-Algorithmus}
+Die Implementation des Gauss-Algorithmus in OpenCL braucht zun"achst eine
+grosse Menge von Code, um das Compute Device zu reservieren.
+Die Schnittstellt zum Compute Device ist eine Command Queue,
+"uber die Datentransfers zum Speicher des Compute Device und zur"uck
+erfolgen.
+Auch das Programm f"ur das Compute device wird auf dem
+Host kompiliert, und dann dem Compute Device via Command Queue
+"ubermittelt.
+
+\subsubsection{Laufzeitumgebung}
+In etwas mehr Detail sind folgende Schritte n"otig, um zu einem
+Kontext und einer Command Queue mit dem ersten verf"ugbaren
+Compute Device zu kommen.
+\begin{verbatim}
+clGetDeviceIDs(NULL, gpu ? CL_DEVICE_TYPE_GPU : CL_DEVICE_TYPE_CPU,
+        1, &device_id, NULL);
+cl_context      context = clCreateContext(0, 1, &device_id, NULL, NULL, &err);
+cl_command_queue commands = clCreateCommandQueue(context, device_id, 0, &err);
+\end{verbatim}
+Damit ist jetzt bekannt, f"ur welches Compute Device ein OpenCL-Programm
+kompiliert werden muss, was mit folgenden Schritten geschehen kann:
+\begin{verbatim}
+cl_program      program = clCreateProgramWithSource(context, 1,
+			source, length, err);
+\end{verbatim}
+Der Pointer \verb+source+ zeigt auf einen Zeichenpuffer, der den Source-Code
+des OpenCL Programms enth"alt. Kompilation:
+\begin{verbatim}
+clBuildProgram(program, 1, &device_id, NULL, NULL, NULL);
+\end{verbatim}
+Das kompilierte Programm kann jetzt in einen ausf"uhrbaren
+Kernel umgewandelt werden, man k"onnte dies mit dem Linken eines
+C-Programms vergleichen:
+\begin{verbatim}
+cl_kernel       kernel = clCreateKernel(program, "invert", &err);
+\end{verbatim}
+
+Damit der Kernel ausgef"uhrt werden kann, m"ussen zuerst die Daten
+als Memory-Objekte erzeugt und die zugeh"origen Daten an das Compute Device
+"ubermittelt werden:
+\begin{verbatim}
+cl_mem input = clCreateBuffer(context, CL_MEM_READ_ONLY,
+        sizeof(float) * n * n, NULL, NULL);
+cl_mem output = clCreateBuffer(context, CL_MEM_WRITE_ONLY,
+        sizeof(float) * n * n, NULL, NULL);
+clEnqueueWriteBuffer(commands, input, CL_TRUE, 0,
+        sizeof(float) * n * n, a, 0, NULL, NULL);
+clSetKernelArg(kernel, 0, sizeof(cl_mem), &input);
+clSetKernelArg(kernel, 1, sizeof(cl_mem), &output);
+clSetKernelArg(kernel, 2, sizeof(unsigned int), &n);
+\end{verbatim}
+Die letzten drei Befehle verbinden den \verb+input+-Puffer mit dem ersten
+Kernel-Argument, \verb+output+ wird mit dem zweiten
+Argument verbunden, und die in der Variablen \verb+n+ abgelegte
+Zahl wird als drittes Argument "ubergeben.
+
+Die bisher verwendeten API-Funktionen sagen "uberhaupt nichts dar"uber
+aus, wie die Parallelisierung durchzuf"uhren ist. Dazu ist festzulegen,
+wie die einzelnen Work Items strukturiert werden sollen, welche Arbeit
+innerhalb eines Work-Items auszuf"uhren ist.
+Dabei ist wichtig, dass vor jeder Pivot-Zeilen-Division die Threads
+synchronisiert werden m"ussen. Dazu stehen in OpenCL Barriers
+zur verf"ugung, diese k"onnen aber nur innerhalb einer Workgroup
+synchronisieren. Daher muss dieses Problem von einer einzigen Workgroup
+gel"ost werden. Die maximale Gr"osse einer Workgroup kann mit
+\begin{verbatim}
+clGetKernelWorkGroupInfo(kernel, device_id,
+        CL_KERNEL_WORK_GROUP_SIZE, sizeof(local), &local, NULL);
+\end{verbatim}
+ermittelt werden.
+Da diese Gr"osse eher klein ist, typischerweise
+zwischen 1 (CPU-Implementation) und einer kleinen Zweierpotenz
+(Graphikkarten), bleibt nur eine relativ kleine Zahl von Work Items.
+Jedes Work Item muss also mehrere Zeilen der Matrix bearbeiten.
+Wie dies genau geschieht, wird bei der Diskussion des Kernel-Codes
+besprochen.
+
+Zum Schluss m"ussen die Resultat-Daten gelesen werden, dazu wird wieder
+die Command Queue bem"uht:
+\begin{verbatim}
+clEnqueueReadBuffer(commands, output, CL_TRUE, 0,
+        sizeof(float) * n * n, b, 0, NULL, NULL);
+\end{verbatim}
+Der restliche Code im Beispielprogramm dient dazu, die allozierten
+Resourcen freizugeben.
+
+\subsubsection{Kernel-Code}
+Der Kernel Code im File \verb+gauss.cl+ implementiert den Gauss-Algorithmus.
+Der Kernel wird mit drei Argumenten deklariert:
+\begin{verbatim}
+__kernel void   invert(__global float *input, __global float *output,
+        const unsigned int n)
+\end{verbatim}
+Nach der Diskussion zur Aufteilung der Arbeit in Work-Groups wissen wir,
+wie der Bereich von Zeilen berechnet werden muss:
+\begin{verbatim}
+local_size = get_local_size(0);
+unsigned int    blocksize = n / local_size;
+min_row = get_local_id(0) * blocksize;
+max_row = min_row + blocksize;
+\end{verbatim}
+Der Algorithmus l"auft dann wie gewohnt ab.
+Nur Work Item 0 f"uhrt die Pivot-Division durch, und alle anderen
+Threads m"ussen darauf warten
+\begin{verbatim}
+i = 0;
+while (i < n) {
+    // local id 0 does the pivot operation
+    if (get_local_id(0) == 0) {
+        float   pivot = 1 / input[i + i * n];
+        for (j = 0; j < n; j++) {
+            input[j + i * n] = input[j + i * n] * pivot;
+            output[j + i * n] = output[j + i * n] * pivot;
+        }
+    }
+
+    // barrier to wait for the pivot row operation to complete
+    barrier(CLK_GLOBAL_MEM_FENCE);
+
+    // now perform the row operations all over the matrix
+    for (unsigned int k = min_row; k < max_row; k++) {
+        __global float  *outp = output + n * i;
+        __global float  *inp = input + n * i;
+        if (k != i) {
+            j = 0; 
+            __global float  *out = output + n * k;
+            __global float  *in = input + n * k;
+            float   b = in[i];
+            // do the remining operations by scalar
+            // operations
+            while (j < n) {
+                out[j] -= b * outp[j];
+                in[j] -= b * inp[j];
+                j++;
+            }
+        }
+    }
+
+    // don't continue until all threads have completed
+    // the row operations
+    barrier(CLK_GLOBAL_MEM_FENCE);
+    i++;
+}
+\end{verbatim}
+
+\subsection{Resultate}
+
 
 \section{Message Passing: OpenMPI}
+In den Abschnitten~\ref{openmp-intro} und \ref{opencl-intro}
+hat sich gezeigt, dass sich damit nur Probleme effizient l"osen lassen,
+die in einem einzigen Adressraum untergebracht werden k"onnen.
+Der Parallelisierung sind damit jedoch wegen des nicht gleichm"assigen
+Speicherzugriffs Grenzen gesetzt.
+Viele Probleme zum Beispiel aus der Str"omungsdynamik oder
+der Quantenfeldtheorie sind ausserdem bedeutend gr"osser, so dass sie
+auf eine grosse Zahl von Computern verteilt werden m"ussen.
+Jeder Prozessor greift dadurch nur noch auf eine begrenzte Menge von Speicher
+zu, er ist zudem der einzige Nutzer dieses Speichers, so dass Probleme
+der Cache-Koh"arenz oder des ungleichm"assigen Zugriffs keine
+Einschr"ankung mehr sind.
+Es bleibt jedoch das Problem, dass einzelne Berechnungsschritte
+von anderen Schritten abh"angig sind, die m"oglicherweise auf anderen
+Computern berechnet wurden.
+Eine solche L"osung l"asst sich also nur dann effizient realisieren,
+wenn man eine Programmierungebung zur Verf"ugung hat, welche folgende
+Funktionen bereitstellt:
+\begin{enumerate}
+\item Starten und Stoppen einer grossen Zahl von Prozessen auf vielen
+Maschinen.
+\item Datenaustausch zwischen den einzelnen Prozessen, abh"angig von den
+Erfordernissen des Algorithmus.
+Der Datenaustausch muss dabei auch ber"ucksichtigen, dass verschiedene
+Prozessoren verschiedene bin"are Formate f"ur Zahlen verwenden
+k"onnen, und die Daten entsprechend konvertieren. Es reicht also nicht,
+einfach nur Datenbl"ocke durch TCP-Verbindungen zu schieben.
+\item Konsolidierung der Daten von verschiedenen Prozessen und Output.
+\end{enumerate}
 
-\section{OpenCL}
+H"ochste Performance kann nur dann erwartet werden, wenn die Latenz, 
+die der Datenaustausch zwischen Knoten einf"uhrt, minimiert werden kann.
+Spezialisierte Hardware wie Myrinet oder Infiniband kann die Latenz
+eines komplexen Netzwerkstacks wie TCP/IP reduzieren, und damit
+die Latenz niedrig halten, doch sollten Programm unabh"angig von solchen
+Technologien geschrieben werden k"onnen.
+
+OpenMPI l"ost genau dieses Problem.
+Auf der OpenMPI Website \url{www.openmpi.org} findet man
+eine grosse Menge Informationen zu OpenMPI. 
+OpenMPI ist so gestaltet, dass der Entwickler ein einziges Programm
+schreibt, welches dann auf einer grossen Zahl von Rechnern
+ausgef"uhrt wird. Jedes Programm kann alle Resourcen eines Knotens nutzen,
+es kann sogar mehrere Threads verwenden, oder ein OpenCL Compute
+Device, welches auf dem Knoten verf"ugbar ist.
+
+Jede Kopie des Programms muss also aus der Laufzeitumgebung
+ableiten k"onnen, welchen Teil der Gesamtarbeit es auszuf"uhren hat.
+Dazu dienen API-Funktionen, mit denen das Programm feststellen kann,
+wieviele Kopien laufen und welche Nummer die aktuelle Kopie hat.
+\begin{verbatim}
+// initialize MPI
+ierr = MPI_Init(&argc, &argv);
+
+// get MPI dimension parameters
+ierr = MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+ierr = MPI_Comm_size(MPI_COMM_WORLD, &num_procs);
+\end{verbatim}
+Die Funktion \verb+MPI_Init+ initialisiert OpenMPI, danach kann mit
+den Funtionen \verb+MPI_Comm_size+ die Anzahl der Prozesse und mit
+\verb+MPI_Comm_rank+ der Rang, also die Nummer, des aktuellen Prozesses
+ermittelt werden.
+
+Wie man einen parallelen Algorithmus basierend auf Rang und Anzahl
+Prozesse konfigurieren kann, zeigen wir im n"achsten Abschnitt am
+Beispiel das Gauss-Algorithmus.
+
+Zum Starten der Prozesse stellt OpenMPI ein Program \verb+mpirun+
+zur Verf"ugung. Zum Beispiel kann man das Beispielprogramm mit der
+Implementation des Gauss-Algorithmus mit dem Befehl
+\begin{verbatim}
+$ mpirun -np 8 ./gauss 
+\end{verbatim}
+starten.
+
+\subsection{Gauss-Algorithmus mit OpenMPI}
+Die OpenMPI-Implementation des Gauss-Algorithmus richtet sich nach
+den Implementationen in OpenMP und OpenCL.
+Zun"achst muss die Matrix erzeugt werden, die invertiert werden soll.
+Dieser Teil der Arbeit ist nicht parallelisierbar, daher wird nur Prozess 0
+mit dieser Aufgabe betraut.
+
+Die Matrix wird in Teile aufgeteilt, jeder Prozess erh"alt nur einen
+Teil der Zeilen, f"ur deren Berabeitung der Prozess zust"andig ist. 
+Der Bereich von Zeilenindizes, f"ur die ein Prozess verantwortlich ist,
+kann aus Rang und Prozesszahl abgeleitet werden:
+\begin{verbatim}
+float   blocksize = n / (float)num_procs;
+int     minrow = round(rank * blocksize);
+int     maxrow = round((rank + 1) * blocksize);
+int     height = maxrow - minrow;
+\end{verbatim}
+Mit Hilfe dieser Formeln kann auch jeder andere Prozess herausfinden,
+wer f"ur eine bestimmte Zeile verantwortlich ist.
+Der Prozess 0 sendet jetzt also den Prozessen mit Rang $r>0$ den Teil
+der Matrix, f"ur den dieser zust"andig ist:
+\begin{verbatim}
+for (int r = 1; r < num_procs; r++) {
+        int     fromrow = round(r * blocksize);
+        int     torow = round((r + 1) * blocksize);
+        int     h = torow - fromrow;
+        memcpy(buffer, A + fromrow * n, h * n * sizeof(float));
+        MPI_Send(buffer, h * n, MPI_FLOAT, r, tag, MPI_COMM_WORLD);
+}
+\end{verbatim}
+Der Prozess mit dem Rang $r$ (viertes Argument der Funktion
+\verb+MPI_Send+ empf"angt diese Daten mit Hilfe der Funktion
+\verb+MPI_Recv+, und ermittelt die Anzahl der tats"achlich erhaltenen
+Floats:
+\begin{verbatim}
+ierr = MPI_Recv(buffer, height * n, MPI_FLOAT, 0, tag,
+        MPI_COMM_WORLD, &status);
+int     count;
+MPI_Get_count(&status, MPI_FLOAT, &count);
+\end{verbatim}
+Damit sind die Daten auf alle Prozesse verteilt.
+
+In jeder Iteration des Algorithmus muss jetzt zuerst die Pivot-Zeile
+durch das Pivot-Element dividiert werden. Diese Operation wird von
+demjenigen Prozess durchgef"uhrt, der die Pivot-Zeile (mit Index $i$) besitzt:
+\begin{verbatim}
+int     sender;
+for (sender = 0; sender < num_procs; sender++) {
+        if ((round(sender * blocksize) <= i)
+                && (i < round((sender + 1) * blocksize))) {
+                break;
+        }
+}
+\end{verbatim}
+Die Schleife terminiert, sobald die aktuelle Zeile $i$ zwischen
+den Grenzen liegt, f"ur die der Prozess mit der Nummer \verb+sender+
+verantwortlich ist.
+
+Der als Versender der Pivotzeile identifizierte Prozess berechnet
+dann die Division durch das Pivot-Element, und kopiert die Resultate
+in einen speziellen Puffer f"ur die Pivot-Zeile \verb+p+:
+\begin{verbatim}
+                if (sender == rank) {
+                        // compute the pivot row
+                        float   pivot = a[2 * n * (i - minrow) + i];
+                        for (int j = 0; j < 2 * n; j++) {
+                                a[2 * n * (i - minrow) + j] /= pivot;
+                                p[j] = a[2 * n * (i - minrow) + j];
+                        }
+                }
+\end{verbatim}
+Der Inhalt der Pivot-Zeile muss jetzt mit allen anderen Prozessen
+synchronisert werden.
+Dazu rufen alle Prozesse die Funktion
+\begin{verbatim}
+MPI_Bcast(p, 2 * n, MPI_FLOAT, sender, MPI_COMM_WORLD);
+\end{verbatim}
+aus. Sie stellt sicher, dass alle Prozesse nach dem Aufruf im Puffer \verb+p+
+die Daten haben, welche der Prozess \verb+sender+ berechnet hat.
+
+Erst wenn die Daten synchronisiert sind k"onnen die einzelnen Prozesse
+weiterlaufen, es ist also kein spezielles Barrier-Konstrukt n"otig.
+Der Code f"ur die Zeilenoperationen unterscheidet sich nicht von den
+anderen Implementationen.
+
+Wenn die Berechnung abgeschlossen ist, m"ussen die berechneten Teile
+der invertierten Matrix wieder von Prozess 0 gesammelt werden.
+
+\subsection{Resultate}
+\begin{figure}
+\begin{center}
+\includegraphics[width=\hsize]{images/gauss-openmpi.pdf}
+\end{center}
+\caption{Laufzeit der OpenMPI-Implementierung des Gauss-Algorithmus.
+\label{openmpi-performance}}
+\end{figure}
+
+
+\section{Gegen"uberstellung}
+
 

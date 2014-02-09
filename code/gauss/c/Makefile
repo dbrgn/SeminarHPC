@@ -8,3 +8,6 @@ gauss:	gauss.c
 
 test:	gauss
 	./gauss 10
+
+results.pdf:	measure.R results.csv
+	R --vanilla --quiet < measure.R

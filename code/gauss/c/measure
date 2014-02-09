@@ -4,10 +4,18 @@
 # (c) 2014 Prof Dr Andreas Mueller, Hochschule Rapperswil
 #
 (
-#	./gauss `seq 20 10 500` 
-#	./gauss `seq 520 20 1000`
-#	./gauss `seq 1050 50 2000`
-#	./gauss `seq 2100 100 3000`
-#	./gauss `seq 2200 200 5000`
+	./gauss `seq 20 10 500` 
+	./gauss `seq 520 20 1000`
+	./gauss `seq 1050 50 2000`
+	./gauss `seq 2100 100 3000`
+	./gauss `seq 2200 200 5000`
 	./gauss `seq 6000 1000 10000`
-) > results
+) > results.csv
+(
+	./gauss -u `seq 20 10 500` 
+	./gauss -u `seq 520 20 1000`
+	./gauss -u `seq 1050 50 2000`
+	./gauss -u `seq 2100 100 3000`
+	./gauss -u `seq 2200 200 5000`
+	./gauss -u `seq 6000 1000 10000`
+) > results-uni.csv
