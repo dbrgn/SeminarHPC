@@ -5,3 +5,253 @@ und visualisiert werden.
 Dieses Kapitel diskutiert einige Techniken, wie man in einem HPC-Problem
 mit der Datenflut umgehen kann.
 
+\section{Kennzahlen}
+Eine Str"omungssimulation produziert f"ur jeden Punkt des Raumes und
+f"ur jeden Zeitpunkt Werte f"ur Druck, Temperatur und Geschwindigkeit.
+Selbst f"ur ein kleines Problem entsteht so eine Flut von Daten, die
+in ihrer Gesamtheit kaum n"utzlich sind. 
+
+F"ur die Anwendung ist selten die Gesamtheit der Daten n"utzlich.
+Bei der Str"omungssimulation sind Dinge wie Auftrieb, Widerstandskoeffizient,
+Temperaturen an kritischen Stellen viel aussagekr"aftiger als die Details
+des Str"omungsfeldes. 
+
+Als Beispiel betrachten wir eine Menge von Kugeln, die sich auf einem
+Billiardtisch reibungslos bewegen k"onnen und miteinander in elastischen
+St"ossen interagieren k"onnen. Es ist recht einfach, aus Position und
+Gewschwindigkeit zweier
+Billiardkugeln den Zeitpunkt des n"achsten Zusammenstosses zu berechnen,
+falls dieser "uberhaupt vor dem Zusammenstoss mit der Bande stattfindet.
+Auf diese Weise kann man zu jeder belieibigen Zeit die Geschwindigkeit
+$v_i(t)$ jeder Billiardkugel $i$ angeben.
+
+Die Werte $v_i(t)$ sind kaum von Interesse, es l"asst sich daraus nichts
+Interessantes ablesen.
+Ausserdem "andern diese Zahlen mit jedem Zusammenstoss, die schnellste
+Kugel wird nach wenigen Zusammenst"ossen nicht mehr die schnellste sein,
+und auch die langsamste ist nicht f"ur alle Zeiten zu dieser Position
+verdammt.
+Um geeignete Kennzahlen zu finden, die das Verhalten der Gesamtheit
+der Vektoren besser beschreiben, k"onnen wir uns an der Physik orientieren,
+die mit diesem Modell simuliert wird.
+Ein ideales Gas kann man sich als eine Menge von Kugeln vorstellen,
+die elastische St"osse ausf"uhren.
+Normalerweise beschreibt man ein Gas nicht mit Hilfe der Geschwindigkeit
+der einzelnen Molek"ule, sondern man verwendet makroskopische Gr"ossen
+wie Temperatur, Druck oder Dichte.
+
+Die Resultate der Simulation m"ussen also noch aufgearbeitet werden, um
+solche makroskopische Gr"ossen zu bestimmen.
+Zum Beispiel ist der Druck der mittlere Impuls, in einer Zeiteinheit
+auf die Wand "ubertragen wird.
+Ein einfache Summe "uber die Normalkomponenten der Geschwindigkeiten
+derjenigen Teilchen, die in einem Zeitinterval mit der Wand zusammenstossen
+wir die Frage beantworten.
+
+Die Temperatur ist jedoch etwas schwieriger.
+Grunds"atzlich ist die Temperatur im wesentlichen die mittlere 
+kinetische Enerige der Molek"ule des Gases. Die Boltzmann-Konstante
+$k_B\simeq 1.38065\cdot10^{-23} \text{J/K}$ ist der Proportionalit"atsfaktor
+zwischen Energie und Temperatur.
+Es reicht aber nicht,
+nur die mittlere Geschwindigkeit auszurechnen.
+Ein Strahl von Teilchen, die alle die gleiche Geschwindigkeit haben,
+verh"alt sich v"ollig anders als ein ideales Gas.
+Die oberfl"achliche Definition der Temperatur als der mittleren
+kinetischen Energie macht keine Aussage dar"uber, ob sich die
+simulierten Dinge auch so verhalten, wie wir das von einem
+Gas einer bestimmten Temperatur erwarten.
+
+In einem idealen Gas der Temperatur $T$ haben die Teilchen nicht nur
+eine bestimmte mittlere kinetische Energie, die kinetische Energie
+oder der Geschwindigkeitsbetrag
+der einzelnen Teilchen hat eine ganz bestimmt Verteilung.
+Die einzelnen Geschwindigkeitskomponenten entstehen durch Zusammenwirken
+vieler einzelner St"osse, nach dem zentralen Grenzwertsatz darf man also
+annehmen, dass die Geschwindigkeitskomponenten normalverteilt sind.
+Sofern sich das Gas nicht bewegt, ist der Erwartungswert der Komponenten
+0, die Geschwindigkeitsvektoren haben also eine Verteilung mit
+Wahrscheinlichkeitsdichte
+\[
+\frac1{(\sqrt{2\pi}\sigma)^3}e^{-\frac{v^2}{2\sigma^2}}.
+\]
+Die Wahrscheinlichkeit eines Geschwindigkeitsbetrages zwischen $v$ und
+$v+\Delta v$ ist also
+\[
+\int_v^{v+\Delta v} 4\pi v^2
+\frac1{(\sqrt{2\pi}\sigma)^3}e^{-\frac{v^2}{2\sigma^2}}\,dv,
+\]
+also hat die Geschwindigkeitsverteilung die Wahrscheinlichkeitsdichte
+\[
+4\pi
+\biggl(
+\frac{1}{2\pi \sigma^2}
+\biggr)^{\frac32}
+v^2 e^{-\frac{v^2}{2\sigma^2}}.
+\]
+Man kann den Erwartungswert berechnen, und damit die Konstante $\sigma$
+identifizieren, es ist $\sigma^2=k_BT/m$, damit wird die 
+Wahrscheinlichkeitsdichte der Maxwell-Boltzmann-Verteilung
+\[
+p(v)=
+4\pi\biggl(\frac{m}{2\pi k_BT}\biggr)^\frac32 v^2 e^{-\frac{mv^2}{2k_BT}}.
+\]
+Die Auswertung der Simulationsdaten sollte also nicht nur die mittlere
+kinetische Energie bestimmen, sondern auch "uberpr"ufen, ob die Verteilung
+der Geschwindigkeiten der Boltzmann-Verteilung folgt, was zum Beispiel mit
+Hilfe eines Kolmogorov-Smirnov-Tests gemacht werden kann.
+
+\section{Datenspeicherung}
+Die Resultate einer Simulation k"onnen oft nicht vollst"andig gespeichert
+werden, die Datenmenge ist m"oglicherweise schlicht zu gross.
+Manchmal ist jedoch trotz allem eine substantielle Datenmenge zu
+speichern, und es m"ussen Wegen gefunden werden, dass diese Daten
+effizient weiterverarbeit werden k"onnen.
+
+\subsection{Datenbanken}
+Datenbanken k"onnen grosse Mengen von Daten speichern und insbesondere
+beliebige Auswahlen davon schnell zur"uckgeben.
+Im allgemeinen sind relationale Datenbanken jedoch relativ 
+schwerf"allig zu handhaben, so dass die direkte Speicherung
+der Daten in Files einfacher ist.
+
+Eine Datenbank wird jedoch dann interessant, wenn man nicht nur einen
+einzelnen Simulationslauf, sondern eine ganze Menge von Simulationsresultaten
+mit allen relevanten Parametern und daraus abgeleiteten Kennzahlen
+in einer Datenbank ablegen kann.
+Dann entsteht einer Art ``Data warehouse'' f"ur diese Anwendung,
+und man kann Datenbank-Werkzeuge verwenden, um die Daten auf
+verschiedene Arten zu analysieren. 
+Insbesondere kann es interessant sein, auf die gleiche Datenbank
+mit einem Werkzeug f"ur statistische Datenanalysen wir R zuzugreifen,
+und damit statistische Auswertungen wie im letzten Abschnitt
+angedeutet reproduzierbar und mit hoher Zuverl"assigkeit durchf"uhren
+zu k"onnen.
+
+\subsection{Fileformate}
+Wie speichert man die Daten in Files, wenn doch einmal alle Resultate
+gespeichert werden m"ussen.
+Nat"urlich kann man sich nach Bedarf irgendwelche Datenformate zurechtlegen,
+das bedeutet aber auch, dass man beliebige Software f"ur die
+Weiterverarbeitung selber schreiben muss, was selten effizient ist.
+Ausserdem sollten die Datenformate plattformunabh"angig sein,
+sodass die Weiterarbeitung auf Maschinen beliebiger Architektur
+oder in einer beliebigen Programmiersprache erfolgen kann.
+
+Oft sind HPC Resultatdaten mehrdimensional, ein geeignetes Speicherformat
+sollte also auch zwei- oder dreidimensionale Datenfelder abspeichern
+k"onnen.
+Die zugeh"origen Koordinatensysteme sollten ebenfalls im File
+spezifiziert werden k"onnen.
+
+F"ur dieses Problem wurden verschiedene Datenformate geschaffen, 
+wovon im folgenden drei kurz besprochen werden sollen.
+
+\subsubsection{NetCDF}
+Wikipedia beschreibt NetCDF wie folgt:
+\begin{quote}
+Network Common Data Format (NetCDF) ist ein Dateiformat für den
+Austausch wissenschaftlicher Daten. Es handelt sich um ein bin"ares
+Dateiformat, das durch die Angabe der Byte-Reihenfolge im Header
+maschinenunabh"angig ist. NetCDF ist ein offener Standard; das Projekt
+wird von der University Corporation for Atmospheric Research (UCAR)
+betreut.
+\end{quote}
+
+XXX NetCDF Beispiel 
+
+F"ur einfache Visualiserungen der Daten in einem NetCDF File kann
+das Programm {\tt ncview} verwendet werden.
+
+\subsubsection{GRIB}
+Seit numerische Wetterprognosen praktikabel sind, haben
+die meteorologischen Organisationen der Welt ein Bed"urfnis,
+Daten "uber den Atmosph"arenzustand austauschen zu k"onnen.
+Auch diese Daten sind dreidimensional, decken jeweils einen Teil
+der Erdoberfl"ache ab, und enthalten viel verschiedenen Datentypen
+wie Druck, Feuchtigkeit, Bodenbeckung, Windgeschwindigkeit, Niederschlag
+und viele weitere.
+"Uber die Abk"urzung GRIB besteht keine Einigkeit.
+In den offiziellen Dokumenten der World Meteorological Union wird GRIB
+als Abk"urzung f"ur
+General Regularly-distributed Information in Binary form. 
+F"ur den Rest der Welt ist GRIB eine Abk"urzung f"ur GRIdded Binary.
+
+\subsubsection{FITS}
+Oft fallen HPC-Daten in Form von Tabellen an, in diesen F"allen
+kann FITS ein geeignetes Fileformat sein. FITS bedeutet ``Flexible
+Image Transport System''.
+Es ist vor allem in der Astronomie verbreitet, die Bilder des
+Hubble-Spaceteleskop, der Europ"aischen S"udsternwarte und weiterer
+Weltraumteleskope werden in diesem Format gespeichert und verbreitet.
+Die Vatikanische Apostolische Bibliothek hat begonnen, seinen Bestand
+an alten Dokumenten im FITS Format zu digitalisieren.
+
+FITS Files bestehen aus einem als Text lesbaren Header, der aus
+Attribut-Wert-Paaren besteht.
+Dieser Header beschreibt den Inhalt der Daten, die Anzahl der
+Bildebenen, die Tabellendimensionen etc.
+F"ur das Lesen und Schreiben von FITS-Daten gibt es Bibliotheken
+f"ur eine Vielzahl von Programmiersprachen.
+Ausserdem stehen Viewer und Browser f"ur die Arbeit mit FITS Files
+zur Verf"ugung. 
+
+FITS ist offenbar dann besonders zweckm"assig, wenn die Resultate
+der Simulationen von Nutzern in Fachgebieten verwendet werden sollen,
+in denen FITS ohnehin schon ein "ubliches Fileformat ist, insbesondere
+in der Astronomie und Astrophysik.
+
+\section{Visualisierung}
+Manchmal dienen Simulationen nicht der konkreten Berechnung einer
+makroskopischen Gr"osse, wie dem $C_w$-Wert f"ur den Prospekt eines
+Autoherstellers, sondern um Optimierungsm"oglichkeiten zu finden.
+Man weiss also noch nicht, wonach man eigentlich sucht, und man
+braucht m"oglichst intuitive Methoden, den ganzen Datensatz
+"uberblicken zu k"onnen.
+In diesem Fall ist eine geeignete Visualisierung ein erfolgversprechendes
+Hilfsmittel.
+
+Visualisierungswerkzeuge sollten in der Lage sein, aus NetCDF Files
+graphische Darstellungen in zwei oder drei Dimensionen zu erzeugen.
+Benutzer sollten in der Lage sein, diese Darstellungen zu manipulieren.
+
+\subsection{ParaView}
+ParaView ist ein beliebtes Open Source Visualisierungswerkzeug.
+Es kann neben vielen anderen auch NetCDF Files lesen und visualisieren.
+\begin{itemize}
+\item Isofl"achen von Skalarfeldern.
+\item Erzeugung von Stromlinien von Vektorfeldern.
+\item Rechenoperationen auf verschiedenen Feldern.
+\item Ausschneiden von interessanten Gebieten .
+\item Scipting von erweiterten Auswertung mit Hilfe von Python, NumPy, SciPy.
+\item Extraktion von Daten entlang von Geraden und Ebenen.
+\item Datenfilter aus dem Visualisierungstoolkit.
+\end{itemize}
+
+Paraview kann auch auf einem grossen Cluster mit MPI parallel laufen.
+
+Als im Februar 2013 ein Meteor in Chelyabinsk einschlug, haben unz"ahlige
+Webcams, Dashcams und "Uberwachungskameras das Ereignis aufgezeichnet.
+Diese Daten konnten als Input f"ur eine detaillierte Simulation
+des Einschlages an den Sandia National Laboratories dienen.
+Sandia verwendete daf"ur eigenen Code, der zum Beispiel auch f"ur 
+die Simulation der Wirkung von Kernwaffen verwendet wird.
+Die Resultate dieser Simulation wurden mit ParaView visualisiert
+und zierten das Titelblatt der Zeitschrift Nature vom 14.~Novebmer 2013.
+
+Zu den Benutzern von ParaView geh"oren auch das Supercomputer Center 
+in Manno und die EPFL. 
+
+\subsection{Visualization Toolkit}
+F"ur hartn"ackige F"alle mag es notwendig sein, f"ur ein spezifisches
+Problem eine eigene Visualisierung zu entwickeln.
+In solchen F"allen ist es unabdingbar, als Grundlage eine leistungsf"ahige
+Bibliothek zur Verf"ugung zu haben. 
+VTK, das Visualization Toolkit, ist die Bibliothek, mit der ParaView
+realisiert wurde.
+VTK wird von einigen grossen Forschungslabors als Basis f"ur die
+Entwicklung ihrer eigenen Visualisierungswerkzeuge verwendet.
+
+
+
+

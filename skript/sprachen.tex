@@ -1,4 +1,5 @@
-\chapter{Programmierung}
+\chapter{Parallele Programmierung}
+\lhead{Parallele Programmierung}
 High Performance Computing Probleme erfordern spezielle Algorithmen, die
 wiederum auf Unterst"utzung durch die Programmiersprachen in Form von
 Bibliotheken oder speziellen Sprachkonstrukten angewiesen sind.
@@ -23,6 +24,7 @@ APIs gel"ost werden. Dabei zeigen sich St"arken und Schw"achen  in
 exemplarischer Weise.
 
 \section{Fallstudie}
+\rhead{Fallstudie}
 Als Fallbeispiel soll der Gauss Algorithmus zur Berechnung der Inversen
 einer $n\times n$-Matrix verwendet werden. Dabei ist das Ziel weniger,
 den letzten Rest Performance herauszuholen, sondern vielmehr zu
@@ -231,6 +233,7 @@ unabh"angig voneinander bis zur Barrier. Erst wenn alle Threads
 bei der Barrier angekommen sind, k"onnen die Threads weiterfahren.
 
 \section{Pthreads}
+\rhead{Pthreads}
 Posix Threads sind die das standardisierte API f"ur Thread-Programmierung
 und Posix-Systemen.
 Das API ist vollst"andig in den Manual-Pages dokumentiert, wir gehen
@@ -377,6 +380,7 @@ in rot\label{gauss-pthread}}
 \end{figure}
 
 \section{OpenMP\label{openmp-intro}}
+\rhead{OpenMP}
 OpenMP ist eine API-Spezifikation f"ur parallele Programmierung.
 Die erste Spezifikation f"ur Fortran erschien 1997, die j"ungste 
 Version 4.0 wurde im Juli 2013 ver"offentlicht.
@@ -427,6 +431,7 @@ Schleife gebraucht, so dass es sich lohnt, den Wert von $b$ in einem
 Register zu behalten.
 
 \section{OpenCL\label{opencl-intro}}
+\rhead{OpenCL}
 Rechenleistung wird nicht nur von Mikroprozessoren bereitgestellt, in den
 letzten Jahren wurde immer bedeutendere Floating-Point Kapazit"at 
 aus anderen Hardware-Komponenten verf"ugbar:
@@ -644,6 +649,7 @@ while (i < n) {
 
 
 \section{Message Passing: OpenMPI}
+\rhead{OpenMPI}
 In den Abschnitten~\ref{openmp-intro} und \ref{opencl-intro}
 hat sich gezeigt, dass sich damit nur Probleme effizient l"osen lassen,
 die in einem einzigen Adressraum untergebracht werden k"onnen.
@@ -781,14 +787,14 @@ Der als Versender der Pivotzeile identifizierte Prozess berechnet
 dann die Division durch das Pivot-Element, und kopiert die Resultate
 in einen speziellen Puffer f"ur die Pivot-Zeile \verb+p+:
 \begin{verbatim}
-                if (sender == rank) {
-                        // compute the pivot row
-                        float   pivot = a[2 * n * (i - minrow) + i];
-                        for (int j = 0; j < 2 * n; j++) {
-                                a[2 * n * (i - minrow) + j] /= pivot;
-                                p[j] = a[2 * n * (i - minrow) + j];
-                        }
-                }
+if (sender == rank) {
+        // compute the pivot row
+        float   pivot = a[2 * n * (i - minrow) + i];
+        for (int j = 0; j < 2 * n; j++) {
+                a[2 * n * (i - minrow) + j] /= pivot;
+                p[j] = a[2 * n * (i - minrow) + j];
+        }
+}
 \end{verbatim}
 Der Inhalt der Pivot-Zeile muss jetzt mit allen anderen Prozessen
 synchronisert werden.
@@ -815,6 +821,7 @@ der invertierten Matrix wieder von Prozess 0 gesammelt werden.
 \caption{Laufzeit der OpenMPI-Implementierung des Gauss-Algorithmus.
 \label{openmpi-performance}}
 \end{figure}
+
 
 
 \section{Gegen"uberstellung}

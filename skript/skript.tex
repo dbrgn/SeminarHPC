@@ -57,6 +57,7 @@
 \AtEndDocument{\clearpage\ifodd\value{page}\else\null\clearpage\fi}
 \makeindex
 \begin{document}
+\bibliographystyle{plain}
 \pagestyle{fancy}
 %\lhead{Optimierung}
 \frontmatter
@@ -140,6 +141,7 @@ Hochschule f"ur Technik, Rapperswil, 2014
 \newtheorem{definition}{Definition}[chapter]
 \newtheorem{annahme}{Annahme}[chapter]
 \mainmatter
+\input linsys.tex
 \input vorwort.tex
 \part{Grundlagen}
 \input einleitung.tex
@@ -147,6 +149,8 @@ Hochschule f"ur Technik, Rapperswil, 2014
 \input sprachen.tex
 \input daten.tex
 \input algorithm.tex
+\bibliography{references}
+
 \part{Anwendungen und Weiterf"uhrende Themen}
 \lhead{Anwendungen}
 \def\chapterauthor#1{{\large #1}\bigskip\bigskip}

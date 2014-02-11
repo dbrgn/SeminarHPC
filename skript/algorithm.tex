@@ -1,8 +1,708 @@
 \chapter{Algorithmen}
+\lhead{Algorithmen}
 Nicht jeder Algorithmus ist f"ur High Performance Computing geeignet.
 Nur wenn gen"ugend viele Rechenschritte soweit unabh"angig sind, dass sie
 parallel auf vielen CPUs ausgef"uhrt werden k"onnen, besteht die
 Chance, durch Parallelisierung die Leistung einer massiv parallelen Maschine
 ausnutzen zu k"onnen. Dieses Kapitel zeigt einige Beispiel von ungeeigneten
 Algorithmen und ihren HPC-tauglichen Gegenst"ucken.
+
+F"ur die Eigenwerte und Eigenvektoren einer $n\times n$-Matrix $A$ 
+lernt man in der linearen Algebra den folgendne Algorithmus:
+\begin{enumerate}
+\item Bestimme das charakteristische Polynom
+$\chi_{A}(\lambda)=\det(A-\lambda I)$.
+\item Finde die Nullstellen $\lambda_1,\lambda_2,\dots,\lambda_n$ von
+$\chi_A(\lambda)$.
+\item F"ur jede Nullstelle $\lambda_i$, finde eine nichttriviale L"osung $v_i$
+des Gleichungssystems $(A-\lambda_i I)v_i=0$.
+\end{enumerate}
+Dieser Algorithmus funktioniert sehr gut bei kleinen Matrizen, aber sobald
+$n$ gr"osser wird, ist der Algorithmus undurchf"uhrbar.
+Nur schon die Berechnung des charakteristischen Polynoms mit Hilfe
+der Determinante ist unm"oglich.
+Aber auch die Berechnung der Eigenwerte als Nullstellen ist, abgesehen
+von den numerischen Problemen dieses Unterfangens, in keiner Weise
+parallelisierbar.
+
+Das Eigenwertproblem ist nur eines von vielen praktische wichtigen
+Problemen, f"ur welches die Methoden, die man meist als erste lernt,
+nicht geeignet sind. Auch die L"osung eines linearen Gleichungssystems
+mit dem Gauss-Algorithmus wird unpraktikabel, wenn das Gleichungssystem
+sehr gross ist, und wie in Anwendungsproblemen h"aufig der Fall ist,
+nur wenige Matrix-Eintr"age von 0 verschieden sind.
+Das Ziel dieses Kapitels ist daher, eine Reihe von Algorithmen dazustellen,
+welche auch f"ur sehr grosse Probleme der linearen Algebra immer noch
+effizient durchf"uhrbar sind.
+
+\section{Iterative Methoden zur L"osung linearer Gleichungssysteme}
+\rhead{Iterative Methoden}
+In diesem Abschnitt suchen wir Methoden zur L"osung eines linearen
+Gleichungssystems $Ax=b$ mit einer $n\times n$-Matrix $A$ und einem
+$n$-dimensionalen Vektor $b$.
+Die in der Praxis tats"achlich zu l"osenden Gleichungssysteme sind meist 
+nicht beliebig, es ist daher auch nicht notwendig, L"osungen f"ur beliebige
+Matrizen $A$ zu entwickeln.
+In Abschnitt~\ref{section-motivation} betrachten wir daher an einem Beispiel,
+wie in den Anwendungen lineare Gleichugnssysteme auftauchen, und versuchen,
+die Charakteristiken dieser Gleichungssysteme herauszustellen. Die
+nachfolgenden Abschnitte k"ummern sich dann nur noch um Methoden, die
+f"ur diese Art von Gleichungsssystemen besonders gut geeignet sind.
+
+\subsection{Motivation\label{section-motivation}}
+Partielle Differentialgleichungen sind wichtige Lieferanten von 
+linearen Gleichungssystemen in den Anwendungen.
+Die Wetterentwicklung, elastische Deformation, Schwingung von
+Maschinenteilen oder Geb"auden oder Ausbreitung von Wellen sind
+Ph"anomene, die mit partiellen Differentialgleichungen beschrieben
+werden k"onnen. In diesem Abschnitt wollen wir zeigen, wie eine
+partielle Differentialgleichung zu einem linearen Gleichungssystem
+Anlass gibt, und welche Eigenschaften dieses Gleichungssystem hat.
+
+Als Beispiel betrachten wir die partielle Differentialgleichung
+\begin{equation}
+\Delta u
+=\frac{\partial^2u}{\partial x^2}+\frac{\partial^2u}{\partial y^2}
+=f(x,y),
+\label{motivation-pdgl}
+\end{equation}
+welche das Potential (elektrisches Potential oder das Potential eines
+Gravitationsfeldes) einer Ladungs- oder Massenverteilung mit
+Dichte $f(x,y)$ beschreibt.
+Gesucht ist eine Funktion $u(x,y)$, welche auf dem Einheitsquadrat
+$\Omega = \{(x,y)\,|\, 0\le x,y\le 1\}$ definiert ist und auf dem Rand bestimmte
+vorgegebene Werte annimmt:
+\begin{equation}
+u(x,y)=g(x,y)\qquad x\in\partial \Omega,
+\label{motivation-randbedingung}
+\end{equation}
+wobei $\partial\Omega$ der Rand des Gebietes $\Omega$ ist. Die allgemeine
+Theorie der partiellen Differentialgleichungen beweist, dass dieses
+Problem eine eindeutige L"osung hat.
+Im konkreten Fall eines rechteckingen Gebietes liefert die Theorie sogar
+ein L"osungsverfahren, welches mindestens f"ur nicht zu komplizierte
+Funktion $f$ und $g$ von Hand durchgef"uhrt werden kann.
+F"ur beliebig geformte Gebiete $\Omega$ gibt es jedoch kein analytisches
+L"osungsverfahren.
+
+F"ur die numerische L"osung ersetzen wir die auf dem ganzen Quadrat
+definierte Funktion $u(x,y)$ durch Zahlenwerte $u_{ij}$, welche nur
+auf einem Gitter mit Knoten $(ih, jh)$ mit einer Gitterkonstanten $h = 1/n$
+definiert sind.
+Die Randbedingungen (\ref{motivation-randbedingung}) f"uhren unmittelbar
+auf die Gleichungen
+\begin{equation}
+u_{ij}=g_{ij}=\begin{cases}
+g(0,hj)&\qquad i = 0\\
+g(1,hj)&\qquad i = n\\
+g(hi,0)&\qquad j = 0\\
+g(hi,1)&\qquad j = n
+\end{cases}
+\label{motivation-randwerte}
+\end{equation}
+Um die Differentialgleichung (\ref{motivation-pdgl}) durch lineare Gleichungen
+zu ersetzen, muss eine Approximation der zweiten Ableitungen
+gefunden werden.
+Die erste Ableitung in $x$-Richtung kann angen"ahert werden durch
+\begin{align*}
+\frac{\partial u}{\partial x}(ih,jh)&\simeq \frac{u_{i+1,j}-u_{ij}}h
+&
+\frac{\partial u}{\partial y}(ih,jh)&\simeq \frac{u_{i,j+1}-u_{ij}}h.
+\end{align*}
+Daraus kann dann auch eine Approximation von der zweiten Ableitung
+gefunden werden:
+\begin{align*}
+\frac{\partial^2 u}{\partial x^2}(ih,jh)&=\frac1h\biggl(
+\frac{u_{i+1,j}-u_{ij}}h-\frac{u_{ij}-u_{i-j,j}}h
+\biggr)
+=\frac1{h^2}(u_{i-1,j}-2u_{ij}+u_{i+1,j}),\\
+\frac{\partial^2 u}{\partial y^2}(ih,jh)&=
+=\frac1{h^2}(u_{i,j-1}-2u_{ij}+u_{i,j+1}).
+\end{align*}
+Die Differentialgleichung wir damit zu einer approximativen linearen
+Gleichung 
+\begin{equation}
+\frac1{h^2}(u_{i-1,j}+u_{i,j-1}+u_{i+1,j}+u_{i,j+1}-4u_{ij})=f_{ij}=f(ih,jh)
+\qquad 0<i,j<n.
+\label{motivation-lingl}
+\end{equation}
+Statt der Differentialgleichung (\ref{motivation-pdgl}) mit den Randbedingungen
+(\ref{motivation-randbedingung}) ist jetzt also das lineare Gleichungssystem
+f"ur die $u_{ij}$ bestehend aus den Gleichungen (\ref{motivation-lingl}) und
+(\ref{motivation-randwerte}) zu l"osen.
+Die Randwertgleichungen legen einen Teil der $u_{ij}$ bereits fest,
+man kann sie zur rechten Seite der Gleichungen schlagen,
+so dass nur noch die Werte $u_{ij}$ an inneren Knotenstellen $0<i,j<n$
+zu bestimmen.
+
+Wir numerieren wir die verbleibenden Unbekannten neu mit einem
+einzigen Index und nennen sie $U_k$,
+\begin{equation}
+\left.
+\begin{aligned}
+u_{ij}&=U_{j + (i - 1)(n - 1)}
+\\
+f_{ij}&=f_{j + (i-1)(n-1)}
+\end{aligned}
+\right\}
+\quad 0<i,j<n.
+\end{equation}
+Die Gleichungen (\ref{motivation-lingl}) werden jetzt zu Gleichungen
+f"ur die $U_k$:
+\begin{equation}
+U_{k-1}+U_{k+1}+U_{k-(n-1)}+U_{k+(n-1)}-4U_k=f_k.
+\end{equation}
+Die $(n-1)^2\times(n-1)^2$-Koeffizientenmatrix dieses Gleichungssystems ist
+\[
+A=\left(
+\begin{array}{ccccc|ccccc|c|ccccc}
+    -4&     1&     0&\cdots&     0 &     1&     0&     0&\cdots&     0 &\cdots &      &      &      &      &      \\
+     1&    -4&     1&\cdots&     0 &     0&     1&     0&\cdots&     0 &\cdots &      &      &      &      &      \\
+     0&     1&    -4&\cdots&     0 &     0&     0&     1&\cdots&     0 &\cdots &      &      &     0&      &      \\
+\vdots&\vdots&\vdots&\ddots&\vdots &\vdots&\vdots&\vdots&\ddots&\vdots &       &      &      &      &      &      \\
+     0&     0&     0&\cdots&    -4 &     0&     0&     0&\dots &     1 &\cdots &      &      &      &      &      \\
+\hline
+     1&     0&     0&\cdots&     0 &    -4&     1&     0&\dots &     0 &\cdots &      &      &      &      &      \\
+     0&     1&     0&\cdots&     0 &     1&    -4&     1&\dots &     0 &\cdots &      &      &      &      &      \\
+     0&     0&     1&\cdots&     0 &     0&     1&    -4&\dots &     0 &\cdots &      &      &     0&      &      \\
+\vdots&\vdots&\vdots&\ddots&\vdots &\vdots&\vdots&\vdots&\ddots&\vdots &       &      &      &      &      &      \\
+     0&     0&     0&\cdots&     1 &     0&     0&     0&\cdots&    -4 &\cdots &      &      &      &      &      \\
+\hline
+\vdots&\vdots&\vdots&      &\vdots &\vdots&\vdots&\vdots&      &\vdots &\ddots &\vdots&\vdots&\vdots&      &\vdots\\
+\hline
+      &      &      &      &       &      &      &      &      &       &\cdots &    -4&     1&     0&\cdots&     0\\
+      &      &      &      &       &      &      &      &      &       &\cdots &     1&    -4&     1&\cdots&     0\\
+      &      &     0&      &       &      &      &     0&      &       &\cdots &     0&     1&    -4&\cdots&     0\\
+      &      &      &      &       &      &      &      &      &       &       &\vdots&\vdots&\vdots&\ddots&\vdots\\
+      &      &      &      &       &      &      &      &      &       &\cdots &     0&     0&     0&\cdots&    -4\\
+\end{array}
+\right)
+\]
+Die Matrix $A$ hat auf der Diagonalen Kopien einer sogenannten tridiagonalen 
+$(n-1)\times(n-1)$-Matrix
+\[
+T=\begin{pmatrix}
+    -4&     1&     0& \dots&     0\\
+     1&    -4&     1& \dots&     0\\
+     0&     1&    -4& \dots&     0\\
+\vdots&\vdots&\vdots&\ddots&\vdots\\
+     0&     0&     0& \dots&    -4\\
+\end{pmatrix}
+\]
+Mit Hilfe von $T$ kann $A$ in Blockform geschrieben werden:
+\[
+A=
+\begin{pmatrix}
+T&E& & &      & \\
+E&T&E& &      & \\
+ &E&T&E&      & \\
+ & &E&T&      & \\
+ & & & &\ddots& \\
+ & & & &      &T\\
+\end{pmatrix}
+\]
+Alle leeren Felder sind dabei gleich $0$ zu setzen, $E$ bezeichnet
+eine $(n-1)\times(n-1)$-Einheitsmatrix.
+Die meisten Eintr"age der Matrix $A$ sind also $0$, 
+nur maximal 4 Eintr"age in jeder Zeile sind von $0$ verschieden.
+Man nennt Matrizen, die vor allem aus $0$-Eintr"agen bestehen,
+{\em d"unnbesetz} oder {\em schwachbesetzt}.
+
+Ausserdem sind diese Eintr"age jeweils nicht weit von der Diagonalen
+entfernt, die Elemente $1$ in den $E$-Bl"ocken sind genau $n$ Indizes
+von der Diagonalen entfernt. Eine solche Matrix nennt man auch eine
+Band-Matrix.
+Eine $n\times n$ Matrix $B$ heisst \textsl{Bandmatrix} mit Bandbreite $l=p+q+1$,
+wenn alle Eintr"age $a_{ij} = 0$ mit $i -j > p+1$ oder $j-i > q+1$. Eine solche
+Bandmatrix hat die Form 
+\[
+B=\begin{pmatrix}
+   a_{11}&   a_{12}&\dots &a_{1,q+1}  & 0         &\dots &     0\\
+   a_{21}&   a_{22}&\dots &a_{2,q+1}  &a_{2,q+2}  &\dots &     0\\
+   \vdots& \vdots  &\ddots&\vdots     &\vdots     &\ddots&\vdots\\
+a_{p+1,1}&a_{p-1,2}&\dots &a_{p+1,q+1}&a_{p+1,q+2}&\dots &     0\\
+        0&a_{p+2,2}&\dots &a_{p+2,q+1}&a_{p+2,q+2}&\dots &     0\\
+   \vdots&\vdots   &\ddots&\vdots     &\vdots     &\ddots&\vdots\\
+        0&        0&\dots &     0     &     0     &\dots &a_{nn}\\
+\end{pmatrix}.
+\]
+
+Dies ist eine charakteristische Eigenschaft linearer Gleichungssysteme,
+die aus partiellen Differentialgleichungen abgeleitet wurden.
+Unser Hauptaugenmerk in diesem Kapitel m"ussen also Methoden sein,
+die f"ur d"unn besetzte Matrizen oder f"ur Bandmatrizen gut funktionieren.
+
+\subsection{Jacobi-Algorithmus}
+Wir illustrieren den Jacobi-Algorithmus an folgendem Beispielproblem:
+\begin{equation}
+A=\begin{pmatrix}1&\frac12\\\frac12&1\end{pmatrix},\quad
+b=\begin{pmatrix}1\\-1\end{pmatrix}.
+\label{jacobi-beispiel}
+\end{equation}
+Nat"urlich kann man dieses Gleichungssystem mit dem Gauss-Algorithmus
+l"osen, und die L"osung
+\[
+v=\begin{pmatrix}2\\-2\end{pmatrix}\qquad\Rightarrow\qquad
+Av=
+\begin{pmatrix}1&\frac12\\\frac12&1\end{pmatrix}
+\begin{pmatrix}2\\-2\end{pmatrix}
+=
+\begin{pmatrix}2-\frac12\cdot 2\\2\frac12-2\end{pmatrix}
+=
+\begin{pmatrix}1\\-1\end{pmatrix}=b.
+\]
+finden. Wir k"onnen jede der Gleichungen 
+\[
+\begin{linsys}{2}
+       x_1&+&\frac12x_2&=&1\\
+\frac12x_1&+&       x_2&=&-1
+\end{linsys}
+\]
+aber auch nach einer Variablen aufl"osen:
+\[
+\begin{linsys}{2}
+x_1&=& 1&-&\frac12x_2\\
+x_2&=&-1&-&\frac12x_1
+\end{linsys}
+\]
+Mit anderen Worten: falls $x_1$ und $x_2$
+nicht die L"osung ist, kann mit jeder dieser Gleichungen ein neuer
+Wert f"ur eine der Variablen berechnet werden, mit dem wenigstens
+eine der Gleichungen stimmen wird.
+Wendet man allerdings beide
+Gleichungen an, wird sich wieder ein Paar von Werten ergeben,
+welche keine L"osung darstellen. Mit etwas Gl"uck k"onnte jedoch
+wiederholte Anwendung der Gleichungen immer n"aher an eine 
+L"osung kommen. Wir erhalten also eine Folge von Vektoren $v^{(k)}$
+\[
+v^{(k)} =
+\begin{pmatrix}x_1^{(k)}\\x_2^{(k)}\end{pmatrix}
+=
+\begin{pmatrix}
+ 1-\frac12x_2^{(k-1)}\\
+-1-\frac12x_1^{(k-1)}
+\end{pmatrix}
+\]
+Man findet folgende numerischen Resultate:
+\begin{center}
+\begin{tabular}{|>{$}r<{$}|>{$}r<{$}>{$}r<{$}|>{$}r<{$}|}
+\hline
+ k&x_1^{(k)}&x_2^{(k)}&\text{Fehler}\\
+\hline
+ 0& 0.000000& 0.000000&2.000000\\
+ 1& 1.000000&-1.000000&1.000000\\
+ 2& 1.500000&-1.500000&0.500000\\
+ 3& 1.750000&-1.750000&0.250000\\
+ 4& 1.875000&-1.875000&0.125000\\
+ 5& 1.937500&-1.937500&0.062500\\
+ 6& 1.968750&-1.968750&0.031250\\
+ 7& 1.984375&-1.984375&0.015625\\
+ 8& 1.992188&-1.992188&0.007812\\
+ 9& 1.996094&-1.996094&0.003906\\
+10& 1.998057&-1.998057&0.002953\\
+11& 1.999023&-1.999023&0.000977\\
+\hline
+\end{tabular}
+\end{center}
+Tats"achlich konvergiert die Folge gegen die korrekte L"osung.
+Genauer: der Fehler wird in jedem Iterationsschritt halbiert,
+man gewinnt also ein Bit Genauigkeit in jedem Schritt. F"ur dieses
+spezielle Gleichungssystem w"ahren also etwa dreissig Iterationsschritte
+n"otig, um eine L"osung mit einer Genauigkeit von 10 Stellen zu erhalten.
+
+Allgemein kann man in jedem Gleichungssystem $Ax=b$ die Gleichung $i$
+nach der Unbekannten $x_i$ aufl"osen, und ein System von
+Iterationsgleichungen
+\begin{equation}
+x_i^{(k)}=\frac1{a_{ii}}\biggl(b_i
+-\sum_{j=1}^{i-1}a_{ij}x_j^{(k-1)}
+-\sum_{j=i+1}^na_{ij}x_j^{(k-1)}
+\biggr)
+\label{jacobi-iteration}
+\end{equation}
+finden.
+Ausgehend vom Nullvektor wird die Iteration unter gewissen
+Voraussetzungen, die in Abschnitt \ref{section-konvergenz}
+diskutiert werden, gegen eine L"osung konvergieren. Dieses
+Verfahren heisst das Jacobi-Verfahren.
+
+Wie gross ist der Rechenaufwand f"ur einen einzelnen Iterationsschritt?
+Offenbar h"angt dies von der Anzahl der nicht verschwindenen Elemente 
+in jeder Zeile der Matrix $A$ ab.
+Ist $l$ die maximale Anzahl nicht verschwindender Elemente in einer Zeile,
+dann kann ein Iterationsschritt mit maximal $2ln$ Gleitkommaoperationen
+durchgef"uhrt werden. Nehmen wir an, dass der Fehler "ahnlich wie im Beispiel
+exponentiell abnimmt, also der Restfehler nach $k$ Iterationen von der
+Gr"ossenordnung $q^k$ ist mit $q<1$.
+Um die Genauigkeit $\delta$ zu erreichen, sind so viele Iterationen notwendig,
+dass $q^k < \delta$ gilt, oder $k>\log \delta/\log q$.
+Der Rechenaufwand ist also $2nl\log\delta/\log q$.
+Der Jacobi-Algorithmus hat also bedeutend schneller als die $n^3$ 
+$n$-Operationen, die f"ur den Gauss-Algorithmus erforderlich sind.
+Ausserdem sind die Rechenoperationen des Jacobi-Algorithmus hochgradig
+parallelisierbar.
+
+\subsection{Gauss-Seidel}
+Im Jacobi-Verfahren wurde aus einer angen"aherten L"osung $v^{(k)}$
+eine verbesserte angen"aherte L"osung $v^{(k+1)}$ berechnet.
+Diese neuen Werte sind aber auch keine L"osungen, sondern nur verbesserte
+Approximationen.
+Warum also nicht bei der Berechnung der neuen Approximation $x_j^{(k)}$
+nicht nur die Approximationen $x_i^{(k-1)}$ verwenden, sondern soweit
+diese schon bestimmt sind, bereits die $x_j^{(k)}$.
+Die Iterationsformeln (\ref{jacobi-iteration}) werden dann zu
+\begin{equation}
+x_i^{(k)}=\frac1{a_{ii}}\biggl(b_i
+-\sum_{j=1}^{i-1}a_{ij}x_j^{(k)}
+-\sum_{j=i+1}^na_{ij}x_j^{(k-1)}
+\biggr)
+\label{gauss-seidel-iteration}
+\end{equation}
+Da in jeder Berechnung die aktuellsten verf"ugbaren Approximationen der
+L"osung verwendet werden, kann man erwarten, dass dieses Verfahren
+noch etwas schneller konvergiert als das Jacobi-Verfahren.
+Es heisst das Gauss-Seidel-Verfahren.
+
+Allerdings ist dieses Verfahren nicht mehr im gleichen Mass parallelisierbar.
+Die Variable $x_i^{(k)}$ kann erst berechnet werden, wenn $x_{i-1}^{(k)}$
+berechnet ist. Die Gesamtzahl der Operationen ist zwar wegen der erwartet
+schnelleren Konvergenz kleiner geworden, aber die Parallelisierbarkeit
+beschr"ankt sich auf die Operationen in einer einzelnen Zeile, also
+bei der Berchnung der beiden Summen in (\ref{gauss-seidel-iteration}).
+
+Es stellt sich die Frage, ob man die Konvergenz beschleunigen kann,
+ohne die Parallelisierbarkeit zu kompromittieren.
+Der Gauss-Seidel-Algorithmus zeigt, dass eine Konvergenzbeschleunigung
+m"oglich ist, man m"usste aber vom Jacobi-Algorithmus ausgehenG
+
+
+\subsection{Matrix-Aufteilung}
+Das Jacobi- und das Gauss-Seidel-Verfahren sind beide Spezialf"alle
+der folgenden Aufteilung der Matrix $A$ in zwei Teile. 
+Von einer Matrix-Aufteilung sprechen wir, wenn $A$ als $M+N$ geschrieben
+werden kann, so dass
+\begin{equation}
+Mx=b-Nx
+\qquad
+\Rightarrow
+\qquad
+x=M^{-1}(b-Nx).
+\end{equation}
+Der Jacobi-Algorithmus entspricht dem Fall 
+\begin{equation}
+M=\begin{pmatrix}
+a_{11}&     0&\dots &0\\
+     0&a_{22}&\dots &0\\
+\vdots&\vdots&\ddots&\vdots\\
+     0&     0&\dots &a_{nn}
+\end{pmatrix}=D.
+\label{jacobi-aufteilung}
+\end{equation}
+Der Gauss-Seidel-Algorithmus entspricht dem Fall
+\[
+M=\begin{pmatrix}
+a_{11}&     0& \dots&     0\\
+a_{21}&a_{22}& \dots&     0\\
+\vdots&\vdots&\ddots&\vdots\\
+a_{n1}&a_{n2}&\dots &a_{nn}
+\end{pmatrix},
+\qquad
+N=\begin{pmatrix}
+     0&a_{12}&\dots &a_{1n}\\
+     0&     0&\dots &a_{2n}\\
+\vdots&\vdots&\ddots&\vdots\\
+     0&     0&\dots &     0
+\end{pmatrix}.
+\]
+Nat"urlich ist so eine Aufteilung nur dann sinnvoll, wenn 
+$M$ auf effiziente Art invertierbar ist.
+F"ur (\ref{jacobi-aufteilung}) ist dies klar, die Inverse der
+Diagonalmatrix $D$ ist die Diagnalmatrix aus den invertierten
+Diagonalelemente von $D$.
+Im Gauss-Seidel-Fall ist eine Dreicksmatrix zu invertieren, 
+was durch die Formeln (\ref{gauss-seidel-iteration}) bereits
+erledigt ist.
+
+\subsection{Konvergenz\label{section-konvergenz}}
+Die Aufteilung der Matrix $A=M+N$ erm"oglicht nun auch eine Untersuchung
+der Konvergenz dieser Verfahren.
+Sei $x_0$ die L"osung des Gleichungssystems, dann ist $\delta_k=x^{(k)}-x_0$ der Fehler
+nach $k$ Iterationen.
+Aus $x^{(k)} = M^{-1}(b-Nx^{(k-1)})$ und $Mx_0 =b-Nx_0$ folgt
+\begin{align*}
+x^{(k)}-x_0
+&=M^{-1}(b-Nx^{(k-1)})-x_0\\
+&=M^{-1}(Mx_0+Nx_0-Nx^{(k-1)})\\
+&=-M^{-1}N(x^{(k-1)}-x_0)\\
+\Rightarrow\qquad \delta_k&=-M^{-1}N\delta_{k-1}.
+\end{align*}
+Das Verfahren ist also genau dann konvergent, wenn die Matrix
+$C=M^{-1}N$, wiederholt auf den initialen Fehler $b$ angewendet,
+zu einer gegen Null strebenden Vektorfolge f"uhrt.
+
+Die Zerlegung der Matrix im Beispiel (\ref{jacobi-beispiel}) ist
+\[
+M=\begin{pmatrix}1&0\\0&1\end{pmatrix},\quad
+N=\begin{pmatrix}0&\frac12\\\frac12&0\end{pmatrix}\Rightarrow
+C=M^{-1}N=N.
+\]
+Die Potenzen von $N$ sind 
+\[
+N^k=\begin{cases}
+{\displaystyle\frac1{2^k}}
+\begin{pmatrix}0&1\\1&0\end{pmatrix}
+&\qquad \text{$k$ ungerade,}\\
+{\displaystyle \frac1{2^{k+1}}}E&\qquad \text{$k$ gerade.}
+\end{cases}
+\]
+Damit kann man die L"ange von $\delta_k$ berechen:
+\[
+|\delta_k|=\frac{|\delta_0|}{2^k}.
+\]
+Insbesondere wird der Fehler in jedem Iterationsschritt halbiert.
+
+Im allgemeinen Fall braucht man Informationen dar"uber, ob und wie
+schnell die Vektoren $C^k\delta_0$ abnehmen.
+Nehmen wir an, die Matrix $C$ sei diagonalisierbar, dann gibt es
+eine Eigenvektorbasis $u_1,\dots,u_n$ mit Eigenwerten
+$\lambda_1,\dots,\lambda_n$. Der Vektor $\delta_0$ kann dann in der
+Eigenvektorbasis dargestellt werden als
+\[
+\delta_0=d_1u_1+\dots+d_nu_n.
+\]
+Die Fehler der Iterationen werden dann:
+\[
+\delta_k
+=
+C^k\delta_0
+=
+d_1C^ku_1+\dots+d_nC^ku_n
+=
+d_1\lambda_1^ku_1+\dots+d_n\lambda_n^ku_n.
+\]
+Die Summe auf der rechten Seite kann nur dann gegen 0 konvergieren, wenn
+jeder der $\lambda_i$ Betrag $|\lambda_i|<1$ haben. 
+
+\begin{definition}
+Sind $\lambda_i$ alle Eigenwerte einer Matrix $C$, dann heisst
+$\varrho(C)=\max_{1\le i\le n}|\lambda_i|$ der Spektralradius
+von $C$.
+\end{definition}
+
+\begin{satz}
+Das auf der Matrix-Aufteilung $A=M+N$ basierende Iterationsverfahren
+konvergiert, wenn $\varrho(M^{-1}N)<1$ gilt.
+\end{satz}
+
+Mit dem Spektralradius kann man nun auch berechnen, wieviele Iterationsschritte
+f"ur eine bestimmte Genauigkeit notwendig sind.
+Dazu nehmen wir an, dass $\lambda_1$ der betragsm"assig gr"osste
+Eigenwert ist, mit $|\lambda_1=\varrho(M^{-1}N)=\varrho$.
+Dann ist der Fehler nach $k$ Iterationsschritten
+\[
+|C^k\delta_0|\le \varrho^k|\delta_0|
+\]
+F"ur die Konvergenzgeschwindigkeit ist ausschlaggebend, wieviel kleiner
+als $1$ der Spektralradius von $M^{-1}N$ ist.
+Um eine Genauigkeit $\varepsilon$ zu erreichen, muss $k$ so gross
+sein, dass
+$\varrho^k|\delta_0|=\varrho^k|b|\le \varepsilon$ ist:
+\[
+k\log\varrho+\log|b|\le \log\varepsilon
+\quad
+\Rightarrow
+\quad
+k\ge \frac{\log\varepsilon-\log|b|}{\log\varrho}.
+\]
+
+\begin{beispiel}
+Kann das Gleichungssystem mit der Matrix 
+\[
+A=\begin{pmatrix}1&2\\2&1\end{pmatrix}
+\]
+mit dem Jacobi-Verfahren oder dem Gauss-Seidel-Verfahren gel"ost werden?
+
+Um diese Frage zu entscheiden, muss der Spektralradius der
+Matrix $M^{-1}N$ bestimmt werden.
+F"ur das Jacobi-Verfahren ist dies die Matrix
+\[
+M=E,\quad = N\begin{pmatrix}0&2\\2&0\end{pmatrix}\quad
+\Rightarrow
+\quad
+M^{-1}N=N.
+\]
+Das charakteristische Polynom von $N$ ist $\lambda^2-4$ mit den
+Nullstellen $\pm2$, der Spektralradius von $M^{-1}N$ ist also $2> 1$,
+das Verfahren ist also nicht konvergent.
+
+F"ur das Gauss-Seidel-Verfahren findet man f"ur $M^{-1}N$
+\[
+M=\begin{pmatrix}1&0\\2&1\end{pmatrix},\quad
+N=\begin{pmatrix}0&2\\0&0\end{pmatrix}\quad
+\Rightarrow
+\quad
+M^{-1}N=\begin{pmatrix}0&2\\0&-4\end{pmatrix}
+\]
+mit charakteristischem Polynom $\lambda(\lambda+4)$, mit Nullstellen
+$0$ und $-4$. Der Spektralradius ist also $4$, das Verfahren kann nicht
+konvergieren.
+\end{beispiel}
+
+
+%\subsection{Konjugierte Gradienten}
+
+\section{Iterative Methoden zur Eigenwertbestimmung}
+\rhead{Eigenwerte}
+Das Eigenwertproblem ist von zentraler Bedeutung in Ingenieur-Anwendungen,
+doch das Verfahren, welches man in Anf"angervorlesungen lernt, ist f"ur die
+numerische Berechnung ungeeignet.
+Wir d"urfen wieder davon ausgehen, dass die Matrizen d"unn besetzt sind, oder
+sogar Bandmatrizen sind.
+Im Falle einer Matrix, die von einer partiellen Differentialgleichung
+zweiter Ordnung herr"uhrt, k"onnen wir sogar annehmen, dass die
+Matrix symmetrisch ist.
+
+Wir werden dabei die Lehren aus dem letzten Abschnitt ziehen, wo sich
+gezeigt hat, dass eine iterative L"osung zwar mehr Schritte ben"otigt,
+daf"ur aber besser parallelisierbar ist, so dass sich insgesamt trotzdem
+eine effiziente L"osung ergibt.
+
+\subsection{Potenzmethode}
+Sei $A$ eine $n\times n$-Matrix und sei $\lambda_1$ der betragsm"assig
+gr"osste Eigenwert von $A$, und $v_1$ der zugeh"orige Eigenvektor.
+Wir nehmen weiter an, dass alle anderen Eigenwerte $\lambda_i$ zugeh"orige
+Eigenvektoren $v_i$ haben sollen. Ein beliebiger $n$-dimensionaler Vektor $u$
+kann jetzt in der Eigenvektorbasis mit Koeffizienten $a_i$ als
+\[
+u=
+a_1v_1+a_2v_2+\dots+a_nv_n
+\]
+dargestellt werden.
+Wendet man darauf wiederholt die Matrix $A$ an, ergibt sich daraus
+\[
+A^ku=
+a_1\lambda_1^kv_1
++
+a_2\lambda_2^kv_2
++
+\dots
++
+a_n\lambda_n^kv_n.
+\]
+Wenn $|\lambda_1| > 1$ ist, werden die Potenzen $\lambda_i^k$ "uber
+alle Grenzen wachsen.
+Ist $|\lambda_i|<1$, werden die Potenzen beliebig klein.
+In beiden F"allen werden die Vektoren $A^ku$ f"ur grosse Werte von $k$
+nicht weiter n"utzlich sein.
+Wenn man aus den $A^ku$ irgend etwas herausholen will, muss man $A^ku$ 
+immer wieder auf eine vern"unftige Gr"osse zur"uck holen, zum Beispiel,
+indem man durch $\lambda_1^k$ teilt:
+\begin{equation}
+\frac1{\lambda_1^k}A^ku=a_1u_1
++\biggl(\frac{\lambda_2}{\lambda_1}\biggr)^ku_2
++\dots+
+\biggl(\frac{\lambda_n}{\lambda_1}\biggr)^ku_n
+\label{potenzverfahren}
+\end{equation}
+Da alle Eigenwerte $|\lambda_i|<|\lambda_1|$ f"ur jedes $i>1$ gilt,
+sind alle Quotienten auf der rechten Seite von (\ref{potenzverfahren})
+kleiner als eins, und gehen daher mit $k\to\infty$ gegen Null. Man kann
+also mit Hilfe der Iteration
+\[
+\lim_{k\to\infty}\frac1{\lambda_1^k}A^ku=a_1u_1
+\]
+den Eigenvektor zum betragsgr"ossten Eigenwert bekommen.
+
+Meistens wird man aber den Wert des betragsgr"ossten Eigenwerts
+gar nicht kennen, die Renormierung in (\ref{potenzverfahren}) 
+ist also gar nicht m"oglich. Allerdings ist es auch nicht n"otig, 
+die Renormierung mit $\lambda_1^{-k}$ durchzuf"uhren. Das Ziel
+der Renormierung ist ja nur, den Vektor $A^ku$ in vern"unftiger
+gr"osse zu behalten. Es reicht also, nach jeder Anwendung von $A$ 
+den Vektor wieder auf L"ange $1$ zu bringen.
+Auch in diesem Fall werden die Komponenten $u_2,\dots,u_n$, 
+immer kleiner, im Grenzwert $k\to\infty$ bleibt nur die Komponente
+$u_1$ normiert auf L"ange $1$.
+
+Der neue Algorithmus lautet also: man beginne mit irgen einem Vektor
+$u_0$, und konstruiere daraus die Folge
+\begin{equation}
+u_{k+1}=\frac{Au_k}{|Au_k|}, \quad k>1.
+\label{potenz-iteration}
+\end{equation}
+
+\begin{beispiel}
+Bestimme den dominanten Eigenwert und den zugeh"origen Eigenvektor
+der Matrix
+\[
+A=\begin{pmatrix}-2&1&0\\1&-2&1\\0&1&-2\end{pmatrix}.
+\]
+
+Wir beginnen mit dem Vektor $u_0 =(1, 1, 1)^t$ und wenden die Iteration
+(\ref{potenz-iteration}) widerholt darauf an. Dabei erhalten wir die
+Vektoren
+\begin{center}
+\begin{tabular}{|>{$}r<{$}|>{$}r<{$}>{$}r<{$}>{$}r<{$}|}
+\hline
+ k&u_{k,1} &u_{k,2} &u_{k,3}\\
+\hline
+ 0& 1.00000& 0.00000& 0.00000\\
+ 1&-0.70711& 0.00000&-0.70711\\
+ 2& 0.57735&-0.57735& 0.57735\\
+ 3& 0.51450& 0.68599&-0.51450\\
+ 4& 0.50252&-0.70353& 0.50252\\
+ 5&-0.50043& 0.70649&-0.50043\\
+ 6& 0.50007&-0.70700& 0.50007\\
+ 7&-0.50001& 0.70709&-0.50001\\
+ 8& 0.50000&-0.70710& 0.50000\\
+ 9&-0.50000& 0.70711&-0.50000\\
+\hline
+\end{tabular}
+\end{center}
+Offenbar konvergiert die Vektorfolge gegen den Vektor
+\[
+u_1=\begin{pmatrix}-0.50000\\0.70711\\-0.50000\end{pmatrix}.
+\]
+Allerdings wechselt der Vektor in jedem Schritt das Vorzeichen,
+was nat"urlich darauf zur"uckzuf"uhren ist, dass $\lambda_1<0$.
+Da der Vektor jetzt bekannt ist, kann man durch Vergleich von
+$u_1$ mit $Au_1$ auch den Eigenwert finden, es ist $\lambda_1=-3.4142$.
+\end{beispiel}
+
+\subsection{Weitere Eigenvektoren}
+Um die "ubrigen Eigenvektoren zu finden, muss man sich jetzt nur noch
+auf den von den Eigenvektoren $u_2,\dots,u_n$ aufgespannten Raum
+beschr"anken.
+Das Problem ist allerdings, dass man diesen Raum gar nicht kennt,
+man hat die Eigenvektoren ja noch gar nicht bestimmt.
+Wenn allerdings die Matrix $A$ symmtreisch ist, dann weiss man,
+dass die Eigenvektoren $u_2,\dots,u_n$ senkrecht stehen auf dem
+bereits gefunden Vektor $u_1$.
+Man muss also nur eine Basis von Vektoren senkrecht auf $u_1$ finden,
+was man mit dem Gram-Schmidtschen Orthogonalisierungsverfahren 
+erreicht werden kann.
+In dieser neuen Basis wird die Matrix $A$ die Form
+\[
+A=
+\left(
+\begin{array}{c|ccc}
+\lambda_1&0&\dots&0\\
+\hline 
+	0& &     & \\
+  \vdots & &  A_1& \\
+	0& &     & 
+\end{array}
+\right)
+\]
+Die Matrix $A_1$ ist wieder eine symmetrische $(n-1)\times(n-1)$-Matrix,
+die die Eigenwerte $\lambda_2,\dots,\lambda_n$.
+
+Dieses Verfahren ist offenbar etwas umst"andlich, und nicht unbedingt
+in dieser Form durchf"uhrbar.
+Das Potenzverfahren kann jedoch in einer Art formuliert werden, dass
+es mittels Iteration alle Eigenwerte und Eigenvektoren einer beliebigen
+Matrix bestimmen kann, selbst wenn die Eigenvektoren komplex sind.
+Dieses erweiterte Potenzverfahren heisst Francis Verfahren, es
+wurde von John Francis 1961 entwickelt.
+Eine gute Beschreibung findet man auch im Buch von Watkins \cite{watkins}.
 
