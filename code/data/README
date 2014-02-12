@@ -1,0 +1,2 @@
+The programs in this directory demonstrate how to write data to
+a NetCDF file, read the data again and write it to FITS files.

@@ -16,6 +16,7 @@ Bei der Str"omungssimulation sind Dinge wie Auftrieb, Widerstandskoeffizient,
 Temperaturen an kritischen Stellen viel aussagekr"aftiger als die Details
 des Str"omungsfeldes. 
 
+\begin{beispiel}
 Als Beispiel betrachten wir eine Menge von Kugeln, die sich auf einem
 Billiardtisch reibungslos bewegen k"onnen und miteinander in elastischen
 St"ossen interagieren k"onnen. Es ist recht einfach, aus Position und
@@ -100,6 +101,13 @@ Die Auswertung der Simulationsdaten sollte also nicht nur die mittlere
 kinetische Energie bestimmen, sondern auch "uberpr"ufen, ob die Verteilung
 der Geschwindigkeiten der Boltzmann-Verteilung folgt, was zum Beispiel mit
 Hilfe eines Kolmogorov-Smirnov-Tests gemacht werden kann.
+\end{beispiel}
+
+In "ahnlicher Art k"onnen in Simulationen oft Kennzahlen gefunden werden,
+die eine Beurteilung der Simulationsresultate erm"oglichen, die sich
+Plotten lassen, oder die ganz konkreten Gr"ossen in der simulierten
+Realit"at entsprechen, und damit die direkte Anwendung der
+Simulationsresultate erm"oglichen.
 
 \section{Datenspeicherung}
 Die Resultate einer Simulation k"onnen oft nicht vollst"andig gespeichert
@@ -158,7 +166,74 @@ wird von der University Corporation for Atmospheric Research (UCAR)
 betreut.
 \end{quote}
 
-XXX NetCDF Beispiel 
+Auf der UCAR-Website \url{http://www.unidata.ucar.edu/software/netcdf/}
+
+\begin{beispiel}
+Im Verzeichnis {\tt data} des Sourcecode-Repository befindet sich
+ein Beispiel, wie NetCDF geschrieben und gelesen werden k"onnen.
+
+Ein NetCDF File wird mit der Funktion \verb+nc_create+ angelegt:
+\begin{verbatim}
+if (NC_NOERR != (status = nc_create(filename, NC_NOCLOBBER, &fileid))) {
+        fprintf(stderr, "cannot create file %s: %s\n",
+                filename, nc_strerror(status));
+        ...
+}
+\end{verbatim}
+Das Flag \verb+NC_NOCLOBBER+ bedeutet, dass ein eventuell schon vorhandenes
+Datenfile nicht "uberschrieben werden soll.
+Dies ist eine sinnvolle Vorsichtsmassnahme, um nicht versehentlich
+die wertvollen Output-Daten einer aufwendigen Simulation zu vernichten.
+
+Sobald ein File erstellt worden ist, befindet es sich im Defintions
+Mode, in dem Variablen und Dimensionen definiert werden k"onnen.
+Um zum Beispiel einen dreidimensionalen Array namens {\tt results}
+mit Dimensionen {\tt x} der L"ange 140, {\tt y} der L"ange 100 und 
+{\tt t} unbegrenzter L"ange zu definieren, sind folgende Befehle n"otig:
+\begin{verbatim}
+// define dimensions of the array
+size_t  lenx = 140, leny = 100;
+int     x_dim, y_dim, t_dim;
+if (NC_NOERR != (status = nc_def_dim(fileid, "x", lenx, &x_dim))) {
+        ...
+}
+if (NC_NOERR != (status = nc_def_dim(fileid, "y", leny, &y_dim))) {
+        ...
+}
+if (NC_NOERR != (status = nc_def_dim(fileid, "t", NC_UNLIMITED, &t_dim))) {
+        ...
+}
+
+// define the array
+int     arrayid;
+int     dimensions[3] = { t_dim, x_dim, y_dim };
+if (NC_NOERR != (status = nc_def_var(fileid, "results", NC_DOUBLE,
+        3, dimensions, &arrayid))) {
+        ...
+}
+\end{verbatim}
+Wenn alle Variablen eines Files definiert sind, muss der Defintion
+Mode beendet werden:
+\begin{verbatim}
+if (NC_NOERR != (status = nc_enddef(fileid))) {
+        ...
+}
+\end{verbatim}
+Jetzt k"onnen die Daten geschrieben werden, am effizientesten mit der
+Funktion \verb+nc_put_vara+. Diese erlaubt, gr"ossere Datenbl"ocke
+zu schreiben.
+Im Beispiel ganze Datenbl"ocke, die Arrays {\tt start} und {\tt size}
+beinhalten die Information, wie gross die zu schreibenden Datenbl"ocke
+sein sollen:
+\begin{verbatim}
+size_t  start[3] = { t, 0, 0 };
+size_t  size[3] = { 1, lenx, leny };
+status = nc_put_vara(fileid, arrayid, start, size, data);
+if (NC_NOERR != status) {
+        ...
+}
+\end{verbatim}
+\end{beispiel}
 
 F"ur einfache Visualiserungen der Daten in einem NetCDF File kann
 das Programm {\tt ncview} verwendet werden.
@@ -184,8 +259,17 @@ Image Transport System''.
 Es ist vor allem in der Astronomie verbreitet, die Bilder des
 Hubble-Spaceteleskop, der Europ"aischen S"udsternwarte und weiterer
 Weltraumteleskope werden in diesem Format gespeichert und verbreitet.
-Die Vatikanische Apostolische Bibliothek hat begonnen, seinen Bestand
-an alten Dokumenten im FITS Format zu digitalisieren.
+
+FITS Files k"onnen Bilddaten mit jedem beliebigen Pixel-Datentyp
+enthalten, im Gegensatz zum Beispiel zu JPEG oder GIF, wo Pixeldaten
+immer nur 8bit sind. Wenn eine umfangreiche Simulation Bilddaten
+produziert, ist es oft zweckm"assig, diese Bilder als FITS Files
+abzuspeichern, um keine Aufl"osung zu verlieren. Sollte sich bei
+der Nachbearbeitung heraussstellen, dass Helligkeit oder Kontrast
+stark angepasst werden m"ussen, ist in den FITS Files immer noch die
+gesamt Aufl"osung vorhanden.
+Bildformate mit kleinen Pixeldatentypen machen eine Wiederholung
+der Simulation notwendig.
 
 FITS Files bestehen aus einem als Text lesbaren Header, der aus
 Attribut-Wert-Paaren besteht.
@@ -200,6 +284,12 @@ FITS ist offenbar dann besonders zweckm"assig, wenn die Resultate
 der Simulationen von Nutzern in Fachgebieten verwendet werden sollen,
 in denen FITS ohnehin schon ein "ubliches Fileformat ist, insbesondere
 in der Astronomie und Astrophysik.
+Die Vatikanische Apostolische Bibliothek hat begonnen, ihren Bestand
+an alten Manuskripten im FITS Format zu digitalisieren.
+
+F"ur die Manipulation von FITS Files steht mit cfitsio eine effiziente
+und leicht zu benutzende Bibliothek zur Verf"ugung, Source Code und
+Dokumentation k"onnen von \url{http://heasarc.nasa.gov/fitsio/fitsio.html}.
 
 \section{Visualisierung}
 Manchmal dienen Simulationen nicht der konkreten Berechnung einer
@@ -252,6 +342,22 @@ realisiert wurde.
 VTK wird von einigen grossen Forschungslabors als Basis f"ur die
 Entwicklung ihrer eigenen Visualisierungswerkzeuge verwendet.
 
+\subsection{Videos}
+Videos machen die Resultate einer komplexen Simulation auch einem
+Betrachter zug"anglich, der nicht die Computer-Resourcen hat, sie sich
+direkt mit einem Werkzeug wie Paraview anzuschauen. Insbeondere  sind
+Videos auch gut geeignet f"ur Pr"asentationen oder f"ur Websites.
 
+ParaView ist in der Lage, animierte Resultatpr"asentationen als eine 
+Folge von Bildern zu exportieren. Bildverarbeitungswerkzeuge wie
+ImageMagick k"onnen daraus MJPEG-Streams erzeugen, die mit den
+MJPEG-Tools und {\tt mpeg2enc} als MPEG Videos codiert werden k"onnen.
+In dieser Form k"onnen Sie auch auf Video-Websites wie Youtube hochgeladen
+werden, oder sie k"onnen in Pr"asentationen integriert werden.
 
+Aus den Daten in einem NetCDF File kann man oft auch mit einem
+einfachen Programm eine Folge von FITS Files machen, die dann von ImageMagick
+und MJPEG-Tools zu einem Video verarbeit werden k"onnen.
+Ein Beispiel f"ur ein solches Programm ist im Verzeichnis 
+{\tt data} des Sourcecode-Repositories zu finden.
 
