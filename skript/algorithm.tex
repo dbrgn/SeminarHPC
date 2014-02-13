@@ -598,10 +598,10 @@ Wenn man aus den $A^ku$ irgend etwas herausholen will, muss man $A^ku$
 immer wieder auf eine vern"unftige Gr"osse zur"uck holen, zum Beispiel,
 indem man durch $\lambda_1^k$ teilt:
 \begin{equation}
-\frac1{\lambda_1^k}A^ku=a_1u_1
-+\biggl(\frac{\lambda_2}{\lambda_1}\biggr)^ku_2
+\frac1{\lambda_1^k}A^ku=a_1v_1
++\biggl(\frac{\lambda_2}{\lambda_1}\biggr)^kv_2
 +\dots+
-\biggl(\frac{\lambda_n}{\lambda_1}\biggr)^ku_n
+\biggl(\frac{\lambda_n}{\lambda_1}\biggr)^kv_n
 \label{potenzverfahren}
 \end{equation}
 Da alle Eigenwerte $|\lambda_i|<|\lambda_1|$ f"ur jedes $i>1$ gilt,
@@ -609,27 +609,41 @@ sind alle Quotienten auf der rechten Seite von (\ref{potenzverfahren})
 kleiner als eins, und gehen daher mit $k\to\infty$ gegen Null. Man kann
 also mit Hilfe der Iteration
 \[
-\lim_{k\to\infty}\frac1{\lambda_1^k}A^ku=a_1u_1
+\lim_{k\to\infty}\frac1{\lambda_1^k}A^ku=a_1v_1
 \]
 den Eigenvektor zum betragsgr"ossten Eigenwert bekommen.
 
 Meistens wird man aber den Wert des betragsgr"ossten Eigenwerts
 gar nicht kennen, die Renormierung in (\ref{potenzverfahren}) 
-ist also gar nicht m"oglich. Allerdings ist es auch nicht n"otig, 
-die Renormierung mit $\lambda_1^{-k}$ durchzuf"uhren. Das Ziel
+ist also gar nicht m"oglich.
+Allerdings ist es auch nicht n"otig, die Renormierung mit $\lambda_1^{-k}$
+durchzuf"uhren.
+Das Ziel
 der Renormierung ist ja nur, den Vektor $A^ku$ in vern"unftiger
-gr"osse zu behalten. Es reicht also, nach jeder Anwendung von $A$ 
+Gr"osse zu behalten.
+
+Nehmen wir der Einfachheit halber an, dass $\lambda_1 > 0$.
+Dann reicht es, nach jeder Anwendung von $A$ 
 den Vektor wieder auf L"ange $1$ zu bringen.
-Auch in diesem Fall werden die Komponenten $u_2,\dots,u_n$, 
+Auch in diesem Fall werden die Komponenten $v_2,\dots,v_n$, 
 immer kleiner, im Grenzwert $k\to\infty$ bleibt nur die Komponente
-$u_1$ normiert auf L"ange $1$.
+$v_1$ normiert auf L"ange $1$.
 
 Der neue Algorithmus lautet also: man beginne mit irgen einem Vektor
 $u_0$, und konstruiere daraus die Folge
 \begin{equation}
-u_{k+1}=\frac{Au_k}{|Au_k|}, \quad k>1.
+u_{k+1}=\frac{Au_k}{|Au_k|}, \quad k\ge 0
 \label{potenz-iteration}
 \end{equation}
+Dann konvergiert die Folge gegen einen Eigenvektor des betragsgr"ossten
+Eigenwertes:
+\[
+\lim_{k\to\infty} u_k=v_1.
+\]
+
+Allerdings funktioniert dies nur unter der Voraussetzung $\lambda_1 > 0$.
+Falls $\lambda_1$ nicht positiv, aber immer noch reell ist, dann
+wechselt $u_k$ bei jeder Iteration die Richtung, also ist $(-1)^ku_k\to v_1$.
 
 \begin{beispiel}
 Bestimme den dominanten Eigenwert und den zugeh"origen Eigenvektor
@@ -667,6 +681,85 @@ Allerdings wechselt der Vektor in jedem Schritt das Vorzeichen,
 was nat"urlich darauf zur"uckzuf"uhren ist, dass $\lambda_1<0$.
 Da der Vektor jetzt bekannt ist, kann man durch Vergleich von
 $u_1$ mit $Au_1$ auch den Eigenwert finden, es ist $\lambda_1=-3.4142$.
+\end{beispiel}
+
+Wenn $\lambda_1$ nicht reell ist, dann unterscheidet sich $u_{k+1}$ von $u_k$
+f"ur gen"ugen grosse $k$ durch einen Phasenfaktor $e^{i\varphi}$.
+Es ist nat"urlich $\lambda_1 = |\lambda_1|e^{i\varphi}$.
+Ausser $v_1$ ist nat"urlich auch jeder Vektor $e^{i\varphi}v_1$ ein
+Eigenvektor zum Eigenwert $\lambda_1$.
+Daher muss in jedem Schritt gem"ass (\ref{potenz-iteration}) noch eine
+Multiplikation mit einem Faktor $e^{i\varphi}$ so erfolgen, dass die
+erste Komponente des Vektors st"andig $> 0$ bleibt.
+Das Argument $\arg z$ einer komplexen Zahl $z$ ist derjenige Winkel
+$\arg z=\varphi$, dass $z=|z|e^{i\varphi}$.
+Ist $(Au_k)_1$ die erste Komponente des Vektors $Au_k$, dann ersetzen wir
+\begin{equation}
+u_{k+1}=e^{-i\arg (Au_k)_1}\frac{Au_k}{|Au_k|},\qquad k\ge 0.
+\label{potenz-komplex}
+\end{equation}
+Damit wird es m"oglich, auch f"ur komplexe Eigenwerte einen Eigenvektor
+zu finden.
+
+\begin{beispiel}
+Man finde einen Eigenvektor der Matrix
+\[
+A=\begin{pmatrix}
+\frac12&\frac{\sqrt{2}}2&-\frac{\sqrt{2}}2\\
+-\frac{\sqrt{6}}4&\frac12&0\\
+\frac{\sqrt{6}}4+i&0&\frac12
+\end{pmatrix}
+\]
+Die Iteration (\ref{potenz-komplex}) ergibt:
+\begin{center}
+\begin{tabular}{|>{$}r<{$}|>{$}r<{$}>{$}r<{$}>{$}r<{$}|}
+\hline
+k& (u_k)_1&(u_k)_2&(u_k)_3\\
+\hline
+ 0& 1.00000&  1.00000 + 0.00000i&  1.00000 + 0.00000i\\
+ 1& 0.31623& -0.07107 + 0.00000i&  0.70353 + 0.63246i\\
+ 2& 0.56506&  0.14342 - 0.16463i& -0.79562 - 0.00401i\\
+ 3& 0.83274& -0.22935 - 0.09994i& -0.10351 + 0.48295i\\
+ 4& 0.36911& -0.24500 - 0.36477i& -0.39000 + 0.72012i\\
+ 5& 0.70280&  0.04175 - 0.33493i& -0.57663 + 0.24422i\\
+ 6& 0.68437& -0.22045 - 0.25979i& -0.19567 + 0.61422i\\
+ 7& 0.51042& -0.09590 - 0.38678i& -0.53252 + 0.545067i\\
+ 8& 0.70008& -0.07063 - 0.32260i& -0.45585 + 0.43935i\\
+ 9& 0.61269& -0.18255 - 0.31679i& -0.33502 + 0.61537i\\
+10& 0.59033& -0.08649 - 0.36343i& -0.50719 + 0.50469i\\
+%11& 0.66494& -0.11720 - 0.32528i& -0.41403 + 0.51662i\\
+%12& 0.60287& -0.14483 - 0.33976i& -0.40999 + 0.57624i\\
+%13& 0.62182& -0.09997 - 0.34848i& -0.46909 + 0.51173i\\
+%14& 0.63946& -0.12878 - 0.33178i& -0.41301 + 0.54208i\\
+15& 0.61055& -0.12617 - 0.34422i& -0.43595 + 0.55025i\\
+%16& 0.62932& -0.11212 - 0.34183i& -0.44608 + 0.52492i\\
+%17& 0.62745& -0.12789 - 0.33700i& -0.42243 + 0.54584i\\
+%18& 0.61831& -0.12023 - 0.34337i& -0.44050 + 0.53971i\\
+%19& 0.62862& -0.11870 - 0.33988i& -0.43632 + 0.53371i\\
+20& 0.62361& -0.12478 - 0.33968i& -0.42992 + 0.54344i\\
+%21& 0.62260& -0.11956 - 0.34195i& -0.43884 + 0.53718i\\
+%22& 0.62657& -0.12124 - 0.33980i& -0.43364 + 0.53778i\\
+%23& 0.62317& -0.12262 - 0.34064i& -0.43364 + 0.54087i\\
+%24& 0.62426& -0.12024 - 0.34106i& -0.43670 + 0.53741i\\
+25& 0.62516& -0.12183 - 0.34014i& -0.43362 + 0.53908i\\
+30& 0.62459& -0.12125 - 0.34057i& -0.43489 + 0.53857i\\
+35& 0.62436& -0.12133 - 0.34063i& -0.43492 + 0.53876i\\
+40& 0.62434& -0.12139 - 0.34062i& -0.43484 + 0.53884i\\
+45& 0.62436& -0.12139 - 0.34061i& -0.43482 + 0.53885i\\
+50& 0.62436& -0.12139 - 0.34061i& -0.43482 + 0.53884i\\
+55& 0.62436& -0.12139 - 0.34061i& -0.43482 + 0.53884i\\
+\hline
+\end{tabular}
+\end{center}
+Also ist
+\[
+v_1=
+\begin{pmatrix}
+0.62436\\ -0.12139 - 0.34061i\\ -0.43482 + 0.53884i\\
+\end{pmatrix}
+\]
+ein Eigenvektor zum dominanten Eigenwert. Der Eigenwert dazu
+ist $(Av_1)_1 / (v_1)_1=0.85497 - 0.99601i$.
 \end{beispiel}
 
 \subsection{Weitere Eigenvektoren}
