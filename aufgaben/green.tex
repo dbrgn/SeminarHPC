@@ -1,0 +1,44 @@
+\begin{aufgabe}
+Visualisierung der Greenschen Funktion in zwei Dimensionen.
+\end{aufgabe}
+
+Gegeben ist eine quadratische, elektrisch leitende Platte
+konstanten Widerstands, deren Rand geerdet ist.
+Nun wird in einem Punkt $P_0=(x_0,y_0)$ nicht notwendigerweise
+in der Mitte, eine Elektrode auf Potential $U_0$ angebracht.
+Welches Potential $u(x,y)$ misst man im Punkt $(x,y)$?
+
+Die Theorie sagt, dass man die L"osung dieses Problems bekommen
+kann, indem man die partielle Differentialgleichung
+\[
+\frac{\partial^2u}{\partial x^2}
++
+\frac{\partial^2u}{\partial y^2}
+=f(x,y),
+\]
+auf dem Gebiet $\Omega=[0,1]^2=\{(x,y)\,|\, 0\le x,y\le 1\}$ 
+mit der Randbedingung
+$u(x,y)=0$ auf $\partial \Omega$
+l"ost, wobei $f$ eine Funktion ist, die die Elektroden repr"asentiert.
+F"ur diese spezielle Differentialgleichung gibt es ein L"osungsverfahren,
+welches darauf beruht, die Gleichung f"ur Delta-Funktionen
+$f(x,y)=\delta_P(x,y)$ an verschiedenen Punkten $P$ zu l"osen.
+
+Ziel dieser Aufgabe ist eine Visualisierung der L"osung mit Hilfe der
+Greenschen Funktion. Eine Visualisierung f"ur den eindimensionalen
+Fall existiert bereits unter \url{http://www.youtube.com/watch?v=Wpi7Gf7V2HY}.
+In dieser Simulation wird die rechte Seite $f$ der Differentialgleichung
+durch eine Summe von Deltafunktionen approximiert, und zu jeder
+N"aherungssumme die zugeh"orige L"osung berechnet. Diese Visualisierung
+verwendete die Tatsache, dass sich die Greensche Funktion im eindimensionalen
+Fall in geschlossener Form angeben l"asst.
+
+Ziel dieser Aufgabe ist, eine analoge Visualisierung f"ur das 
+oben beschriebene zweidimensionale Problem zu erstellen.
+In diesem Fall l"asst sich die Greensche Funktion nur numerisch
+bestimmen, bzw. man kann direkt die partielle Differentialgleichung
+f"ur eine rechte Seite l"osen, die eine Summe von Delta-Funktionen ist.
+
+
+
+

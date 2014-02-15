@@ -684,22 +684,22 @@ $u_1$ mit $Au_1$ auch den Eigenwert finden, es ist $\lambda_1=-3.4142$.
 \end{beispiel}
 
 Wenn $\lambda_1$ nicht reell ist, dann unterscheidet sich $u_{k+1}$ von $u_k$
-f"ur gen"ugen grosse $k$ durch einen Phasenfaktor $e^{i\varphi}$.
+f"ur gen"ugend grosse $k$ durch einen Phasenfaktor $e^{i\varphi}$.
 Es ist nat"urlich $\lambda_1 = |\lambda_1|e^{i\varphi}$.
-Ausser $v_1$ ist nat"urlich auch jeder Vektor $e^{i\varphi}v_1$ ein
+Ausser $v_1$ ist auch jeder Vektor $av_1$ mit $a\in\mathbb C$ ein
 Eigenvektor zum Eigenwert $\lambda_1$.
 Daher muss in jedem Schritt gem"ass (\ref{potenz-iteration}) noch eine
 Multiplikation mit einem Faktor $e^{i\varphi}$ so erfolgen, dass die
 erste Komponente des Vektors st"andig $> 0$ bleibt.
 Das Argument $\arg z$ einer komplexen Zahl $z$ ist derjenige Winkel
-$\arg z=\varphi$, dass $z=|z|e^{i\varphi}$.
+$\arg z=\varphi$, f"ur den $z=|z|e^{i\varphi}$.
 Ist $(Au_k)_1$ die erste Komponente des Vektors $Au_k$, dann ersetzen wir
 \begin{equation}
 u_{k+1}=e^{-i\arg (Au_k)_1}\frac{Au_k}{|Au_k|},\qquad k\ge 0.
 \label{potenz-komplex}
 \end{equation}
 Damit wird es m"oglich, auch f"ur komplexe Eigenwerte einen Eigenvektor
-zu finden.
+mit der Potenzmethode zu finden.
 
 \begin{beispiel}
 Man finde einen Eigenvektor der Matrix

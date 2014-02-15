@@ -1,0 +1,36 @@
+\begin{aufgabe}
+Ising-Modell
+\end{aufgabe}
+
+Das Ising-Modell beschreibt einen Ferromagneten, bestehend aus 
+Spins $S_i$, die in einem Gitter angeordnet sind. Die Energie
+in ist gegeben durch
+\[
+H(S)=-J\sum_{\text{$i,j$ benachbart}}S_iS_j + B\sum_i S_i
+\]
+Die Statistische Mechanik liefert einen Formalismus, wie man thermodynamische
+Eigenschaften dieses Systems berechnen kann. Dazu muss man die Zustandssumme
+\[
+Z_\beta = \sum e^{-\beta S}
+\]
+berechnen, wobei $\beta=1/k_BT$ die inverse Temperatur ist.
+Die Summe erstreckt sich "uber alle m"oglichen Zust"ande, und genau das
+ist das Problem: ein $100\times 100 \times 100$ Gitter, also immer noch
+ein sehr kleiner Kristall, hat $2^{100^3}\simeq 10^{301029}$ Zust"ande,
+diese Summe kann also praktisch nicht berechnet werden.
+
+Eine Simulation ist n"otig.
+Es existiert eine Reihe von Algorithmen, mit denen ein Gleichgewichtszustand
+gefunden werden kann.
+W"ahlen Sie einen Algorithmus und implementieren Sie eine parallelisierte
+Version desselben.
+
+\begin{itemize}
+\item
+\url{http://en.wikipedia.org/wiki/Ising_model}
+\item
+\url{http://www.comphys.ethz.ch/hans/p/047.pdf}
+\item
+\url{http://physics.unifr.ch/admin/dbproxy.php?table=fuman_filepool&column=content&id=1267}
+\end{itemize}
+

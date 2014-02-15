@@ -1,0 +1,46 @@
+\begin{aufgabe}
+Die Monte-Carlo Methode.
+\end{aufgabe}
+
+Probabilistische Algorithmen k"onnen deterministische Probleme l"osen,
+insbesondere wenn keine direkten deterministischen Algorithmen bekannt 
+sind.
+Um eine vergleichbare Genauigkeit mit traditionellen Algorithmen zu
+erreichen, ist eine sehr viel gr"ossere Zahl von Einzelresultaten notwendig.
+
+Ein einfaches Beispiel f"ur einen Monte-Carlo Algorithmus ist die Integration
+einer Funktion $f\colon[0,1]\to[1,0]$.
+Statt das Integral direkt zu berechnen,
+bestimmt man empirisch die Wahrscheinlichkeit, dass $P(Y < f(X))$, wobei
+$X$ und $Y$ in $[0,1]$ gleichverteilte Zufallsvariablen sind. Dann gilt
+\[
+P(Y<f(X)) = \int_0^1f(x)\,dx.
+\]
+Eine Schwierigkeit bei der Durchf"uhrung einer Monte-Carlo-Simulation
+ist, eine Quelle gen"ugend zuf"alliger Zufallszahlen zu bekommen.
+Inbesondere hat man in Graphikkarten a priori keine guten
+Zufallszahlgeneratoren. 
+
+Ein alternatives Problem, welches man mit Monte-Carlo-Simulation untersuchen
+k"onnte, handelt von der Akkumulation von Fehlern in einer Tr"agheitsplattform.
+Eine solche muss zu Beginn auserichtet werden, was nat"urlich nicht
+exakt m"oglich ist. Die Orientierung einer Tr"agheitsplattform wird gegeben
+durch eine orthogonale Matrix in $SO(3)$. 
+Die tats"achliche Orientierung einer Tr"agheitsplattform ist also eine
+Wahrscheinlichkeitsdichte auf $SO(3)$, sie ordnet jeder m"oglichen
+Orientierung eine gewisse Wahrscheinlichkeit zu.
+
+Im Betrieb "andert sich die Orientierung der Plattform, durch Messung
+der Winkelgeschwindigkeit kann man die wahrscheinlichste Orientierung
+berechnen.
+Unvermeidliche Messfehler der drei Winkelgeschwindigkeitssensoren
+f"uhren aber dazu, dass die Ungenauigkeit immer gr"osser wird, die
+Wahrscheinlichkeitsverteilung auf $SO(3)$ wird immer ``verwaschener''.
+Es gibt eine Vermutung, dass dies von einer Art Diffusions- oder
+W"armeleitungsgleichung beschrieben wird.
+Eine interessante Anwendung von Monte-Carlo-Simulation w"are, die
+Entwicklung der Verteilung damit zu berechnen, und mit der 
+Differentialgleichung zu vergleichen.
+
+Historische Aspekte zur Monte-Carlo-Method:
+\url{http://library.lanl.gov/cgi-bin/getfile?00326866.pdf}

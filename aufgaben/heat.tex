@@ -1,0 +1,29 @@
+\begin{aufgabe}
+Man l"ose die W"armeleitungsgleichung
+\[
+\frac{\partial u}{\partial t}
+=
+\kappa
+\biggl(
+\frac{\partial^2u}{\partial x^2}
++
+\frac{\partial^2u}{\partial y^2}
+\biggr)
+=
+\kappa\Delta u,
+\]
+numerisch auf dem Gebiet $\Omega=\{(x,y)\,|\,0\le x,y\le 1\}$ und
+$t\ge 0$ mit Anfangsbedingung $u(0, x, y)=g(x,y)$ und Randbedingung
+$\frac{\partial u}{\partial n}(t,x,y)=0$.
+\end{aufgabe}
+
+Die W"armeleitungsgleichung hat nur erste Ableitungen in der Zeit. 
+Dies hat zur Folge, dass die diskretisierte Gleichung mit einem
+sogenannten Time-Marching-Algorithm f"ur fortschreitende Zeit
+gel"ost werden kann.
+Ziel dieser Aufgabe ist zu zeigen, wie diese
+diskretisierten Gleichungssysteme aussehen, und wie sie f"ur eine sehr
+grosse Zahl von Knoten im Gebiet $\Omega$ gel"ost werden k"onnen.
+
+
+

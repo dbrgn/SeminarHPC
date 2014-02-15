@@ -1,0 +1,69 @@
+\begin{aufgabe}
+Beschleunigung der R"uckprojektion in einem CAT Scanner.
+\end{aufgabe}
+
+Eine CAT Scanner oder Computer-Tomograph ist in der Lage, aus
+einzelnen linearen R"ontgenbildern in einer Ebene durch einen
+K"orper ein Schnittbild durch den K"orper zu gewinnen.
+CAT Scanner wurden in den 60er und 70er Jahren entwickelt
+und haben die medizinische Diagnostik revolutioniert. 
+
+Die mathematische Aufgabe hinter einem CAT Scanner kann wie folgt
+beschrieben werden.
+Wir m"ochten ein Schnittbild durch eine K"orper erstellen,
+wir m"ochten also die Absorptionsdichte in Abh"angigkeit $f(x,y)$ von 
+$x$ und $y$ ermitteln.
+Zur Verf"ugung stehen uns R"ontgenbilder, die in verschiedenen Richtungen
+aufgenommen wurden.
+Der R"ontgenstrahl durch den Punkt $(r\cos\vartheta, r\sin\vartheta)$
+mit der Normalen $(\cos\vartheta,\sin\vartheta)$ wird abh"angig
+von $f$ abgeschw"acht, die 
+gesamte Absorbtion entlang dieses Strahls ist gegeben durch das
+Integral entlang dieses Strahls.
+Den Strahl kann man in Parameterdarstellung beschreiben:
+\[
+\begin{pmatrix}
+r\cos\vartheta\\
+r\sin\vartheta
+\end{pmatrix}
++s
+\begin{pmatrix}
+-\sin\vartheta\\
+\cos\vartheta
+\end{pmatrix}
+\]
+Die aufgenommenen R"ontgenbilder haben also Absorbtionen
+\[
+{\cal R}f(r,\vartheta)=\int_{-\infty}^{\infty}
+f(r\cos\vartheta-s\sin\vartheta, r\sin\vartheta+s\cos\vartheta)\,ds.
+\]
+Die Funktion ${\cal R}f(r,\vartheta)$ heisst die Radon-Transformierte
+von $f$, nach Johann Karl August Radon (1887--1956), der diese Transformation
+bereits 1917 studiert hat.
+
+Die Aufgabe eines Computer-Tomographen ist also, aus ${\cal R}f$ die
+urspr"ungliche Funktion $f$ zu rekonstruieren.
+Ein wesentlicher Schritt dazu ist die sogenannte R"uckprojektion.
+Ziel dieser Aufgabe ist herauszufinden, wie gut sich die R"uckprojektion
+mit Hilfe von Graphikkarten beschleunigen l"asst.
+
+Um den Wert $f(x,y)$ zu finden, muss man sicher alle Werte von ${\cal R}f$
+verwenden, die zu Geraden geh"oren, die durch den Punkt $(x,y)$ gehen.
+Mittel man "uber alle Werte von ${\cal R}f(r,\vartheta)$, die zu 
+Geraden durch $(x,y)$ geh"oren, dann werden sich die Werte von anderen
+Pixeln ausmitteln zu einem mittleren Wert. Man kann sogar eine
+Formel daf"ur angeben:
+\[
+{\cal B}g(x,y)
+=
+\frac1\pi\int_0^\pi g(x\cos\vartheta+y\sin\vartheta,\vartheta)\,d\vartheta.
+\]
+Diese R"uckprojektion ist also eine erste, noch etwas verschleierte
+N"aherung f"ur $f(x,y)$, durch weitere Verarbeitungsschritte, die
+nicht Gegenstand dieser Aufgabe sind, kann man das Bild auch noch
+scharf hinbekommen.
+
+Literatur: Timothy G.~Feeman, {\it The Mathematics of Medical Imaging:
+A Beginners Guide}, Springer Undergraduate Texts in Mathematics and
+Techology, 2010.
+

@@ -1,0 +1,66 @@
+\begin{aufgabe}
+Als Motivationsbeispiel im Abschnitt "uber iterative Methoden f"ur lineare
+Gleichungssysteme wurde die partielle Differentialgleichung mit
+\[
+\Delta u = f(x,y)
+\]
+Randbedingungen $u(x,y)=g(x,y)$ f"ur $(x,y)\in\partial\Omega$ dargestellt.
+Man finde eine m"oglichst effiziente numerische L"osung f"ur dieses Problem.
+\end{aufgabe}
+
+Die Diskretisierung f"uhrt auf ein Gleichungssystem mit der Matrix
+\[
+A=\begin{pmatrix}
+T&E& & &      & \\
+E&T&E& &      & \\
+ &E&T&E&      & \\
+ & &E&T&      & \\
+ & & & &\ddots& \\
+ & & & &      &T
+\end{pmatrix}
+\]
+Zerlegt man die Matrix als
+\[
+A
+=
+\underbrace{
+\begin{pmatrix}
+T& & & &      & \\
+ &T& & &      & \\
+ & &T& &      & \\
+ & & &T&      & \\
+ & & & &\ddots& \\
+ & & & &      &T
+\end{pmatrix}}_M
++
+\underbrace{
+\begin{pmatrix}
+0&E& & &      & \\
+E&0&E& &      & \\
+ &E&0&E&      & \\
+ & &E&0&      & \\
+ & & & &\ddots& \\
+ & & & &      &0
+\end{pmatrix}}_N,
+\]
+erh"alt mein ein interatives Verfahren.
+Die Matrix $M$ ist tridiagonal, diese spezielle Form einer Matrix ist
+besonderes effizient invertierbar in Zeit $O(n)$.
+Ausserdem ist
+\[
+M^{-1}=\begin{pmatrix}
+T^{-1}&      &      \\
+      &\ddots&      \\
+      &      &T^{-1}
+\end{pmatrix},
+\]
+Die Inverse von $M$ ist also sehr einfach aufgebaut,
+insbesondere gibt es in der LAPACK-Library eigene Funktionen zur 
+Invertierung solcher Matrizen.
+Damit wird die Iterationsgleichung
+$ x=M^{-1}(b - Nx)$
+effizient implementierbar.
+
+Vergleichen Sie die Performance dieses Verfahrens mit den Standard-Verfahren
+von Jacobi und Gauss-Seidel.
+Es ist auch denkbar, als Erweiterung den dreidimensionalen Fall zu untersuchen.
