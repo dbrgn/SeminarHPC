@@ -5,11 +5,15 @@
  */
 #include <stdlib.h>
 #include <stdio.h>
-#include <OpenCL/opencl.h>
+#include <CL/opencl.h>
 #include <sys/stat.h>
 #include <errno.h>
 #include <string.h>
 #include <common.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <alloca.h>
+#include <getopt.h>
 
 int	debug = 0;
 
@@ -61,10 +65,15 @@ int	main(int argc, char *argv[]) {
 	int	gpu = 0;
 	int	c;
 	unsigned int	n = 10;
-	while (EOF != (c = getopt(argc, argv, "gdn:p:")))
+	int	platform = 0;
+	int	Debug = 0;
+	while (EOF != (c = getopt(argc, argv, "gdn:p:P:D")))
 		switch (c) {
 		case 'd':
 			debug = 1;
+			break;
+		case 'D':
+			Debug = 1;
 			break;
 		case 'g':
 			gpu = 1;
@@ -79,6 +88,9 @@ int	main(int argc, char *argv[]) {
 			break;
 		case 'p':
 			matrix_precision = atoi(optarg);
+			break;
+		case 'P':
+			platform = atoi(optarg);
 			break;
 		}
 
@@ -99,9 +111,42 @@ int	main(int argc, char *argv[]) {
 	// start OpenCL initialization
 	int	err;
 
+	// first get the platform info
+	cl_uint	num_platforms;
+	err = clGetPlatformIDs(0, NULL, &num_platforms);
+	if (err != CL_SUCCESS) {
+		fprintf(stderr, "cannot get the number of platforms\n");
+		return EXIT_FAILURE;
+	}
+	if (debug) { printf("found %d platforms\n", num_platforms); }
+
+	cl_platform_id	*platformIds = (cl_platform_id *)malloc(
+		num_platforms * sizeof(cl_platform_id));
+	err = clGetPlatformIDs(num_platforms, platformIds, 0);
+
+	// display information about the platforms
+	if (debug) {
+		for (int i = 0; i < num_platforms; i++) {
+			size_t size;
+			cl_platform_id	id = platformIds[i];
+			err = clGetPlatformInfo(id, CL_PLATFORM_NAME, 0, NULL,
+				&size);
+			char * name = (char *)alloca(sizeof(char) * size);
+			err = clGetPlatformInfo(id, CL_PLATFORM_NAME, size,
+				name, NULL);
+
+			err = clGetPlatformInfo(id, CL_PLATFORM_VENDOR, 0, NULL,
+				&size);
+			char * vname = (char *)alloca(sizeof(char) * size);
+			err = clGetPlatformInfo(id, CL_PLATFORM_VENDOR, size,
+				vname, NULL);
+			printf("platform %d: %s/%s\n", i, name, vname);
+		}
+	}
+
 	// get a compute device
 	cl_device_id	device_id;
-	err = clGetDeviceIDs(NULL,
+	err = clGetDeviceIDs(platformIds[platform],
 		gpu ? CL_DEVICE_TYPE_GPU : CL_DEVICE_TYPE_CPU, 1, &device_id,
 		NULL);
 	if (err != CL_SUCCESS) {
@@ -139,7 +184,7 @@ int	main(int argc, char *argv[]) {
 
 	// compile a program
 	err = clBuildProgram(program, 1, &device_id,
-		(debug) ? "-DDEBUG" : NULL, NULL, NULL);
+		(Debug) ? "-DDEBUG" : NULL, NULL, NULL);
 	if (err) {
 		fprintf(stderr, "cannot compile program: %d\n", err);
 		size_t	l = 32 * 1024;
@@ -206,12 +251,19 @@ int	main(int argc, char *argv[]) {
 
 	// compute a suitable work group size
 	size_t	global = n;
-	if (global < local) {
-		global = local;
-		local = 1;
+	if (n <= local) {
+		local = n;
+		global = n;
 	} else {
-		global = 1;
-		local = 1;
+		// find the largest divisor of n that is smaller than local
+		global = local + 1;
+		do {
+			global--;
+		} while (n % global);
+		local = global;
+	}
+	if (debug) {
+		printf("global: %ld, local: %ld\n", global, local);
 	}
 
 	// enqueue the kernel

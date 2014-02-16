@@ -32,8 +32,8 @@ __kernel void	invert(__global float *input, __global float *output,
 	const unsigned int n) {
 	// compute the range of indices this work item is reponsible for
 	__local size_t	local_size;
-	__local unsigned int	min_row;
-	__local unsigned int	max_row;
+	__private unsigned int	min_row;
+	__private unsigned int	max_row;
 
 	// compute the dimensions of the block that this thread is
 	// responsible for computing
@@ -41,6 +41,7 @@ __kernel void	invert(__global float *input, __global float *output,
 	unsigned int	blocksize = n / local_size;
 	min_row = get_local_id(0) * blocksize;
 	max_row = min_row + blocksize;
+printf("%d: %d - %d\n", get_local_id(0), min_row, max_row);
 
 	// initialize the output array with a unit matrix
 	unsigned int	i, j;
@@ -53,6 +54,14 @@ __kernel void	invert(__global float *input, __global float *output,
 	// wait for all threads to complete initialization of their
 	// part of the block
 	barrier(CLK_GLOBAL_MEM_FENCE);
+
+#if DEBUG
+	if (0 == get_local_id(0)) {
+		printf("initialized output matrix:\n");
+		display(output, n);
+	}
+	barrier(CLK_GLOBAL_MEM_FENCE);
+#endif
 
 	i = 0;
 	while (i < n) {
@@ -70,7 +79,9 @@ __kernel void	invert(__global float *input, __global float *output,
 		barrier(CLK_GLOBAL_MEM_FENCE);
 
 		if (0 == get_local_id(0)) {
+			printf("after pivot operation on row %d\n", i);
 			display(input, n);
+			display(output, n);
 		}
 #endif
 
@@ -80,6 +91,7 @@ __kernel void	invert(__global float *input, __global float *output,
 		// now perform the row operations all over the matrix
 		unsigned int	k = min_row;
 		for (; k < max_row; k++) {
+//printf("%d: %d\n", get_local_id(0), k);
 			__global float	*outp = output + n * i;
 			__global float	*inp = input + n * i;
 			if (k != i) {
@@ -120,7 +132,9 @@ __kernel void	invert(__global float *input, __global float *output,
 #ifdef DEBUG
 		barrier(CLK_GLOBAL_MEM_FENCE);
 		if (0 == get_local_id(0)) {
+			printf("after row operations using row %d\n", i);
 			display(input, n);
+			display(output, n);
 		}
 #endif
 
