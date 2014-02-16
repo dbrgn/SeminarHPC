@@ -3,8 +3,11 @@
 #
 # (c) 2014 Prof Dr Andreas Mueller, Hochschule Rapperswil
 #
+CFLAGS = -g -Wall -O2 -std=c99
+CC = gcc
+
 gauss:	gauss.c
-	gcc -o -Wall -O2 -I ../common -o gauss gauss.c -L../common -lgauss
+	$(CC) $(CFLAGS) -I ../common -o gauss gauss.c -L../common -lgauss
 
 test:	gauss
 	./gauss 10

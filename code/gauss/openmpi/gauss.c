@@ -10,6 +10,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <sys/time.h>
+#include <getopt.h>
 #include <common.h>
 
 /**

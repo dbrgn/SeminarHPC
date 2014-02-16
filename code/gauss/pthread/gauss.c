@@ -9,6 +9,7 @@
 #include <errno.h>
 #include <string.h>
 #include <sys/time.h>
+#define __USE_XOPEN2K	1
 #include <pthread.h>
 #include "barrier.h"
 #include <common.h>
@@ -184,6 +185,18 @@ void	experiment(int n, int nthreads) {
 }
 
 /**
+ * \brief Usage
+ */
+void	usage(const char *progname) {
+	printf("usage: %s [ -t threads ] [ -p precision ] dim ...\n", progname);
+	printf("solve random linear system of equations and report run time\n");
+	printf("options:\n");
+	printf(" -t threads     use <threads> threads to solve the system\n");
+	printf(" -p precision   display the system with <precision> digits\n");
+	printf(" -h, -?         display this help message\n");
+}
+
+/**
  * \brief main function
  */
 int	main(int argc, char *argv[]) {
@@ -199,6 +212,10 @@ int	main(int argc, char *argv[]) {
 			break;
 		case 't':
 			nthreads = atoi(optarg);
+			break;
+		case '?':
+		case 'h':
+			usage(argv[0]);
 			break;
 		}
 

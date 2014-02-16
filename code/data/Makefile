@@ -9,12 +9,13 @@ CC = gcc
 all:	ncread ncwrite
 
 ncread:	ncread.c
-	$(CC) $(CFLAGS) -o ncread ncread.c -lnetcdf -lcfitsio
+	$(CC) $(CFLAGS) -o ncread ncread.c -lnetcdf -lcfitsio -lm
 
 ncwrite:	ncwrite.c
-	$(CC) $(CFLAGS) -o ncwrite ncwrite.c -lnetcdf 
+	$(CC) $(CFLAGS) -o ncwrite ncwrite.c -lnetcdf -lm
 
 test:	all
 	rm -f test.nc
+	if [ ! -d images ]; then mkdir images; fi
 	./ncwrite test.nc
 	./ncread test.nc

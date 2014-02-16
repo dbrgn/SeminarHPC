@@ -3,7 +3,8 @@
 #
 # (c) 2014 Prof Dr Andreas Mueller, Hochschule Rapperswil
 #
-CC = /usr/local/gcc/bin/gcc
+#CC = /usr/local/gcc/bin/gcc
+CC = gcc
 CFLAGS = -std=c99 -o -Wall -O2 -fopenmp -I../common
 
 gauss:	gauss.c
