@@ -26,6 +26,6 @@ runall () {
 	runall `seq 520 20 1000`
 	runall `seq 1050 50 2000`
 	runall `seq 2100 100 3000`
-	runall `seq 2200 200 5000`
+	runall `seq 3200 200 5000`
 	#runall `seq 6000 1000 10000`
 ) > results

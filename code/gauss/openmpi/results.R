@@ -7,7 +7,7 @@ u$ln = log10(u$n)
 u$lt = log10(u$time)
 
 pdf("results.pdf", 8, 6)
-plot(d[d$threads = 32]$ln, d[d$threads = 32]$lt, type = "l", col = "blue",
+plot(d[d$threads == 32,]$ln, d[d$threads == 32,]$lt, type = "l", col = "blue",
 	main = "Gauss-Algorithmus, OpenMPI-Implementierung",
 	xlab = "log10(n)", ylab = "log10(Laufzeit)")
 lines(d[d$threads == 16,]$ln, d[d$threads == 16,]$lt)
