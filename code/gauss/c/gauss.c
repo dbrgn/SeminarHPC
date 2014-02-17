@@ -90,6 +90,7 @@ void	experiment(int n) {
 	gauss(a, n);
 	double	end = gettime();
 	printf("%d, %.6f\n", n, end - start);
+	fflush(stdout);
 
 	/* display the matrix */
 	if (n <= 10) {
