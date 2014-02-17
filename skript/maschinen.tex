@@ -184,7 +184,7 @@ for (int i = 0; i < length; i += 4) {
         *q++ = *p++;
 }
 \end{verbatim}
-Eine weiter Verbesserung kann erreicht werden, indem statt einer
+Eine weitere Verbesserung kann erreicht werden, indem statt einer
 Byte-Operation eine Operation mit einem gr"osseren Datentyp durchgef"uhrt wird:
 \begin{verbatim}
 long    *p = (long *)a;
@@ -198,7 +198,7 @@ for (int i = 0; i < length; i += 4 * sizeof(long)) {
 \end{verbatim}
 Nat"urlich wurde im obigen Code immer angenommen, dass die L"ange durch
 die $4$ bzw.~\verb+4 * sizeof(long)+ teilbar ist.
-Andernfalls m"uss die letzten Bytes einer solche Kopieroperation mit
+Andernfalls m"ussen die letzten Bytes einer solche Kopieroperation mit
 dem ``langsamen'' Algorithmus kopiert werden.
 
 Dieses Beispiel illustriert, dass auch in einer einfachen Kopier-Operation
@@ -209,7 +209,7 @@ Bibliotheksfunktionen daf"ur verwenden.
 
 Das Betriebssystem Solaris treibt diese Idee auf die Spitze:
 Es verwendet f"ur jeden Prozessortyp optimierte
-optimierte Funktionen, die aus einer Prozessorspezifischen Bibliothek
+Funktionen, die aus einer Prozessorspezifischen Bibliothek
 im Verzeichnis \verb+/platform+ gelesen werden.
 \end{beispiel}
 
