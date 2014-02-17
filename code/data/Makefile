@@ -3,7 +3,7 @@
 #
 # (c) 2014 Prof Dr Andreas Mueller, Hochschule Rapperswil
 #
-CFLAGS = -O2 -g -Wall -std=c99
+CFLAGS = -O2 -g -Wall -std=c99 -I/usr/include/cfitsio
 CC = gcc
 
 all:	ncread ncwrite

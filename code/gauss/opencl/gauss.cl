@@ -3,6 +3,7 @@
  *
  * (c) 2014 Prof Dr Andreas Mueller, Hochschule Rapperswil
  */
+#pragma OPENCL EXTENSION cl_amd_printf : enable
 
 #ifdef DEBUG
 // display function used for debugging
