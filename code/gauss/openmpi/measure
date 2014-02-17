@@ -6,16 +6,20 @@
 runall () {
 	for n in $*
 	do
-		mpirun -np 8 ./gauss -n ${n}
+		for threads in 32 16 12 8 4 2 1
+		do
+			mpirun -np ${threads} ./gauss -n ${n}
+		done
 	done
 }
 
 (
+	echo n,time,threads
 	runall `seq 20 10 500` 
 	runall `seq 20 10 500` 
 	runall `seq 520 20 1000`
 	runall `seq 1050 50 2000`
 	runall `seq 2100 100 3000`
 	runall `seq 2200 200 5000`
-	runall `seq 6000 1000 10000`
+	#runall `seq 6000 1000 10000`
 ) > results
