@@ -14,6 +14,6 @@ fi
 	./gauss `seq 520 20 1000`
 	./gauss `seq 1050 50 2000`
 	./gauss `seq 2100 100 3000`
-	./gauss `seq 3000 200 5000`
+	./gauss `seq 3200 200 5000`
 	#./gauss `seq 5000 1000 10000`
 ) > results
