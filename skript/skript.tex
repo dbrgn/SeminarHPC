@@ -52,14 +52,14 @@
 \usepackage{subcaption}
 %\usepackage{cite}
 \usepackage{standalone}
-%\usepackage[sorting=none,backend=bibtex]{biblatex}
-%\addbibresource{sample/bib.bib}
+\usepackage[sorting=none,backend=bibtex]{biblatex}
+\addbibresource{references.bib}
+\addbibresource{sample/sample.bib}
 \AtEndDocument{\clearpage\ifodd\value{page}\else\null\clearpage\fi}
 \makeindex
 \begin{document}
-\bibliographystyle{plain}
+%\bibliographystyle{plain}
 \pagestyle{fancy}
-%\lhead{Optimierung}
 \frontmatter
 \newcommand\HRule{\noindent\rule{\linewidth}{1.5pt}}
 \begin{titlepage}
@@ -81,18 +81,28 @@ High Performance Computing}
 Leitung: Andreas M"uller\\
 \vspace{40pt}
 \Large
-%Dorian Amiet,
-%Hannes Badertscher,
-%Gregor Dengler,\\
-%Roman Gassmann,
-%Lukas Loser,
-%Selina Malacarne,\\
-%Tabea M\'endez,
-%Raphael Nestler,
-%Philip Riedel,\\
-%Christian Schmid,
-%Armin Stocklin,
-%Dario Wikart
+Dorian Amiet,
+Hannes Badertscher,
+Danilo Bargen,\\
+Marco Bassotti,
+Reto Christen,
+Gregor Dengler,\\
+Aida Hassanpour,
+Fabian Klein,
+Flavio La Morea,\\
+Andreas Linggi,
+Tabea M\'endez,
+Daniel Monti,
+Lukas Murer,
+Nicol\'as Rom\'an L"uthold,
+Christian Schmid,
+Philipp Solenthaler,
+Pascal Stump,
+Stefan Steiner,
+Yannick Suter,
+Dario Tr"utsch,
+Andreas Weilenmann,
+Thomas Ziegler
 \end{flushright}
 \vspace*{\stretch{2}}
 \begin{center}
@@ -144,12 +154,14 @@ Hochschule f"ur Technik, Rapperswil, 2014
 \input linsys.tex
 \input vorwort.tex
 \part{Grundlagen}
+\begin{refsection}
 \input einleitung.tex
 \input maschinen.tex
 \input sprachen.tex
 \input daten.tex
 \input algorithm.tex
-\bibliography{references}
+\printbibliography[heading=subbibliography]
+\end{refsection}
 
 \part{Anwendungen und Weiterf"uhrende Themen}
 \lhead{Anwendungen}

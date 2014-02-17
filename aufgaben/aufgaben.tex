@@ -31,10 +31,15 @@ Switzerland, Email: {\tt andreas.mueller@hsr.ch}}}
 \maketitle
 \section{Ziele des Seminars}
 \begin{itemize}
-\item
-\item
-\item
-\item
+\item Teilnehmer sind vertraut mit den speziellen Fragestellungen, die
+sich beim High Performance Computing (HPC) ergeben.
+\item Teilnehmer kennen die wichtigsten Parallelisierungstechniken und
+APIs f"ur HPC.
+\item Teilnehmer haben ein kleines HPC Projekt durchgef"uhrt, mit
+Parallelisierungstechniken gearbeitet, und Performance-Untersuchungen
+durchgef"uhrt.
+\item Teilnehmer kennen einige wichtige Algorithmen, insbesonder der
+numerischen linearen Algebra, die im HPC eine grosse Rolle spielen.
 \end{itemize}
 
 \section{Auftrag}
@@ -71,48 +76,95 @@ einem niedrigdimensionalen Beispiel zu illustrieren, welche
 die Methode verst"andlich macht, als den Zuh"orer mit stundenlangen
 Falldiskussionen zu langweilen.
 
+\section{Vorlesungsteil}
+Damit Sie in der Lage sind, die Aufgaben zu bearbeiten, wird der
+Vorlesungsteil einige Grundlagen bereitstellen. Insbesondere werden
+folgende Themen behandelt:
+\begin{enumerate}
+\item Parallelisierungstechniken: Ptheads, OpenMP, OpenMPI, OpenCL
+\item Umgang mit der Datenflut: Fileformate und Visualisierung
+\item Parallele lineare Algorithmen: Jacobi, Gauss-Seidel, Matrixzerlegungen,
+Spektralradius, Konvergenz.
+\end{enumerate}
+
 \section{Aufgaben}
-Die nachstehend skizzierten Aufgaben werden in dieser Reihenfolge im
-Seminar behandelt. Die genauen Termine werden sp"ater bekannt
-gegeben. Als Faustregel dient, dass Aufgabe Nummer $n$ in der Woche
-$n + 2$ behandelt wird.
+Die nachstehenden Aufgabenstellungen stehen f"ur das Seminar zur
+Verf"ugung.
+Falls Sie eine eigene Idee f"ur ein umfangreiches Problem haben, dass
+Sie gerne im Hinblick auf HPC untersuchen m"ochten, gibt es selbstverst"andlich
+M"oglichkeiten, die Liste zu erweitern.
 
 \newtheorem{aufgabe}{Aufgabe}
 
-\input{backprojection.tex}
+\subsection{Konkrete Anwendungsprobleme}
+Diese Aufgaben sind sehr konkrete Anwendungsproblem, die eine
+gewisse Einarbeitung in das Problemgebiet erfordern. Sie sind jedoch
+unmittelbare Anwendungen der Techniken, die im Grundlagenteil behandelt
+wurden.
 \input{des.tex}
-\input{sor.tex}
-\input{poisson.tex}
-\input{green.tex}
-\input{heat.tex}
+\input{backprojection.tex}
+\input{ising.tex}
 \input{globularcluster.tex}
+\input{quat.tex}
+
+\subsection{Weitere Themen}
+Der Grundlagenteil kann nicht alle Techniken behandeln, die in der
+Praxis von Bedeutung sind.
+Insbesondere werden keine speziellen Softwarepakete behandelt,
+was in der OpenFOAM Aufgabe kompensiert werden kann. 
+Aus der Big-Data-Welt kommen weitere Parallelisierungstechniken,
+die eine gewisse Bedeutung im HPC erlangt haben, die Map-Reduce-Aufgabe
+nimmt darauf R"ucksicht.
 \input{openfoam.tex}
 \input{mapreduce.tex}
 \input{montecarlo.tex}
-\input{ising.tex}
 
-\section{Voraussetzungen}
+\subsection{Theoretische Untersuchungen}
+Im Kapitel "uber parallele Algorithmen in der numerischen linearen
+Algebra werden Grundlagen dargestellt, die f"ur eine Reihe 
+verbesserter Algorithmen und wichtiger Musterprobleme ben"otigt werden.
+Die folgenden vier Probleme illustrieren dies:
+\input{sor.tex}
+\input{poisson.tex}
+\input{heat.tex}
+\input{green.tex}
 
 \section{Bewertung}
 \subsection{Note}
-Die Vortr"age und Papers werden benotet und geben die Modulnote.
-Die Note setzt sich zusammen aus den Resultaten eines Fragebogens,
+Die Vortr"age werden mit Hilfe eines Fragebogens bewertet,
+den die Teilnehmer ausf"ullen.
+Bei der Vorbereitung Ihres Vortrags sollten Sie also vor allem
+Ihrem Zuh"orer im Auge behalten.
+Denken Sie insbesondere an folgendes:
+\begin{enumerate}
+\item Was sind die wichtigsten Lehren aus meiner Arbeit, die die
+Zuh"orer unbedingt mitbekommen sollten?
+\item Wie kann man am schnellsten den "Uberblick "uber den
+gew"ahlten L"osungsweg bekommen?
+\item Wie funktioniert der Algorithmus? 
+\item Warum wurde dieser L"osungsweg gew"ahlt? Welche Alternativen
+gab es, warum sind die Alternativen weniger gut geeignet?
+\item Wo verstecken sich besondere Schwierigkeiten und wie kann
+man diese "uberwinden?
+\item Gute Visualisierungen helfen immer, eine Pr"asentation
+verst"andlicher und eindr"ucklicher zu machen.
+\end{enumerate}
+
+Die Papers werden vom Dozenten benotet.
+Die Modul-Note setzt sich zusammen aus den Resultaten eines Fragebogens,
 den die Zuh"orer ausf"ullen, und einer Benotung durch den Dozenten.
 
 \subsection{Kurztests}
-Ausserdem werden drei Kurztests durchgef"uhrt, die nur bestanden
-werden k"onnen oder nicht. 
-{\em Nichtlineare Optimierung} und {\em Variationsrechnung} je
-ein Kurztest bestehend aus einer Standardaufgabe aus den jeweiligen
-Themengebieten verlangt. In diesem Kurztest d"urfen beliebige Hilfsmittel
-verwendet werden, auch Computer und das Internet, und es gibt keine
-Zeitlimite (ausser der Schliessung des Ge"audes).
-
+Ausserdem werden drei Kurztests durchgef"uhrt.
 Mit dem Kurztest
 soll bewiesen werden, dass jeder Teilnehmer mit den grundlegenden
 Techniken des HPC vertraut ist.
 Die Kurztests geben keine Note, m"ussen aber alle erf"ullt sein,
 damit das Modul als bestanden gilt.
+Die Kurztests werden zum Teil auf dem Compute-Server der 
+Gruppe Mathematik durchgef"uhrt.
+Daher ben"otigen Sie f"ur die Kurztests einen Computer mit einer
+funktionierenden SSH Implementation.
 
 \end{document}
  

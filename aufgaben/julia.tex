@@ -1,6 +1,40 @@
 \begin{aufgabe}
-Berechnung von Julia-Mengen.
+Berechnen Sie die Julia-Mengen der komplexen Funktion $f_c(z)=z^2+c$ f"ur
+beliebige Werte von $c\in\mathbb C$.
 \end{aufgabe}
 
+Das ber"uhmte ``Apfelm"annchen'' ist die Menge der Punkte $c\in\mathbb C$,
+f"ur welche Iterationen
+\[
+f_c(0), f_c\circ f_c(0), \dots f_c^n(0),\dots
+\]
+der Abbildung $f_c$ beschr"ankt bleiben.
+Punkte, f"ur die die Iterationen divergieren, werden auf den bekannten
+graphischen Darstellungen jeweils mit verschiedenen Farben eingef"arbt,
+die angeben, wie schnell die Divergenz erfolgt.
+
+In dieser Aufgabe wird aber nicht der Parameterraum der Werte $c$
+untersucht, sondern die Variable $z$.
+Je nach Startwert $z_0$ konvergieren die Werte 
+\[
+z_1=f_c(z_0), z_2=f_c(z_1),\dots,z_{i+1}=f_c(z_i),\dots
+\]
+gegen einen Fixpunkt, oder gegen einen Zyklus von $p$ Werten (periodischer
+Punkt mit Periode $p$), oder sie divergieren.
+Die komplexe Ebenen l"asst sich je nach Verhalten in verschiedene
+Gebiete einteilen. Die Julia-Menge ist die Grenze zwischen diesen
+Gebieten.
+
+Die Julia-Menge zeichnet sich dadurch aus, dass die Iteration von $f_c$ auf
+der Julia-Menge chaotisch ist.
+Dies ist aber f"ur die numerische Berechnung ein sehr schwierig auszuwertendes
+Kriterium.
+Beginnt man mit einem Punkt sehr nahe bei der Julia-Menge,
+dann entfernen sich die Iterierten von der Julia-Menge,
+da sie ja zu einem periodischen Punkt oder Fixpunkt hinstreben.
+Man kann also die Julia-Menge dadurch aufsuchen, dass man die Urbilder sucht.
+Bei einer quadratischen Funktion gibt es jeweils zwei Urbilder,
+andere Funktionen k"onnen sehr viel mehr Urbilder haben. Die Urbilder
+r"ucken immer n"aher an die Julia-Menge heran.
 
 
