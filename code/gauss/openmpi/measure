@@ -22,7 +22,6 @@ runall () {
 (
 	echo n,time,threads
 	runall `seq 20 10 500` 
-	runall `seq 20 10 500` 
 	runall `seq 520 20 1000`
 	runall `seq 1050 50 2000`
 	runall `seq 2100 100 3000`
