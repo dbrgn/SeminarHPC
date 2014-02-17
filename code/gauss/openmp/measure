@@ -3,11 +3,17 @@
 #
 # (c) 2014 Prof Dr Andreas Mueller, Hochschule Rapperswil
 #
+if [ -r results ]
+then
+	echo "results exists, delete first"
+	exit 1
+fi
 (
+	echo n,time
 	./gauss `seq 20 10 500` 
 	./gauss `seq 520 20 1000`
 	./gauss `seq 1050 50 2000`
 	./gauss `seq 2100 100 3000`
-	./gauss `seq 2200 200 5000`
-	./gauss `seq 5000 1000 10000`
+	./gauss `seq 3000 200 5000`
+	#./gauss `seq 5000 1000 10000`
 ) > results

@@ -52,6 +52,7 @@ void	gauss() {
 	} while (i < n);
 	double	end = gettime();
 	printf("%d,%.6f\n", n, end - start);
+	fflush(stdout);
 }
 
 /**

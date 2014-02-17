@@ -140,6 +140,7 @@ void	*thread_main(void *arg) {
 	double	end = gettime();
 	if (pthread_self() == info[0].thread) {
 		printf("%d,%.6f,%d\n", common.n, end - start, common.nthreads);
+		fflush(stdout);
 	}
 
 	// that's it, return the structure to indicate that there was no
