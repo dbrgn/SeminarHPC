@@ -16,7 +16,7 @@ fi
 		./gauss -t ${nthreads} `seq 520 20 1000`
 		./gauss -t ${nthreads} `seq 1050 50 2000`
 		./gauss -t ${nthreads} `seq 2100 100 3000`
-		./gauss -t ${nthreads} `seq 2200 200 5000`
+		./gauss -t ${nthreads} `seq 3000 200 5000`
 		#./gauss -t ${nthreads} `seq 6000 1000 10000`
 	done
 ) > results
