@@ -378,9 +378,39 @@ f"ur dieses Argument definiert.
 Im Vergleich dazu die Laufzeit der sequentiellen Implementierung 
 in rot\label{gauss-pthread}}
 \end{figure}
+Die Messungen in Abbildung \ref{gauss-pthread} zeigen, dass der mit
+Pthreads parallelisierte Algorithmus nicht sehr gut skaliert. Dies
+d"urfte folgende Ursachen haben:
+\begin{itemize}
+\item
+Die Threads laufen auf verschiedenen CPUs, aber der Speicher wurde
+h"ochstwahrscheinlich im ersten Prozess alloziert, die meisten
+Speicherzugriffe erfolgen also "uber eine ``fremde'' CPU, und sind
+daher langsamer.
+\item
+Eine grosse Zahl von Threads, die auf den gleichen Speicherbereich
+zugreifen, werden den Cache in k"urzester Zeit umw"alzen.
+\item
+Die einzelnen Threads sind bis auf die Barriers v"ollig unabh"angig.
+Die von Ihnen erzeugten Cache-Zugriffe sind daher ungeordnet, jeder
+Threads greift ``wild'' durch den ganzen Cache hindurch, so dass
+der Performance-Gewinn durch den Cache zusammenbricht.
+\end{itemize}
+Ausserdem kann man ablesen, dass bei kleinen Problemgr"ossen 
+alle Threads zu starten und wieder zu beenden, einen wesentlichen 
+Mehraufwand bedeutet, der die Laufzeit eines Algorithmus mit nur
+einem Thread deutlich "ubersteigt.
 
 \section{OpenMP\label{openmp-intro}}
 \rhead{OpenMP}
+Aus den Beobactungen zur Performance einer Parallelisierung mit
+Pthreads kann man ableiten, dass es sinnvoll sein kann,
+eine Parallelisierungsmethode zu w"ahlen, bei der die einzelnen
+Threads nicht so frei sind.
+Parallelisierung muss also mit einer wesentlich feineren Granularit"at
+stattfinden, auf der Ebene einzelner Instruktionen oder Kontrollstrukuren.
+Genau dies leistes OpenMP.
+
 OpenMP ist eine API-Spezifikation f"ur parallele Programmierung.
 Die erste Spezifikation f"ur Fortran erschien 1997, die j"ungste 
 Version 4.0 wurde im Juli 2013 ver"offentlicht.
@@ -429,6 +459,26 @@ generiert, stellt sich heraus, dass der Optimizer die Variable $b$
 ohnehin entfernt. Sie wird ja in jedem Schleifendurchgang der inneren
 Schleife gebraucht, so dass es sich lohnt, den Wert von $b$ in einem
 Register zu behalten.
+
+\subsection{Resultate}
+\begin{figure}
+\begin{center}
+\includegraphics[width=\hsize]{images/gauss-openmp.pdf}
+\end{center}
+\caption{Laufzeit einer OpenMP-basierten parallelen Implementation
+des Gauss-Algorithmus.
+Single-Thread Implementation rot, Laufzeit der OpenMP-Implementation
+blau\label{openmp-performance}}
+\end{figure}
+Die Messresultate in Abbildung \ref{openmp-performance}
+zeigen, dass die Parallelisierung f"ur kleine $n$
+einen grossen Overhead mitbringt, erst ab einer Problemgr"osse von
+einigen Tausend ist die OpenMP Implementation der Single Thread
+Implementation "uberlegen.
+
+Dann, bei einer Problemgr"osse deutlich ungef"ahr bei der Cache-Gr"osse,
+bricht die Performance zusammen, die OpenMP Beschleunigung bringt
+keinen Gewinn mehr.
 
 \section{OpenCL\label{opencl-intro}}
 \rhead{OpenCL}
