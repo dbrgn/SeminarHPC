@@ -11,3 +11,6 @@ gauss:	gauss.c
 
 test:	gauss
 	./gauss 10
+
+results.pdf:	results.csv
+	R --vanilla --quiet < results.R
