@@ -4,6 +4,7 @@
 # (c) 2014 Prof Dr Andreas Mueller, Hochschule Rapperswil
 #
 (
+	echo n,time
 	./gauss `seq 20 10 500` 
 	./gauss `seq 520 20 1000`
 	./gauss `seq 1050 50 2000`
