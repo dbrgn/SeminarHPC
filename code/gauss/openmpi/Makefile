@@ -12,5 +12,5 @@ gauss:	gauss.c
 test:	gauss
 	mpirun -np 2 ./gauss
 
-results.pdf:	results.csv results.R
+results.pdf threads.pdf:	results.csv results.R
 	R --vanilla --quiet < results.R

@@ -696,7 +696,13 @@ while (i < n) {
 \end{verbatim}
 
 \subsection{Resultate}
-
+\begin{figure}
+\begin{center}
+\includegraphics[width=\hsize]{images/gauss-openmp.pdf}
+\end{center}
+\caption{Laufzeit der OpenMP-Implementation des Gauss-Algorithmus.
+\label{openmp-results}}
+\end{figure}
 
 \section{Message Passing: OpenMPI}
 \rhead{OpenMPI}
@@ -869,10 +875,35 @@ der invertierten Matrix wieder von Prozess 0 gesammelt werden.
 \includegraphics[width=\hsize]{images/gauss-openmpi.pdf}
 \end{center}
 \caption{Laufzeit der OpenMPI-Implementierung des Gauss-Algorithmus.
+Die blaue Kurve zeigt die Laufzeit mit 32 Prozessen, rot sind die
+Vergleichsmessung der sequenziellen Implementation eingetragen.
 \label{openmpi-performance}}
 \end{figure}
+Die Laufzeitmessungen in Abbildung \ref{openmpi-performance} zeigen,
+dass die OpenMPI-Implementation schon bei kleinen Problemen schneller
+l"auft als die OpenMP-Implementation.
+Bei kleienn Problemn unter $n=100$ ist der OpenMPI Overhead dominant.
+Gegen"uber der Pthread-Implementation zeigt sich auch ein deutlich gr"osserer
+Performance-Gewinn durch Verwendung mehrerer Threads.
+Es ist allerdings auch schon erkennbar, dass die grosse Zahl von 32 Threads
+kaum mehr zus"atzliche Performance bringt.
 
-
+\begin{figure}
+\begin{center}
+\includegraphics[width=\hsize]{images/gauss-threads.pdf}
+\end{center}
+\caption{Laufzeit in Abh"angigkeit von der Anzahl Prozesse.
+F"ur weninger als 16 Prozesse skaliert der Algorithmus sehr viel besser.
+F"ur $n>3500$ (drittoberste Kurve) ist erkennbar, wie die Skalierung
+zusammenbricht. 
+Von oben nach unten ist $n=5000$, $4000$, $3500$, $3000$, $2000$, $1000$
+und $500$.
+\label{openmpi-threads}}
+\end{figure}
+In Abbildung \ref{openmpi-threads} ist die Abh"angigkeit der Laufzeit von
+der Anzahl der Prozesse von dargestellt. Mehr als 12 Threads bringen
+keinen Laufzeitverbesserung mehr. Ebenso skaliert die L"osung f"ur 
+Problem nicht mehr, wenn $n$ wesentlich gr"osser als ca.~3000 ist.
 
 \section{Gegen"uberstellung}
 
