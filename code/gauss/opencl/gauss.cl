@@ -3,9 +3,17 @@
  *
  * (c) 2014 Prof Dr Andreas Mueller, Hochschule Rapperswil
  */
+#ifdef AMD
 #pragma OPENCL EXTENSION cl_amd_printf : enable
+#endif
+
+#ifdef INTEL
+#pragma OPENCL EXTENSION cl_intel_printf : enable
+#endif
 
 #ifdef DEBUG
+#if defined(AMD) or defined(INTEL)
+#define DEBUGGING
 // display function used for debugging
 void	display(__global float *a, const unsigned int n);
 void	display(__global float *a, const unsigned int n) {
@@ -20,6 +28,8 @@ void	display(__global float *a, const unsigned int n) {
 	}
 	printf("];\n");
 }
+#else
+#endif
 #endif
 
 /**
@@ -42,7 +52,6 @@ __kernel void	invert(__global float *input, __global float *output,
 	unsigned int	blocksize = n / local_size;
 	min_row = get_local_id(0) * blocksize;
 	max_row = min_row + blocksize;
-printf("%d: %d - %d\n", get_local_id(0), min_row, max_row);
 
 	// initialize the output array with a unit matrix
 	unsigned int	i, j;
@@ -56,7 +65,7 @@ printf("%d: %d - %d\n", get_local_id(0), min_row, max_row);
 	// part of the block
 	barrier(CLK_GLOBAL_MEM_FENCE);
 
-#if DEBUG
+#if DEBUGGING
 	if (0 == get_local_id(0)) {
 		printf("initialized output matrix:\n");
 		display(output, n);
@@ -76,7 +85,7 @@ printf("%d: %d - %d\n", get_local_id(0), min_row, max_row);
 		}
 
 
-#ifdef DEBUG
+#ifdef DEBUGGING
 		barrier(CLK_GLOBAL_MEM_FENCE);
 
 		if (0 == get_local_id(0)) {
@@ -92,7 +101,6 @@ printf("%d: %d - %d\n", get_local_id(0), min_row, max_row);
 		// now perform the row operations all over the matrix
 		unsigned int	k = min_row;
 		for (; k < max_row; k++) {
-//printf("%d: %d\n", get_local_id(0), k);
 			__global float	*outp = output + n * i;
 			__global float	*inp = input + n * i;
 			if (k != i) {
@@ -100,12 +108,12 @@ printf("%d: %d - %d\n", get_local_id(0), min_row, max_row);
 				__global float	*out = output + n * k;
 				__global float	*in = input + n * k;
 				float	b = in[i];
-#if 1
+#if defined(VECTOR2)
 				// do as many operations as possible using
 				// vector operations, as they allow for more
 				// parallelism
 				unsigned int l = 0;
-				while (j < n) {
+				while (j + 2 < n) {
 					float2	v = vload2(l, out);
 					float2	p = vload2(l, outp);
 					v = v - b * p;
@@ -120,6 +128,66 @@ printf("%d: %d - %d\n", get_local_id(0), min_row, max_row);
 					l++;
 				}
 #endif
+#if defined(VECTOR4)
+				// do as many operations as possible using
+				// vector operations, as they allow for more
+				// parallelism
+				unsigned int l = 0;
+				while (j + 4 < n) {
+					float4	v = vload4(l, out);
+					float4	p = vload4(l, outp);
+					v = v - b * p;
+					vstore4(v, l, out);
+
+					v = vload4(l, in);
+					p = vload4(l, inp);
+					v -= b * p;
+					vstore4(v, l, in);
+
+					j += 4;
+					l++;
+				}
+#endif
+#if defined(VECTOR8)
+				// do as many operations as possible using
+				// vector operations, as they allow for more
+				// parallelism
+				unsigned int l = 0;
+				while (j + 8 < n) {
+					float8	v = vload8(l, out);
+					float8	p = vload8(l, outp);
+					v = v - b * p;
+					vstore8(v, l, out);
+
+					v = vload8(l, in);
+					p = vload8(l, inp);
+					v -= b * p;
+					vstore8(v, l, in);
+
+					j += 8;
+					l++;
+				}
+#endif
+#if defined(VECTOR16)
+				// do as many operations as possible using
+				// vector operations, as they allow for more
+				// parallelism
+				unsigned int l = 0;
+				while (j + 16 < n) {
+					float16	v = vload16(l, out);
+					float16	p = vload16(l, outp);
+					v = v - b * p;
+					vstore16(v, l, out);
+
+					v = vload16(l, in);
+					p = vload16(l, inp);
+					v -= b * p;
+					vstore16(v, l, in);
+
+					j += 16;
+					l++;
+				}
+#endif
 				// do the remining operations by scalar
 				// operations
 				while (j < n) {
@@ -130,7 +198,7 @@ printf("%d: %d - %d\n", get_local_id(0), min_row, max_row);
 			}
 		}
 
-#ifdef DEBUG
+#ifdef DEBUGING
 		barrier(CLK_GLOBAL_MEM_FENCE);
 		if (0 == get_local_id(0)) {
 			printf("after row operations using row %d\n", i);

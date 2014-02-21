@@ -10,4 +10,4 @@ gauss:	gauss.c
 	$(CC) $(CFLAGS) -o gauss gauss.c -L../common -lgauss -L/opt/AMDAPP/lib/x86_64 -lOpenCL
 
 test:	gauss
-	./gauss -p 6 -d -D -n 10
+	./gauss -P 1 -p 6 -d 10 1000
