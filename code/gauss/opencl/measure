@@ -1,0 +1,30 @@
+#
+# perform measurement runs for many combinations of parameters
+#
+# (c) 2014 Prof Dr Andreas Mueller, Hochschule Rapperswil
+#
+for platform in 0 1 2
+do
+	if [ -r results-${platform} ]
+	then
+		echo "results exists, delete first"
+		exit 1
+	fi
+done
+
+for platform in 0 1 2
+do
+	(
+		echo n,time,vectorlength
+		for vector in 1 2 4 8 16
+		do
+			flags="-d -P ${platform} -v ${vector}"
+			./gauss ${flags} `seq 20 10 500` 
+			./gauss ${flags} `seq 520 20 1000`
+			./gauss ${flags} `seq 1050 50 2000`
+			./gauss ${flags} `seq 2100 100 3000`
+			./gauss ${flags} `seq 3200 200 5000`
+			#./gauss `seq 5000 1000 10000`
+		done
+	) > results-${platform}
+done
