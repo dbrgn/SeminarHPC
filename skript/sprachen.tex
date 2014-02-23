@@ -215,22 +215,62 @@ $n$ ist kein Unterschied feststellbar.
 Lineare Regression (rote Gerade) liefert den Exponenten $2.990$.
 \label{gauss-uni}}
 \end{figure}
-\subsection{Notwendige Sprachkonstrukte}
-Um den parallelisierten Algorithmus umzusetzen, sind folgende wesentlichen
-Konstrukte notwendig:
-\begin{enumerate}
-\item Methoden, um Threads zu starten und die in der inneren Schleife "uber
-$k$ notwendige Arbeit auf die einzelnen Threads zu verteilen.
-\item Eine Methode um sicherzustellen, dass die Threads nicht weiter 
-arbeiten, bevor die Division der Pivot-Zeile durch das Pivot-Element
-abgeschlossen ist.
-\label{barrier}
-\end{enumerate}
-Konstrukte, die \ref{barrier} implementieren, werden normalerweise
-Barrier genannt.
-Verschiedene Threads in einem Programm laufen
-unabh"angig voneinander bis zur Barrier. Erst wenn alle Threads
-bei der Barrier angekommen sind, k"onnen die Threads weiterfahren.
+
+%\subsection{Notwendige Sprachkonstrukte}
+%Um den parallelisierten Algorithmus umzusetzen, sind folgende wesentlichen
+%Konstrukte notwendig:
+%\begin{enumerate}
+%\item Methoden, um Threads zu starten und die in der inneren Schleife "uber
+%$k$ notwendige Arbeit auf die einzelnen Threads zu verteilen.
+%\item Eine Methode um sicherzustellen, dass die Threads nicht weiter 
+%arbeiten, bevor die Division der Pivot-Zeile durch das Pivot-Element
+%abgeschlossen ist.
+%\label{barrier}
+%\end{enumerate}
+%Konstrukte, die \ref{barrier} implementieren, werden normalerweise
+%Barrier genannt.
+%Verschiedene Threads in einem Programm laufen
+%unabh"angig voneinander bis zur Barrier. Erst wenn alle Threads
+%bei der Barrier angekommen sind, k"onnen die Threads weiterfahren.
+
+\section{Problemkatalog}
+Wir stellen hier die Funktionen zusammen, die von einer
+Parallelisierungstechnologie bereitgestellt werden m"ussen, um das Problem
+der Fallstudie zu l"osen.
+
+\subsection{Thread-Erzeugung}
+Parallelisierung verlangt, dass eine angemessene Zahl von Threads erzeugt
+werden k"onnen muss.
+
+
+\subsection{Scope}
+
+\subsection{Synchronisation}
+Die Threads, die an einer Probleml"osung beteiligt sind, werden alle
+vergleichbare Arbeit leisten. 
+Im Gauss-Algorithmus k"onnen die einzelnen Threads erst weiterarbeiten,
+wenn die Division der Pivot-Zeile abgeschlossen ist, und die Division
+der Pivotzeile darf erst erfolgen,
+wenn alle Threads mit ihren Zeilenoperationen fertig sind.
+
+In vielen Anwendungen, in denen Threads mit v"ollig verschiedenen
+Aufgaben eingesetzt werden, dienen Synchronisationsprimitive vor allem
+dazu, gemeinsame Datenstrukturen davor zu sch"utzen, dass sie durch
+gleichzeitige, unkoordinierte Schreibzugriffe inkonsistent werden.
+Daher sind die prim"aren Synchronisationsprimitive in Allzwecksprogrammen
+vor allem Mutexes, welche den gleichzeitigen Zugriff auf Datenstrukturen
+verhindern. Beispiele:
+\begin{itemize}
+\item Java kennt das {\tt synchronized} keyword, mit dem verhindert werden
+kann, dass mehrere Threads auf das gleiche Objekt zugreifen
+oder die gleiche Methode ausf"uhren.
+\item Die Boost-Bibliothek stellt eine Klasse {\tt boost::mutex} bereit,
+welche Methoden {\tt lock} und {\tt unlock} verwenden.
+Drei Viertel der Dokumentation zu den Boost-Synchronisations-Primitiven
+befassen sich mit diesen Klassen.
+\end{itemize}
+
+\subsection{Input/Output}
 
 \section{Pthreads}
 \rhead{Pthreads}
