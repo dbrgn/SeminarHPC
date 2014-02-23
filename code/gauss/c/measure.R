@@ -5,9 +5,9 @@ d$ln = log10(d$n)
 d$lt = log10(d$time)
 l <- lm(d$lt ~ d$ln)
 l
-plot(d$ln, d$lt,
+plot(d$n, d$t, log = "xy",
 	main = "Laufzeit Gauss-Algorithmus, sequentiell",
-	xlab = "log10(n)", ylab = "log10(Laufzeit)",
+	xlab = "n", ylab = "Laufzeit",
 	pch = 3)
 abline(l, col = "red")
 
@@ -18,10 +18,10 @@ u$ln = log10(u$n)
 u$lt = log10(u$time)
 l <- lm(u$lt ~ u$ln)
 l
-plot(u$ln, u$lt,
+plot(u$n, u$t, log = "xy",
 	main = "Laufzeit Gauss-Algorithmus, sequentiell und unidirektional",
-	xlab = "log10(n)", ylab = "log10(Laufzeit)",
+	xlab = "n", ylab = "Laufzeit",
 	pch = 3)
-lines(d$ln, d$lt, col="blue", lw = 2)
+lines(d$n, d$t, col="blue", lw = 2)
 abline(l, col = "red", lw = 2)
 

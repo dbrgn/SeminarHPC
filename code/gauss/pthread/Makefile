@@ -12,5 +12,5 @@ gauss:	gauss.c
 test:	gauss
 	./gauss 10
 
-results.pdf:	results.csv
+results.pdf:	results.csv results.R
 	R --vanilla --quiet < results.R
