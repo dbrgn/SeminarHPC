@@ -155,7 +155,6 @@ int	gauss_experiment(cl_context context, cl_command_queue commands,
 	if (n <= local) {
 		// the matrix size is small als the work group size, so we can 
 		// make each row of the matrix into a work group item
-		local = n;
 		global = n;
 	} else {
 		// the matrix size is too large. To evenly distribute the
@@ -168,8 +167,8 @@ int	gauss_experiment(cl_context context, cl_command_queue commands,
 		do {
 			global--;
 		} while (n % global);
-		local = global;
 	}
+	local = global;
 	if (debug) {
 		fprintf(stderr, "%s:%d: global: %ld, local: %ld\n",
 			__FILE__, __LINE__, global, local);

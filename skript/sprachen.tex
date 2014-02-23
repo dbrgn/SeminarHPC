@@ -216,23 +216,6 @@ Lineare Regression (rote Gerade) liefert den Exponenten $2.990$.
 \label{gauss-uni}}
 \end{figure}
 
-%\subsection{Notwendige Sprachkonstrukte}
-%Um den parallelisierten Algorithmus umzusetzen, sind folgende wesentlichen
-%Konstrukte notwendig:
-%\begin{enumerate}
-%\item Methoden, um Threads zu starten und die in der inneren Schleife "uber
-%$k$ notwendige Arbeit auf die einzelnen Threads zu verteilen.
-%\item Eine Methode um sicherzustellen, dass die Threads nicht weiter 
-%arbeiten, bevor die Division der Pivot-Zeile durch das Pivot-Element
-%abgeschlossen ist.
-%\label{barrier}
-%\end{enumerate}
-%Konstrukte, die \ref{barrier} implementieren, werden normalerweise
-%Barrier genannt.
-%Verschiedene Threads in einem Programm laufen
-%unabh"angig voneinander bis zur Barrier. Erst wenn alle Threads
-%bei der Barrier angekommen sind, k"onnen die Threads weiterfahren.
-
 \section{Problemkatalog}
 Wir stellen hier die Funktionen zusammen, die von einer
 Parallelisierungstechnologie bereitgestellt werden m"ussen, um das Problem
@@ -242,8 +225,72 @@ der Fallstudie zu l"osen.
 Parallelisierung verlangt, dass eine angemessene Zahl von Threads erzeugt
 werden k"onnen muss.
 
+Wieviele Threads sinnvoll oder optimal sind, l"asst sich oft nicht
+direkt aus dem Source-Code ableiten.
+Von
+Daten-Lokalit"at und Abh"angigkeiten zwischen einzelnen Datenelementen
+h"angt ab, in welchem Mass die Arbeite parallelisiert werden kann.
+Von Zugriffsmuster und Datenumfang h"angt ab, wie viele Threads
+laufen k"onnen, ohne dass sie sich gegenseitig den Cache streitig machen.
+Daher muss es m"oglich sein, die Zahl der Threads zu kontrollieren.
 
 \subsection{Scope}
+Wann immer ein Code-Segment parallelisiert wird, muss unterschieden
+werden k"onnen zwischen Thread-spezifischen Variablen und globalen
+Variablen.
+Wir betrachten dazu den folgenden Code, der gleich mehrere Hindernisse
+illustriert:
+\begin{verbatim}
+int     i, k;
+float   s = 0;
+float   m = 0;
+for (i = 0; i < N; i++) {
+        s += a[i];
+        if (a[i] > m) {
+                m = a[i];
+                k = i;
+        }
+}
+\end{verbatim}
+Er berechnet die Summe aller Werte im Array {\tt a}, das Maximum und den
+Index des gr"ossten Wertes.
+Eine Parallelisierung dieser Schleife hat mit folgenden Schwierigkeiten
+fertig zu werden:
+\begin{itemize}
+\item
+Teilt man die Summe in einzelne Teile auf, die alle von verschiedenen
+Threads berechnet werden, dann braucht jeder Thread seine eigene 
+Schleifenvariable.
+Bei der Parallelisierung sind also mehrere Kopien Variable {\tt i} zu
+erstellen.
+\item
+Die Summe {\tt s} wird in jedem Schleifendurchgang aktualisiert.
+Die Aktualisierung liest den aktuellen Wert von {\tt s}, addiert
+den aktuellen Wert aus dem Array {\tt a}, und speichert den neuen Wert
+in {\tt s}.
+Arbeiten mehrere Threads an dieser Schleife, dann besteht die Gefahr,
+dass diese Updates sich "uberlagern, und dass dabei einzelne Upates
+von anderen "uberschrieben werden.
+Bei der Parallelisierung muss also sichergestellt werden, dass die
+Operationen \verb/s += a[i];/ atomar ausgef"uhrt werden.
+Die Threads werden m"oglicherweise durch die dazu notwendigen Synchronisierung
+blockiert.
+
+Alternativ kann man dies erreichen, indem f"ur jeden Thread eine eigene
+Kopie der Variable {\tt s} erzeugt wird, und die in jedem Thread
+gefunden summiert.
+Der letzte Schritt hat keine Entsprechung im Code, nur durch unser
+Verst"andnis dessen, was der Code beabsichtigt, sind wir in der Lage
+zu erkennen, wie sich die Behandlung von {\tt s} von der Behandlung
+{\tt i} unterscheiden.
+\item
+Die Variable {\tt k} ist nochmals anders:  Nur einer der Threads kann den
+richtigen Wert finden.
+Erst durch Vergleich des pro Thread gefundenen Maximums in {\tt m}
+kann entschieden werden, welches {\tt k} das Resultat der
+parallelisierten Version des Algorithmus sein soll.
+Auch daf"ur gibt es keine Information im vorhandenen Code.
+\end{itemize}
 
 \subsection{Synchronisation}
 Die Threads, die an einer Probleml"osung beteiligt sind, werden alle
@@ -252,6 +299,7 @@ Im Gauss-Algorithmus k"onnen die einzelnen Threads erst weiterarbeiten,
 wenn die Division der Pivot-Zeile abgeschlossen ist, und die Division
 der Pivotzeile darf erst erfolgen,
 wenn alle Threads mit ihren Zeilenoperationen fertig sind.
+Diese beiden Punkte im Code heissen Barrierepunkte.
 
 In vielen Anwendungen, in denen Threads mit v"ollig verschiedenen
 Aufgaben eingesetzt werden, dienen Synchronisationsprimitive vor allem
@@ -270,7 +318,45 @@ Drei Viertel der Dokumentation zu den Boost-Synchronisations-Primitiven
 befassen sich mit diesen Klassen.
 \end{itemize}
 
+Diese Synchronisations-Primitve sind jedoch ungeeignet for das vorliegende
+Problem.
+Bestenfalls k"onnen Sie die Basis sein f"ur die Implementation einer
+Barriere dienen.
+Ein f"ur HPC geeignetes Thread-API muss also ein Barriere-Konstrukt
+zur Verf"ugung stellen.
+
 \subsection{Input/Output}
+Die Daten, auf denen eine umfangreiche Berechnung basieren, und die
+Daten, die von derselben produziert werden, m"ussen, von Files gelesen
+oder in Files geschrieben werden.
+Gleichzeitiger Lese- oder Schreibzugriff von mehreren Threads auf dasselbe
+File f"uhrt unweigerlich zu korrupten Daten, wenn keine Massnahmen zur
+Synchronisierung der Threads getroffen werden. 
+
+Meistens ist paralleles Lesen oder Schreiben nicht einmal sinnvoll, 
+jeder Thread berechnet einen anderen Teil der L"osung, welcher in
+einen anderen Teil des Output-Files geschrieben werden muss.
+Er braucht dazu Daten, die in einem eigenen Teil der Input-Files
+gefunden werden k"onnen.
+
+In vielen F"allen l"ost man das Problem dadurch, dass jeweils ein Thread
+oder Prozess die Aufgabe "ubernimmt, alle Input-/Output-Operationen
+durchzuf"uhren.
+Die Daten m"ussen dann vor der eigentlichen Rechnung an die verschiedenen
+Threads oder Prozesse verteilt werden.
+Nach Abschluss der Rechnung m"ussen die Resultate von diesem Thread wieder
+eingesammelt werden.
+
+Eine bessere L"osung stellen Fileformate zur Verf"ugung, welche paralleles
+Schreiben explizit unterst"utzen. {\tt parallel-netcdf} ist ein Projekt,
+welches solche Operationen durch verschiedene Prozesse gestattet.
+
+Bei der Parallelisierung f"ur einen Compute-Cluster verliert ausserdem
+das Konzept eines Files grunds"atzlich seine Bedeutung.
+Die einzelnen Knoten des Clusters haben m"oglicherweise gar kein Filesystem
+gemeinsam mit dem Knoten, welcher die Rechnung steuert. 
+Die Parallelisierungsmethode muss also File-Operationen reimplementieren,
+dass Sie f"ur die Cluster-Infrastruktur sinnvoll werden.
 
 \section{Pthreads}
 \rhead{Pthreads}
@@ -522,72 +608,139 @@ keinen Gewinn mehr.
 
 \section{OpenCL\label{opencl-intro}}
 \rhead{OpenCL}
-Rechenleistung wird nicht nur von Mikroprozessoren bereitgestellt, in den
-letzten Jahren wurde immer bedeutendere Floating-Point Kapazit"at 
-aus anderen Hardware-Komponenten verf"ugbar:
-\begin{itemize}
-\item Moderne Prozessoren verf"ugen oft "uber ``Vektoreinheiten'', 
-die die gleichen Rechenoperationen parallel mit einer Reihe von Datenelementen
-durchf"uhren k"onnen.
-Da ein einzelner Instruktionsstrom die Verarbeitung mehrerer Datenstr"ome
-steuert, spricht von SIMD: Single Instruction Multiple Data.
-Ohne spezielle Unterst"utzung durch Programmierumgebungen sind diese
-Vektoreinheiten nur durch Assembler-Programmierung nutzbar, was den
-Code unportable und schwer wartbar macht.
-OpenMP unterst"utzt SIMD einheiten mit den {\tt simd} Direktiven.
-\item 3D-Graphikkarten m"ussen f"ur die Darstellung einer dreidimensionalen
-Szene eine grosse Zahle von Operationen mit 3D-Vektoren durchf"uhren. 
-Daher bestehen 3D-Graphikkarten aus einer grossen Zahl von SIMD Einheiten,
-die diese immer gleichen Operationen parallel durchf"uhren k"onnen. 
-Normalerweise sind die Resultate dieser Rechnung jedoch ausschliesslich
-als Pixel-Buffer zugreifbar, es ist also spezieller zus"atzlicher Aufwand
-n"otig, die Rechenresultate direkt zug"anglich zu machen.
-\item Einige Prozessoren besitzen spezielle Koprozessoren mit besonderer
-paralleler Rechenleistung. Der Cell-Prozessor basiert auf einem 64bit PowerPC
-Kern, der zusammen mit 8 4-fach SIMD-Einheiten auf einem Chip integriert ist, 
-die Synergistic Processing Element (SPE) genannt werden.
-Durch die enge Integration mit der CPU ist der Cell-Prozessor zu einer hohen
-Rechenleistung f"ahig, wenigstens f"ur Anwendungen, die nicht auf grosse
-Datenmengen angewiesen sind.
-\item Digitale Signalprozessoren k"onnen einen Datenstrom mit einer immer
-gleich bleibenden Folge von Instruktionen bearbeiten. Prozessoren
-f"ur Multimedia-Ger"ate integrieren solche Prozessoren oft mit auf dem
-Chip, zum Beispiel f"ur hoch performante Audio-Verarbeitung. 
-Enge Schleifen in einer Berechnung k"onnten von so einem Signalprozessor 
-besonders effizient gerechnet werden.
-\item Anwendungen im Hochgeschwindigkeitsb"orsenhandel verlangen noch
-schnellere Antwortzeiten.
-Hierzu werden manchmal FPGAs eingesetzt. Der Algorithmus wird dabei
-in eine Verschaltung der Recheneinheiten des FPGA "ubersetzt, und das
-FPGA zur Laufzeit programmiert.
-Damit wird es m"oglich, ein Rechenresultat mit jedem Taktzyklus 
-zu bekommen.
-\end{itemize}
-Diese Rechenleistung ist nur beschr"ankt nutzbar, wenn nicht ein
-API zur Verf"ugung steht, in dem man m"oglichst unabh"angig von der
-spezifischen Hardware programmieren kann.
+Die Open Compute Language erlaubt die plattformunabh"angige Programmierung
+f"ur Beschleuniger-Hardware wie zum Beispiel Graphikkarten, wie wir
+in Abschnitt \ref{section-beschleuniger} gesehen haben. 
+Dort wurde auch bereits das Plattform-Modell besprochen.
+F"ur die Art der Parallelisierung ist dieses Modell nur insofern wichtig,
+als die Parallelisierung nicht weiter getrieben werden kann als Compute
+Units zur Verf"ugung stehen.
+Wie allerdings die einzelnen Threads den Compute-Units zugeordnet werden,
+wieviele Threads "uberhaupt ausgef"uhrt werden k"onnen, ist der
+OpenCL Implementation "uberlassen.
+Ja es ist a priori nicht einmal klar, dass der Begriff Thread "uberhaupt
+sinnvoll angewendet werden kann.
 
-Open Compute Language (OpenCL) ist ein solches API.
-OpenCL definiert einerseits eine Laufzeit-Umgebung, um auf 
-Rechen-Hardware zuzugreifen, als auch eine Sprache, in der parallele
-Algorithmen formuliert werden k"onnen. 
+\subsection{Ausf"uhrungs-Modell von OpenCL}
+\subsubsection{Threads}
+Ein Thread-Modell orientiert sich an den verf"ugbaren Einheiten, die
+parallel arbeiten k"onnen.
+Dabei kann das Betriebssystem auch die Illusion von mehr Threads
+herstellen, als tats"achlich Verarbeitungseinheiten vorhanden sind.
+F"ur einige Beschleunigersystem ist der Begriff eines Threads nicht
+sinnvoll, es z"ahlt nur die Berechnung, die durchgef"uhrt worden ist.
+Daher verwendet OpenCL ein Ausf"uhrungsmodell, welches sich nicht
+an den Ausf"uhrungseinheiten und ihren Threads orientert, sondern an
+der gesamten durchzuf"uhrenden Berechnung.
 
-OpenCL geht von einem Plattform-Modell aus, welches dem Host
-eine Reihe von Compute-Devices beistellt.
-Compute Devices k"onnen Graphikkarten, spezielle Compute-Karten
-auf der Basis von 3D-Graphikprozessoren.
-Jedes Compute-Device besteht aus einem oder mehreren Compute-Units.
-Eine Compute-Unit kann einen Instruktionsstrom ausf"uhren.
-Je mehr Compute Units zur Verf"ugung stehen, desto mehr unabh"angige
-Threads kann das Compute-Device unterst"utzen.
-Jede Compute-Unit besteht aus einem oder mehreren Processing Elements,
-die von den Compute-Units als SIMD Einheiten genutzt werden.
+\subsubsection{Work-Items und Kernel}
+Eine Berechnungsaufgabe wird in OpenCL in eine Anzahl Work-items
+zerlegt.
+Eine Kernel ist ein OpenCL Programm, welches f"ur jedes Work-item
+ausgef"uhrt wird.
+In welcher Reihenfolge die einzelnen work-items abgearbeitet werden,
+ist der Implementation "uberlassen.
+Ein Work-Item kann beliebig kompliziert sein, in den meisten Beschleunigern
+steht jedoch nur sehr wenig Speicher f"ur lokale Variablen zur Verf"ugung.
+
+Die Work-Items bilden ein maximal dreidimensionales Gitter, jedes
+{\em work-item} l"asst sich also mittels maximal dreier ganzzahliger 
+Indizes identifizieren.
+Bei der Konzeption einer L"osung f"ur OpenCL muss sich der
+Programmierer also vor allem mit der Frage befassen, wie er die
+gesamte Rechnung in {\em work-items} strukturieren kann. 
+
+Work-Items werden in Work-Groups zusammengefasst.
+Work-Groups zerlegen das Gitter aller Work-Items in gleich grosse ``Quader''.
+Die ``Kantenl"ange'' eines solche Quaders muss also immer ein Teiler
+der  ``Kantenl"ange'' des ganzen Gitters sein.
+
+Work-Groups k"onnen nicht beliebig gross sein.
+Die Maximale Anzahl Work-Items, die eine Work-Group umfassen kann
+wird durch die Implementation festgelegt. 
+Mit Hilfe einer Reihe von Abfragefunktionen kann der Programmierer
+diese Informationen ermitteln, und die Gruppierung anpassen.
+
+Synchronisation mit Barrieren ist nur innerhalb einer Work-group
+m"oglich.
+Die Work-group-Gr"osse ist also die maximale Zahl untereinander
+synchronisierbarer Work-Items.
+
+Die Indizierung einzelner Work-Items ist sowohl innerhalb einer
+Work-Group wie auch global innerhalb aller Work-Items m"oglich.
+Wir diskutieren den zweidimensionalen Fall, der eindimensionale und
+dreidimensionale Fall ist sinngem"ass. 
+
+Alle Work-Items bilden ein $G_x\times G_y$-Gitter. Die einzelnen
+Work-Items werden mit den globalen Indizes $(g_x,g_y)$ adressiert.
+Innerhalt einer Workgroup hat ein Work-Item die Koordinaten
+$(s_x, s_y)$.
+Alle Work-Groups haben die gleichen Dimensionen $S_x\times S_y$.
+Die Work-Groups werden ebenfalls "uber ein Koordinatenpaar $(w_x,w_y)$
+indiziert. Der Zusammenhang zwischen globalen und lokalen Work-Item
+Koordinaten ist daher
+\[
+(g_x, g_y)=(w_xS_x + s_x, w_yS_y+s_y).
+\]
+Die Anzahl Work-Groups in jeder Koordinatenrichtung ist $G_x/S_x$
+bzw.~$G_y/S_y$.
+In Abbildung~\ref{opencl-workitems} ist der Zusammenhang zwischen
+Tabelle~\ref{table-work} zeigt die API-Funktionen, mit denen
+die Dimensionen sowie die Koordinaten des zur Zeit ausgef"uhrten
+Work-Items erfragen kann.
+
 \begin{figure}
 \begin{center}
-\includegraphics[width=0.7\hsize]{images/opencl-platform.pdf}
+\includegraphics[width=\hsize]{graphics/work-1.pdf}
 \end{center}
-\caption{Plattform-Modell von OpenCL\label{opencl-platform}}
+\caption{Strukturierung der Work-Items
+\label{opencl-workitems}}
 \end{figure}
+
+\begin{table}
+\begin{center}
+\begin{tabular}{|>{$}l<{$}|l|}
+\hline
+\text{Symbol}&Funktion\\
+\hline
+G_x,\; G_y,\; G_z&\verb+get_global_size(i)+\\
+S_x,\; S_y,\; S_z&\verb+get_local_size(i)+\\
+g_x,\; g_y,\; g_z&\verb+get_global_id(i)+\\
+s_x,\; s_y,\; s_z&\verb+get_local_id(i)+\\
+w_x,\; w_y,\; w_z&\verb+get_group_id(i)+\\
+G_x/S_x,\;
+G_y/S_y,\;
+G_z/S_z&\verb+get_num_groups(i)+\\
+\hline
+\end{tabular}
+\end{center}
+\caption{API-Funktionen zur Identifikation von Work-Items und Work-Groups.
+\label{table-work}}
+\end{table}
+
+
+\subsubsection{Speichermodell}
+Work-Groups beinhalten untereinander synchronisierbare Work-Items.
+Bei der Abarbeitung dieser Work-Items einer Work-Group werden
+lokale Variablen gebraucht,
+die die Arbeit in anderen Work-Items nichst st"oren d"urfen.
+Solche Variablen beinhalten also Daten, die f"ur jedes Work-Item
+privat sind, sie m"ussen mit dem Qualifier \verb+__private+
+deklariert werden.
+
+Die Arbeit innerhalb einer Workgroup kann gemeinsame Daten verwenden,
+die f"ur andere Work-Groups nicht zug"anglich sein soll.
+Solche Variable sind mit dem Qualifier \verb+__local+ zu
+deklarieren.
+
+\subsubsection{Command Queues}
+Alle Aktionen mit dem OpenCL-Ger"at sind "uber eine sogenannte
+Command Queue abzuwickeln. Der typische Ablauf ist also, dass einer
+Queue die Input-Daten "ubergeben werden, damit sie ins Ger"at
+kopiert werden k"onnen. Dann wird der Queue der auszuf"uhrende
+Kernel in Auftrag gegeben, wobei auch die Work-Group-Dimensionen
+angegeben werden m"ussen. Nach Abschluss der Rechnung werden die
+Resultatdaten mit Hilfe eines Queue-Auftrags zur"uckgelesen.
 
 \subsection{Gauss-Algorithmus}
 Die Implementation des Gauss-Algorithmus in OpenCL braucht zun"achst eine
@@ -613,7 +766,7 @@ Damit ist jetzt bekannt, f"ur welches Compute Device ein OpenCL-Programm
 kompiliert werden muss, was mit folgenden Schritten geschehen kann:
 \begin{verbatim}
 cl_program      program = clCreateProgramWithSource(context, 1,
-			source, length, err);
+                        source, length, err);
 \end{verbatim}
 Der Pointer \verb+source+ zeigt auf einen Zeichenpuffer, der den Source-Code
 des OpenCL Programms enth"alt. Kompilation:
@@ -673,6 +826,18 @@ die Command Queue bem"uht:
 clEnqueueReadBuffer(commands, output, CL_TRUE, 0,
         sizeof(float) * n * n, b, 0, NULL, NULL);
 \end{verbatim}
+
+Jetzt kann der Kernel ausgef"uhrt werden, wobei auch die Dimensionen
+angegeben werden m"ussen. Der Aufruf
+\begin{verbatim}
+clEnqueueNDRangeKernel(commands, kernel, 1, NULL, &global, &local,
+        0, NULL, NULL);
+\end{verbatim}
+startet den vorher definierten Kernel mit einer indimensionalen
+Menge von Work-Items. Die globale Gr"osse ($G_x$) wird im
+Argument \verb+global+ "ubergeben, die Work-Group-Gr"osse ($S_x$)
+in $\verb+local+$. In unserem Fall sind beide gleich gross.
+
 Der restliche Code im Beispielprogramm dient dazu, die allozierten
 Resourcen freizugeben.
 
@@ -684,7 +849,15 @@ __kernel void   invert(__global float *input, __global float *output,
         const unsigned int n)
 \end{verbatim}
 Nach der Diskussion zur Aufteilung der Arbeit in Work-Groups wissen wir,
-wie der Bereich von Zeilen berechnet werden muss:
+welcher Bereich von Zeilen von jedem Work-Item bearbeitet werden muss.
+Diese Information beh"ort aber zu jedem Work-Item, muss also als 
+privat deklariert werden:
+\begin{verbatim}
+__private unsigned int  min_row;
+__private unsigned int  max_row;
+\end{verbatim}
+Aus der lokalen und globalen Gr"osse kann jetzt die Gr"osse des Blockes
+berechnet werden, die ein Work-Item bearbeitet:
 \begin{verbatim}
 local_size = get_local_size(0);
 unsigned int    blocksize = n / local_size;
@@ -735,13 +908,119 @@ while (i < n) {
 }
 \end{verbatim}
 
+\subsection{SIMD-Operationen}
+Die Zeilenoperationen nutzen die F"ahigkeiten einer SIMD-Engine in keiner
+Weise aus, und es ist nicht klar, wie der OpenCL-Compiler die innere
+{\tt while}-Schleife parallelisieren kann. 
+SIMD-Operationen sind vor allem dann gut einsetzbar, wenn die Vektor-Datentypen
+von OpenCL verwendet werden.
+Zu jedem primitiven Datentyp gibt es in OpenCL Vektordatentypen mit
+verschiedenen L"angen,
+zum Beispiel gibt es zu {\tt float} die Vektortypen {\tt float2},
+{\tt float4}, {\tt float8}  und {\tt float16}.
+Verwendet man diese Typen, wird die Anwendung der SIMD-Engine trivial.
+Die Grundoperationen sind alle sowohl auf primitive Typen als auch auf
+Vektortypen anwendbar, zus"atzlich bietet OpenCL eine grosse Zahl von
+Vektor-Funktionen, insbesondere auch Operationen der Vektor-Geometrie.
+
+Im globalen Speicher liegen die Daten jedoch in roher Form vor, als Vektoren
+k"onnen Sie erst auf Ebene Compute-Unit verstanden werden.
+OpenCL bietet daher Lade- und Speicheroperationen {\tt vload}$n$ und
+{\tt vstore}$n$ an , welche den Transfer erm"oglichen.
+
+Mit den Vektor-Operationen l"asst sich die innere Schleife wie folgt
+mit Vektoren der L"ange 4 formulieren:
+\begin{verbatim}
+unsigned int l = 0;
+while (j + 4 < n) {
+        float4  v = vload4(l, out);
+        float4  p = vload4(l, outp);
+        v = v - b * p;
+        vstore4(v, l, out);
+
+        v = vload4(l, in);
+        p = vload4(l, inp);
+        v -= b * p;
+        vstore4(v, l, in);
+
+        j += 4;
+        l++;
+}
+\end{verbatim}
+Die Variable {\tt l} wird dazu verwendet, durch die Vektoren zu
+z"ahlen, {\tt j} z"ahlt die einzelnen Elemente.
+Ist die Zeilenl"ange nicht durch vier teilbar, bleiben einzelne 
+Elemente zu bearbeiten, was mit der bisherigen skalaren Implementation
+erfolgen kann.
+
 \subsection{Resultate}
+Die Abbildung \ref{opencl-results} zeigt die Laufzeit der OpenCL-Implementation
+des Gauss-Algorithmus. Zun"achst f"allt auf, dass die GPU Implementation
+von Nvidia mit Abstand die langsamste ist.
+Offenbar kann eine GPU f"ur dieses Problem oder mindestens f"ur die
+gew"ahlte Parallelisierung keine Beschleunigung beitragen.
+Der Grund daf"ur sind die unvermeidlichen Barriers.
+Ohne die Barriers ist die Berechnung um Faktoren schneller, aber nat"urlich
+wird dadurch das Resultat falsch.
+
+Die Implementatione von AMD und Intel rechnen beide nur mit der CPU%
+\footnote{Beide OpenCL Implementation k"onnen nat"urlich auch Graphikkarten
+der jeweiligen Hersteller bedienen, nur standen f"ur die Messungen
+keine solche zur Verf"ugung. Intel OpenCL kann auch den neueren Intel Phi
+Koprozessor unterst"utzen.}.
+Es ist daher nicht "uberraschend, dass die erreichte Geschwindigkeit
+vergleichbar ist, es "uberrascht aber doch, dass die Performance mit
+keiner anderen Parallelisierungstechnologie mithalten kann.
+Die Gr"unde daf"ur sind vielf"altig. AMD-OpenCL verwendet nur einen
+einzigen Thread f"ur jede Workgroup.
+Da der Algorithmus wegen der Synchronisationspunkte nur eine einzige Workgroup
+enthalten darf, l"auft er in AMD in nur einem Thread. Die einzige
+m"ogliche Beschleunigung kann also daher kommen, dass OpenCL Vektor-Operationen
+Verwenden kann und damit die SIMD-F"ahigkeiten der CPUs ausn"utzen kann.
+Abbildung~\ref{opencl-simd-amd} zeigt diese Abh"angigkeit.
+Offenbar ist AMD OpenCL in der Lage durch die SIMD-Operationen noch eine 
+wesentliche Beschleunigung zu erreichen, nat"urlich nicht der maximal
+m"ogliche Faktor 4, dazu ist der Overhead des restlichen Algorithmus
+zu gross.
+Gr"ossere Vektorl"angen bringen keinen Geschwindigkeitsvorteil, die
+SIMD-Engine ist nicht genug breit daf"ur.
+
+Etwas entt"auschend ist, dass die SIMD Engine bei der Nvidia-Implementation 
+nur gerade einen Faktor 2 herausholen kann (Abbildung~\ref{opencl-simd-nvidia}).
+Die Ursache d"urfte hier sein, dass die Daten gr"osstenteils global sind.
+Die Parallelisierung wird durch die Hauptspeicherzugriffe gebremst.
+Die eigentlichen Rechenoperationen werden dominiert durch die Lade-Operationen
+f"ur die Vektoren.
+
 \begin{figure}
 \begin{center}
-\includegraphics[width=\hsize]{images/gauss-openmp.pdf}
+\includegraphics[width=\hsize]{images/gauss-opencl.pdf}
 \end{center}
-\caption{Laufzeit der OpenMP-Implementation des Gauss-Algorithmus.
-\label{openmp-results}}
+\caption{Laufzeit der OpenCL-Implementation des Gauss-Algorithmus.
+Dargestellt sind
+zwei CPU-basiert OpenCL Implementation von AMD (gr"un) und Intel (blau)
+und die Implementation von Nvidia auf einer Tesla M2090 Karte (rot).
+Zum Vergleich die unbeschleunigte C-Version in schwarz.
+\label{opencl-results}}
+\end{figure}
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=\hsize]{images/vector-amd.pdf}
+\end{center}
+\caption{Laufzeit gegen Vektorgr"osse der AMD-Implementation von OpenCL.
+Laufzeiten f"ur Problemgr"ossen zwischen 500 und 1000 wurden auf die
+Laufzeit f"ur Vektorl"ange 4 standardisiert.
+\label{opencl-simd-amd}}
+\end{figure}
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=\hsize]{images/vector-nvidia.pdf}
+\end{center}
+\caption{Laufzeit gegen Vektorgr"osse der Nvidia-Implementation von OpenCL.
+Standardisierung wie in Abbildung \ref{opencl-simd-amd}.
+\label{opencl-simd-nvidia}}
 \end{figure}
 
 \section{Message Passing: OpenMPI}
@@ -946,5 +1225,39 @@ keinen Laufzeitverbesserung mehr. Ebenso skaliert die L"osung f"ur
 Problem nicht mehr, wenn $n$ wesentlich gr"osser als ca.~3000 ist.
 
 \section{Gegen"uberstellung}
+Diese Fallbeispiele und insbesondere auch die Performance-Auswertungen
+geben einen ziemlich guten "Uberblick "uber die angemessenen Anwendungsgebiete
+der einzelnen Technologien.
+
+Parallelisierung mit Pthreads ist nur in den seltensten F"allen sinnvoll.
+Der Programmieraufwand ist zu gross, die so erzeugten Threads m"ussen
+m"uhsam ``von Hand'' synchronisiert werden, und da sie ansonsten
+vollst"andig entkoppelt, hat man keine Kontrolle "uber den Schaden,
+den sie m"oglicherweise durch ung"unstige Zugriffsmuster im Cache anrichten.
+
+OpenMP ist die richtige Parallelisierungstechnik f"ur Aufgaben, die
+wegen zu starker Kopplung der verschiedenen Berechnungsteile untereinander
+in einem einzigen Prozess abgewickelt werden m"ussen.
+Besondere Vorsicht ist dabei darauf zu verwenden, dass die Zahl der
+Threads richtig gew"ahlt wird, und dass richtige Semantik f"ur
+lokale Variablen umgesetzt wird.
+
+OpenCL bietet sich f"ur Anwendungen an, die sich auf das etwas spezielle
+Ausf"uhrungsmodell anpassen lassen. Dabei ist wichtig, dass die
+Work-Items m"oglichst unabh"angig sind, da sonst die Anzahl der Work-Groups
+reduziert wird, und Synchronisation innerhalb einer Workgroup mit
+sehr schlechter Performance einhergeht.
+
+Grosse Problem m"ussen mit OpenMPI angepackt werden. Nur so kann man
+auf eine Vielzahl von Maschinen skalieren. Innerhalb der einzelnen
+Prozesse k"onnen selbstverst"andlich Techniken wie OpenMP oder OpenCL 
+zum Einsatz kommen.
+Bei kleinen Problemen ist der Startup-Overhead von OpenMPI problematisch,
+doch schon Probleme moderator Gr"osse k"onnen in einer OpenMPI Implementation
+auf einer einzelnen Maschine effizienter sein als OpenMP, weil die
+einzelnen Prozesse getrennten Speicher verwenden. Als Folge m"ussen die
+Algorithmen so gestaltet sein, dass keine zwei Threads den gleichen
+Speicher brauchen, damit ist es auch nicht m"oglich, dass verschiedene
+Threads sich gegenseitig den Cache f"ur das gleiche Problem streitig machen.
 
 

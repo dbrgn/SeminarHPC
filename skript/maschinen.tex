@@ -243,9 +243,50 @@ Floating-Point-Operationen auszuf"uhren.
 beschaffe einen besseren Computer.
 \end{itemize}
 
-\section{Beschleuniger}
+\section{Beschleuniger\label{section-beschleuniger}}
 Zus"atzlich zur CPU steht heute in vielen Systemen ausserdem Rechenleistung
-in Peripherie-Einheiten, isbesondere Graphikkarten zur Verf"ugung.
+in Peripherie-Einheiten zur Verf"ugung.
+In den letzten Jahren wurde immer bedeutendere Floating-Point Kapazit"at 
+aus anderen Hardware-Komponenten verf"ugbar:
+\begin{itemize}
+\item Moderne Prozessoren verf"ugen oft "uber ``Vektoreinheiten'', 
+die die gleichen Rechenoperationen parallel mit einer Reihe von Datenelementen
+durchf"uhren k"onnen.
+Da ein einzelner Instruktionsstrom die Verarbeitung mehrerer Datenstr"ome
+steuert, spricht von SIMD: Single Instruction Multiple Data.
+Ohne spezielle Unterst"utzung durch Programmierumgebungen sind diese
+Vektoreinheiten nur durch Assembler-Programmierung nutzbar, was den
+Code unportable und schwer wartbar macht.
+OpenMP unterst"utzt SIMD einheiten mit den {\tt simd} Direktiven.
+\item 3D-Graphikkarten m"ussen f"ur die Darstellung einer dreidimensionalen
+Szene eine grosse Zahle von Operationen mit 3D-Vektoren durchf"uhren. 
+Daher bestehen 3D-Graphikkarten aus einer grossen Zahl von SIMD Einheiten,
+die diese immer gleichen Operationen parallel durchf"uhren k"onnen. 
+Normalerweise sind die Resultate dieser Rechnung jedoch ausschliesslich
+als Pixel-Buffer zugreifbar, es ist also spezieller zus"atzlicher Aufwand
+n"otig, die Rechenresultate direkt zug"anglich zu machen.
+\item Einige Prozessoren besitzen spezielle Koprozessoren mit besonderer
+paralleler Rechenleistung. Der Cell-Prozessor basiert auf einem 64bit PowerPC
+Kern, der zusammen mit 8 4-fach SIMD-Einheiten auf einem Chip integriert ist, 
+die Synergistic Processing Element (SPE) genannt werden.
+Durch die enge Integration mit der CPU ist der Cell-Prozessor zu einer hohen
+Rechenleistung f"ahig, wenigstens f"ur Anwendungen, die nicht auf grosse
+Datenmengen angewiesen sind.
+\item Digitale Signalprozessoren k"onnen einen Datenstrom mit einer immer
+gleich bleibenden Folge von Instruktionen bearbeiten. Prozessoren
+f"ur Multimedia-Ger"ate integrieren solche Prozessoren oft mit auf dem
+Chip, zum Beispiel f"ur hoch performante Audio-Verarbeitung. 
+Enge Schleifen in einer Berechnung k"onnten von so einem Signalprozessor 
+besonders effizient gerechnet werden.
+\item Anwendungen im Hochgeschwindigkeitsb"orsenhandel verlangen noch
+schnellere Antwortzeiten.
+Hierzu werden manchmal FPGAs eingesetzt. Der Algorithmus wird dabei
+in eine Verschaltung der Recheneinheiten des FPGA "ubersetzt, und das
+FPGA zur Laufzeit programmiert.
+Damit wird es m"oglich, ein Rechenresultat mit jedem Taktzyklus 
+zu bekommen.
+\end{itemize}
+
 Den Programmablauf steuert immer noch die CPU, aber besonders
 rechenaufwendige Schritte werden in Beschleuniger ausgelagert.
 Dadurch ergeben sich zus"atzliche Schwierigkeiten:
