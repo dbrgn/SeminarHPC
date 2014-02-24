@@ -25,7 +25,7 @@ exemplarischer Weise.
 
 \section{Fallstudie}
 \rhead{Fallstudie}
-Als Fallbeispiel soll der Gauss Algorithmus zur Berechnung der Inversen
+Als Fallbeispiel soll der Gauss-Algorithmus zur Berechnung der Inversen
 einer $n\times n$-Matrix verwendet werden. Dabei ist das Ziel weniger,
 den letzten Rest Performance herauszuholen, sondern vielmehr zu
 illustrieren, welche Art von Konstrukten in einem API zur Verf"ugung
@@ -33,7 +33,8 @@ gestellt werden muss, damit die parallele Implementierung effizient
 von Statten gehen kann.
 
 \subsection{Der Gauss-Algorithmus}
-Wir erinnern grundlegenden Gauss-Algorithmus. Gegeben ist eine regul"are
+Wir erinnern an den grundlegenden Gauss-Algorithmus.
+Gegeben ist eine regul"are
 $n\times n$-Matrix $A$, gesucht wird ihre Inverse $A^{-1}$.
 Der Gauss-Algorithmus formt ein Tableau der Form
 \begin{equation}
@@ -204,7 +205,8 @@ Da das R"uckw"arts\-einsetzen entf"allt, entsteht ein einfacherer Algorithmus,
 mit vergleichbarer Laufzeit:
 \verbatiminput{unidirectional.c}
 Dieser unidirektionale Algorithmus ist einfacher zu parallelisieren, hat
-aber praktisch die gleiche Laufzeit, wie man in Abbildung~\ref{gauss-uni}.
+aber praktisch die gleiche Laufzeit, wie man in Abbildung~\ref{gauss-uni}
+sehen kann.
 \begin{figure}
 \begin{center}
 \includegraphics[width=\hsize]{images/gauss-uni.pdf}
@@ -229,7 +231,7 @@ Wieviele Threads sinnvoll oder optimal sind, l"asst sich oft nicht
 direkt aus dem Source-Code ableiten.
 Von
 Daten-Lokalit"at und Abh"angigkeiten zwischen einzelnen Datenelementen
-h"angt ab, in welchem Mass die Arbeite parallelisiert werden kann.
+h"angt ab, in welchem Mass die Arbeit parallelisiert werden kann.
 Von Zugriffsmuster und Datenumfang h"angt ab, wie viele Threads
 laufen k"onnen, ohne dass sie sich gegenseitig den Cache streitig machen.
 Daher muss es m"oglich sein, die Zahl der Threads zu kontrollieren.
@@ -238,8 +240,8 @@ Daher muss es m"oglich sein, die Zahl der Threads zu kontrollieren.
 Wann immer ein Code-Segment parallelisiert wird, muss unterschieden
 werden k"onnen zwischen Thread-spezifischen Variablen und globalen
 Variablen.
-Wir betrachten dazu den folgenden Code, der gleich mehrere Hindernisse
-illustriert:
+Wir betrachten dazu das folgende Codebeispiel, der gleich mehrere Hindernisse
+illustriert: 
 \begin{verbatim}
 int     i, k;
 float   s = 0;
@@ -356,11 +358,11 @@ das Konzept eines Files grunds"atzlich seine Bedeutung.
 Die einzelnen Knoten des Clusters haben m"oglicherweise gar kein Filesystem
 gemeinsam mit dem Knoten, welcher die Rechnung steuert. 
 Die Parallelisierungsmethode muss also File-Operationen reimplementieren,
-dass Sie f"ur die Cluster-Infrastruktur sinnvoll werden.
+damit sie f"ur die Cluster-Infrastruktur sinnvoll werden.
 
 \section{Pthreads}
 \rhead{Pthreads}
-Posix Threads sind die das standardisierte API f"ur Thread-Programmierung
+Posix Threads sind das standardisierte API f"ur Thread-Programmierung
 und Posix-Systemen.
 Das API ist vollst"andig in den Manual-Pages dokumentiert, wir gehen
 daher nur auf die Funktionen ein, die f"ur die Beispielimplementation
@@ -446,7 +448,7 @@ Erst wenn der erste Thread die Zeilendivision durchgef"uhrt hat, darf
 die Zeilenoperation in den anderen Zeilen durchgef"uhrt werden. Dazu
 dient der API-Aufruf \verb+pthread_barrier_wait+.
 Die Members {\tt min} und {\tt max} geben jetzt an, f"ur welche Zeilen
-der Thread die Zeilen-Operationen durchf"uhren muss, allerdings erst
+der Thread die Zeilen-Operationen durchf"uhren muss:
 \begin{verbatim}
 pthread_barrier_wait(&common.barrier1);
 for (int k = this->min; k < this->max; k++) {
@@ -529,7 +531,7 @@ einem Thread deutlich "ubersteigt.
 
 \section{OpenMP\label{openmp-intro}}
 \rhead{OpenMP}
-Aus den Beobactungen zur Performance einer Parallelisierung mit
+Aus den Beobachtungen zur Performance einer Parallelisierung mit
 Pthreads kann man ableiten, dass es sinnvoll sein kann,
 eine Parallelisierungsmethode zu w"ahlen, bei der die einzelnen
 Threads nicht so frei sind.
@@ -554,7 +556,7 @@ Threads an einem parallelen Konstrukt arbeiten, es wird der Implementation
 
 Im Beispiel-Problem ist die Parallelisierung besonders einfach, da
 OpenMP Konstrukte f"ur parallel auszuf"uhrende Schleifen bereitstellt.
-Durch hinzuf"ugen eines einzelnen Pragmas entsteht paralleler Code:
+Durch Hinzuf"ugen eines einzelnen Pragmas entsteht paralleler Code:
 \begin{verbatim}
 #pragma omp parallel for
 for (int k = 0; k < n; k++) {
@@ -745,7 +747,7 @@ Resultatdaten mit Hilfe eines Queue-Auftrags zur"uckgelesen.
 \subsection{Gauss-Algorithmus}
 Die Implementation des Gauss-Algorithmus in OpenCL braucht zun"achst eine
 grosse Menge von Code, um das Compute Device zu reservieren.
-Die Schnittstellt zum Compute Device ist eine Command Queue,
+Die Schnittstelle zum Compute Device ist eine Command Queue,
 "uber die Datentransfers zum Speicher des Compute Device und zur"uck
 erfolgen.
 Auch das Programm f"ur das Compute device wird auf dem
@@ -947,7 +949,7 @@ while (j + 4 < n) {
         l++;
 }
 \end{verbatim}
-Die Variable {\tt l} wird dazu verwendet, durch die Vektoren zu
+Die Variable {\tt l} wird dazu verwendet, durch die Vektoren hindurch zu
 z"ahlen, {\tt j} z"ahlt die einzelnen Elemente.
 Ist die Zeilenl"ange nicht durch vier teilbar, bleiben einzelne 
 Elemente zu bearbeiten, was mit der bisherigen skalaren Implementation
@@ -963,7 +965,7 @@ Der Grund daf"ur sind die unvermeidlichen Barriers.
 Ohne die Barriers ist die Berechnung um Faktoren schneller, aber nat"urlich
 wird dadurch das Resultat falsch.
 
-Die Implementatione von AMD und Intel rechnen beide nur mit der CPU%
+Die Implementation von AMD und Intel rechnen beide nur mit der CPU%
 \footnote{Beide OpenCL Implementation k"onnen nat"urlich auch Graphikkarten
 der jeweiligen Hersteller bedienen, nur standen f"ur die Messungen
 keine solche zur Verf"ugung. Intel OpenCL kann auch den neueren Intel Phi
@@ -1253,7 +1255,7 @@ auf eine Vielzahl von Maschinen skalieren. Innerhalb der einzelnen
 Prozesse k"onnen selbstverst"andlich Techniken wie OpenMP oder OpenCL 
 zum Einsatz kommen.
 Bei kleinen Problemen ist der Startup-Overhead von OpenMPI problematisch,
-doch schon Probleme moderator Gr"osse k"onnen in einer OpenMPI Implementation
+doch schon Probleme moderater Gr"osse k"onnen in einer OpenMPI Implementation
 auf einer einzelnen Maschine effizienter sein als OpenMP, weil die
 einzelnen Prozesse getrennten Speicher verwenden. Als Folge m"ussen die
 Algorithmen so gestaltet sein, dass keine zwei Threads den gleichen
