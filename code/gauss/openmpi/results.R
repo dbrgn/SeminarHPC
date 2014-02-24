@@ -11,7 +11,7 @@ pdf("results.pdf", 8, 6)
 plot(d[d$threads == 32,]$n, d[d$threads == 32,]$time, type = "l", col = "blue",
 	log = "xy",
 	main = "Gauss-Algorithmus, OpenMPI-Implementierung",
-	xlab = "log10(n)", ylab = "log10(Laufzeit)",
+	xlab = "n", ylab = "Laufzeit [s]",
 	xlim = c(20,5000), ylim = c(0.0001,1000))
 lines(d[d$threads == 16,]$n, d[d$threads == 16,]$time)
 lines(d[d$threads == 12,]$n, d[d$threads == 12,]$time)
@@ -25,7 +25,7 @@ grid()
 pdf("threads.pdf")
 plot(d[d$n == 5000,]$threads, d[d$n == 5000,]$time, type = "l", log = "xy",
 	main = "Gauss-Algorithmus, OpenMPI-Implementierung",
-	xlab = "log10(Prozesse)", ylab = "log10(Laufzeit)",
+	xlab = "Prozesse", ylab = "Laufzeit [s]",
 	ylim = c(0.02,500) )
 grid()
 l = lm(d[d$n == 5000,]$lt ~ d[d$n == 5000,]$lthr);
