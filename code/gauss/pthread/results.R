@@ -9,7 +9,8 @@ u$lt = log10(u$time)
 pdf("results.pdf", 8, 6)
 plot(d[d$threads == 32,]$n, d[d$threads == 32,]$time, type = "l", log = "xy",
 	main = "Laufzeit Gauss Pthread-Implementation",
-	xlab = "n", ylab = "Laufzeit" )
+	xlab = "n", ylab = "Laufzeit [s]" )
+grid()
 lines(d[d$threads == 16,]$n, d[d$threads == 16,]$time)
 lines(d[d$threads == 12,]$n, d[d$threads == 12,]$time)
 lines(d[d$threads == 8,]$n, d[d$threads == 8,]$time)

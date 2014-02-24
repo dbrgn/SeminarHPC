@@ -18,10 +18,10 @@ inteln  = d[d$platform == "intel"  & d$vectorlength == 16,]$n
 
 plot(u$n, u$time, log = "xy", 
 	main = "Laufzeit in Abhängigkeit von der Problemgrösse",
-	xlab = "Problemgrösse n", ylab = "Laufzeit",
+	xlab = "Problemgrösse n", ylab = "Laufzeit [s]",
 	sub = "Nvidia OpenCL (rot), Intel OpenCL (blau), AMD OpenCL (grün)",
 	ylim = c(0.00004, 1000))
-
+grid()
 lines(nvidian, nvidiat, type = "l", col = "red")
 lines(amdn,    amdt,    type = "l", col = "blue")
 lines(inteln,  intelt,  type = "l", col = "green")
@@ -45,6 +45,7 @@ vectordependency <- function(platformname) {
 		xlab = "Vektorlänge", ylab = "Laufzeit (standardisiert)",
 		main = "Standardisierte Laufzeit",
 		sub = subtitle)
+	grid()
 }
 
 vectordependency("amd")

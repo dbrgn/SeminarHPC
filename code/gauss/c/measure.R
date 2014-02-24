@@ -7,8 +7,9 @@ l <- lm(d$lt ~ d$ln)
 l
 plot(d$n, d$t, log = "xy",
 	main = "Laufzeit Gauss-Algorithmus, sequentiell",
-	xlab = "n", ylab = "Laufzeit",
+	xlab = "n", ylab = "Laufzeit [s]",
 	pch = 3)
+grid()
 abline(l, col = "red")
 
 u <- read.csv("results-uni.csv")
@@ -20,8 +21,9 @@ l <- lm(u$lt ~ u$ln)
 l
 plot(u$n, u$t, log = "xy",
 	main = "Laufzeit Gauss-Algorithmus, sequentiell und unidirektional",
-	xlab = "n", ylab = "Laufzeit",
+	xlab = "n", ylab = "Laufzeit [s]",
 	pch = 3)
+grid()
 lines(d$n, d$t, col="blue", lw = 2)
 abline(l, col = "red", lw = 2)
 
