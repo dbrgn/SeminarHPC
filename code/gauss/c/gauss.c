@@ -113,6 +113,8 @@ void	experiment(int n) {
 		}
 	}
 
+	free(U);
+	free(L);
 	free(a);
 }
 
