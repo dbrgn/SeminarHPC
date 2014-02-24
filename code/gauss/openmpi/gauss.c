@@ -203,7 +203,7 @@ int	main(int argc, char *argv[]) {
 	// measure end time
 	double	end = gettime();
 
-	// we are now down, process 0 displays the result
+	// we are now done, process 0 displays the result
 	if (rank == 0) {
 		printf("%d,%.6f,%d\n", n, end - start, num_procs);
 		fflush(stdout);

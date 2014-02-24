@@ -231,9 +231,6 @@ long    *p = (long *)a;
 long    *q = (long *)b;
 for (int i = 0; i < length; i += 4 * sizeof(long)) {
         *q++ = *p++;
-        *q++ = *p++;
-        *q++ = *p++;
-        *q++ = *p++;
 }
 \end{verbatim}
 Nat"urlich wurde im obigen Code immer angenommen, dass die L"ange durch
