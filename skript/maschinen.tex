@@ -1,11 +1,18 @@
 \chapter{Hardware\label{chapter-hardware}}
 High Performance Computing ist m"oglich dank massiver Parallelisierung.
-Dieses Kapitel beschreibt, wie HPC Cluster aussehen, und welche Konsequenzen
+Dieses Kapitel beschreibt, wie HPC Hardware aussieht, und welche Konsequenzen
 sich f"ur die Programmierung ergeben.
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.5\hsize]{graphics/numa-1.pdf}
+\end{center}
+\caption{NUMA Architektur moderner Rechner
+\label{numa}}
+\end{figure}
 
 \section{Standardhardware}
 Moderne Computer sind praktisch immer Multiprozessor- oder mindestens
-Multicore-System mit geteiltem Hauptspeicher.
+Multicore-System mit geteiltem Hauptspeicher (Abbildung~\ref{numa}).
 Es besteht jedoch eine Diskrepanz zwischen der Sicht des Programmierers
 auf ein solches System, und der Realit"at.
 
@@ -61,6 +68,14 @@ Er muss gross genug sein, dass die Aktivit"aten der einzelnen Cores einen
 n"utzlichen Teil ihrer Daten und Instruktionen in diesem Cache finden 
 k"onnen. 
 
+Ausserhalb des Prozessors findet man weitere Asymmetrien.
+Moderne Rechner verwenden meistens eine NUMA Architektur: non-uniform
+memory access.
+Jeder Prozessor kontrolliert einen Teil des Hauptspeichers.
+"Uber einen Interconnect ist zwar jeder Teil des Hauptspeichers
+von jedem Prozessor aus erreichbar, aber Zugriffe auf den
+Speicher eines anderen Prozessors dauern typischerweise l"anger.
+
 \subsection{Illusion 3: Alle Threads sind gleich}
 Moderene CPUs verwenden Hyperthreading: ein Core kann zwei Instruktionsstr"ome
 ausf"uhren.
@@ -84,6 +99,12 @@ gef"ullt werden.
 Speicher von anderen CPUs ist ``weiter'' entfernt, IOs, die von anderen
 CPUs ausgel"ost worden sind, brauchen daher mehr l"anger.
 
+In einem Cluster entstehen weitere IO-Asymmetrien dadurch, dass
+die Knoten m"oglicherweise gar kein gemeinsames Filesystem haben.
+Nur Knoten mit Zugang zum Filesystem k"onnen Daten lesen oder schreiben,
+andere File-Zugriffe m"ussen "uber den Cluster-Interconnect, was
+zus"atzliche Latenz einf"uhrt.
+
 \subsection{Illusion 5: Instruktionen brauchen immer gleich lange}
 Zus"atzlich zu den Caches verwenden moderne Prozessoren eine Pipepline
 zum Decodieren und Ausf"uhren der Instruktionen.
@@ -106,6 +127,24 @@ das Lesen der Instruktion, nicht ausgef"uhrt werden kann, weil noch nicht
 bekannt ist, welche Instruktion als n"achste ausgef"uhrt werden muss.
 Aber auch bei anderen bedingten Instruktionen kann as zu sogenannten
 Pipeline-Blasen oder Pipeline-Stalls kommen.
+\begin{figure}
+\begin{center}
+\begin{tabular}{cc}
+\begin{minipage}[b]{0.45\hsize}
+\vsize1.5truein
+\includegraphics[width=\hsize]{images/pipeline1.pdf}
+\end{minipage}&
+\begin{minipage}[b]{0.45\hsize}
+\includegraphics[width=\hsize]{images/pipeline2.pdf}
+%\vskip1truecm
+\phantom{.}
+\end{minipage}
+\end{tabular}
+\end{center}
+\caption{Bubble in einer Pipeline ausgel"ost durch eine Abh"ngigkeit
+(Bildquelle: Wikipedia)
+\label{pipelinestall}}
+\end{figure}
 
 \section{Konsequenzen f"ur das Programm-Design}
 Aus den Illusionen lassen sich ein paar Faustregeln ableiten, wie man
@@ -312,7 +351,8 @@ gewinnen, und so die Fortf"uhrung der Berechnung verhindern.
 \begin{center}
 \includegraphics[width=0.8\hsize]{images/opencl-platform.pdf}
 \end{center}
-\caption{Hardware-Struktur f"ur OpenCL\label{hardware:opencl}}
+\caption{Hardware-Struktur f"ur OpenCL (Bildquelle: OpenCL Spezifikation)
+\label{hardware:opencl}}
 \end{figure}
 Die Open Compute Language (OpenCL) hat sich zur Aufgabe gemacht, den
 Zugang zu solchen Beschleunigersystemen zu vereinheitlichen.
