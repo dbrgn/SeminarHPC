@@ -156,6 +156,7 @@ void	*thread_main(void *arg) {
 void	gauss(int nthreads) {
 	start_threads(nthreads);
 	join_threads();
+	free(info);
 }
 
 /**
