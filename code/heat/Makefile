@@ -5,8 +5,8 @@
 #
 all:	heat heat_mpi
 
-CFLAGS = -Wall -g -O2 -std=c99 -I../gauss/common
-LDFLAGS = -L../gauss/common -lgauss -lnetcdf
+CFLAGS = -Wall -g -O2 -std=c99 -I../gauss/common -I/usr/include/cfitsio
+LDFLAGS = -L../gauss/common -lgauss -lnetcdf 
 
 # OpenMP implementation of 1 dimension heat equation solver
 FILES = output.c heat.c
@@ -22,7 +22,11 @@ test:	heat
 FILES2 = output.c heat_mpi.c
 
 heat_mpi:	$(FILES2)
-	mpicc $(CFLAGS) -o heat_mpi $(FILES2) $(LDFLAGS) -lopenmpi
+	mpicc $(CFLAGS) -o heat_mpi $(FILES2) $(LDFLAGS) -lcfitsio
+
+testmpi:	heat_mpi
+	rm -f out.nc
+	mpirun -n 4 ./heat_mpi f027.fits out.nc
 
 # measurements
 results-heat.pdf:	results.csv results.R
