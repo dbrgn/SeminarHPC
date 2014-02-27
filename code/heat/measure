@@ -1,0 +1,13 @@
+#
+# measure run time of heat equation algorithm
+#
+# (c) 2014 Prof Dr Andreas Mueller, Hochschule Rapperswil
+#
+(
+echo "n,time"
+for n in 10 20 40 80 160 320 640 1280 2560
+do
+	rm -f out.nc 
+	./heat -n `expr $n - 1` -t 0.1 out.nc
+done 
+) > results

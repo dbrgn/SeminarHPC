@@ -35,6 +35,41 @@ u(0,x)=f(x),\qquad 0<x<1.
 Gesucht ist ein numerisches L"osungsverfahren, welches die
 W"armeleitungsgleichung numerisch l"ost.
 
+Eine interessante und unphysikalische Eigenschaft der W"armeleitungsgleichung
+ist die Existenz von L"osungen mit unendlich schneller Wirkungsausbreitung.
+Die Funktion
+\[
+u(t,x)=\frac1{\sqrt{2t}}e^{-\frac{x^2}{4t}}
+\]
+hat die folgenden Ableitungen:
+\begin{align*}
+\frac{\partial u}{\partial x}&=
+-
+\frac{x}{t}
+\frac1{\sqrt{2t}}
+e^{-\frac{x^2}{4t}}
+&
+\frac{\partial^2 u}{\partial x^2}&=
+\biggl(\frac{x^2}{4t^2}-\frac1{2t}\biggr)
+\frac1{\sqrt{2t}}
+e^{-\frac{x^2}{4t}}
+\\
+\frac{\partial u}{\partial t}&=
+\biggl(\frac{x^2}{4t^2}-\frac1{2t}\biggr)
+\frac1{\sqrt{2t}}
+e^{-\frac{x^2}{4t}}
+\end{align*}
+Die Funktion $u$ ist also eine L"osung der W"armeleitungsgleichung
+(\ref{heat:pdgl}).
+F"ur $t\to 0$ strebt $u(t,x)$ gegen eine Dirac $\delta$-Funktion
+im Punkt 0.
+Dies bedeutet, dass W"arme, die zur Zeit $t=0$ nur im Punkte vorhanden
+ist, unmittelbar danach f"ur alle $t$ in Form eines Wertes $u(t,x) > 0$
+sp"urbar ist.
+Die W"arme im Punkt $0$ hat sich also mit unendlich grosser Geschwindigkeit
+ausgebreitet.
+
+\section{Diskretisation\label{heat:section-diskretisation}}
 Zur Diskretisation w"ahlen wir im Gebiet $[0,1]\times \mathbb R_+$ ein
 Gitter. 
 Da $x$- und $t$-Richtung offensichtlich nicht symmetrisch sind,
@@ -113,14 +148,16 @@ f"ur $i=0$ steht dazu die Anfangsfunktion $f$ zur Verf"ugung.
 Das Gleichungssystem (\ref{heat:gleichung}) hat die Matrix
 \[
 A=
-\frac1{h_x^2}
+\underbrace{
+\frac1{2h_x^2}
 \begin{pmatrix}
 -2& 1& 0&      &  \\
  1&-2& 1&      &  \\
  0& 1&-2&      &  \\
   &  &  &\ddots&  \\
   &  &  &      &-2
-\end{pmatrix}
+\end{pmatrix}}_N
+\underbrace{
 -\frac1{h_t}
 \begin{pmatrix}
  1& 0& 0&      &  \\
@@ -128,7 +165,7 @@ A=
  0& 0& 1&      &  \\
   &  &  &\ddots&  \\
   &  &  &      & 1
-\end{pmatrix}
+\end{pmatrix}}_M
 =N + M.
 \]
 Die Matrix ist tridiagonal, und l"asst sich effizient mit dem
@@ -146,14 +183,14 @@ L"osung $u_{i+1,j}$ der Gleichung (\ref{heat:gleichung}).
 Die allgemeine Theorie besagt, dass der iterative Algorithmus mit
 Iterationsformel
 \begin{equation}
-u^{(k)}_{i+1}=M^{-1}(b-Nx^{(k-1)}),\qquad b=Mu_{i}-Nu_{i},
+u^{(k)}_{i+1}=M^{-1}(b-Nu_{i+1}^{(k-1)}),\qquad b=Mu_{i}-Nu_{i},
 \label{heat:iteration}
 \end{equation}
-konvergiert, wenn die Matirx $M^{-1}N$ Spektralradius kleiner als $1$ hat.
+konvergiert, wenn die Matrix $M^{-1}N$ Spektralradius kleiner als $1$ hat.
 Im vorliegenden Fall ist $M=\frac1{h_t}E$ sehr einfach zu invertieren,
 es ist $M^{-1}=h_tE$, so dass die fragliche Matrix 
 \[
-M^{-1}N=\frac{h_t}{h_x^2}
+M^{-1}N=\frac{h_t}{2h_x^2}
 \begin{pmatrix}
 -2& 1& 0&      &  \\
  1&-2& 1&      &  \\
@@ -161,22 +198,23 @@ M^{-1}N=\frac{h_t}{h_x^2}
   &  &  &\ddots&  \\
   &  &  &      &-2
 \end{pmatrix}
-=\frac{h_t}{h_x^2}\operatorname{tridiag}_n(1,-2,1)
+=\frac{h_t}{2h_x^2}\operatorname{tridiag}_n(1,-2,1)
 \]
+ist.
 Der Spektralradius ist
 \[
 \varrho(M^{-1}N)
 =
-\varrho\biggl(\frac{h_t}{h_x^2}\operatorname{tridiag}_n(1,-2,1)\biggr)
+\varrho\biggl(\frac{h_t}{2h_x^2}\operatorname{tridiag}_n(1,-2,1)\biggr)
 =
-\frac{h_t}{h_x^2}\varrho(\operatorname{tridiag}_n(1,-2,1)),
+\frac{h_t}{2h_x^2}\varrho(\operatorname{tridiag}_n(1,-2,1)),
 \]
 wir haben den folgenden Satz bewiesen:
 
 \begin{satz}
 Das Iterationsverfahren (\ref{heat:iteration}) konvergiert, wenn 
 \[
-\frac{h_t}{h_x^2}\varrho(\operatorname{tridiag}_n(1,-2,1))<1.
+\frac{h_t}{2h_x^2}\varrho(\operatorname{tridiag}_n(1,-2,1))<1.
 \]
 \end{satz}
 
@@ -315,13 +353,14 @@ f"ur die $p_n(\mu)=0$ ist. Es folgt
 also kann kein Eigenwert einen Betrag $>4$ haben, der Spektralradius ist $4$.
 \end{proof}
 \begin{satz}
+\label{heat:satz-konvergenz}
 Das Iterationsverfahren (\ref{heat:iteration}) konvergiert, wenn 
 \[
-\frac{4h_t}{h_x^2}<1
+\frac{2h_t}{h_x^2}<1
 \qquad
 \Leftrightarrow
 \qquad
-h_t<\frac{h_x^2}4.
+h_t<\frac{h_x^2}2.
 \]
 \end{satz}
 Halbiert man die Gitterkonstante $h_x$ in $x$-Richtung, dann muss man
@@ -338,7 +377,7 @@ erreichen ist
 \[
 k\ge
 \log\varepsilon
-\log\biggl(\frac{4h_t}{h_x^2}\biggr)^{-1}.
+\log\biggl(\frac{2h_t}{h_x^2}\biggr)^{-1}.
 \]
 
 Halbiert man $h_t$, dann wird in jedem Iterationsschritt ein zus"atzliches
@@ -349,8 +388,51 @@ Schrittweite $h_t/2$ diese Genauigkeit in 16 Schritten erreichen.
 Nat"urlich muss man jetzt
 zwei $h_t$-Schritte durchf"uhren, man hat also nichts gewonnen.
 
+Satz \ref{heat:satz-konvergenz} zeigt, dass mit steigender Aufl"osung
+in der Ortskoordinate die Aufl"osung in der Zeitkoordinate "uberprpoprtional
+gesteigert werden muss.
+Dies ist der numerische Ausdruck daf"ur, dass die W"armeleitungsgleichung
+unendlich schnelle Wirkungsausbreitung modelliert.
+
 \section{Parallelisierungsansatz}
+Die numerische L"osung des diskretisierten Problems soll jetzt parallelisiert
+werden.
+Im Abschnitt~\ref{heat:section-diskretisation} wurde dargelegt, dass 
+die Werte $u_{ij}$ jeweils nur f"ur einen Wert von $i$ berechnet
+werden k"onnen.
+Erst wenn die $u_{ij}$ berechnet sind kann man weitergehen und die
+$u_{i+1,j}$ berechnen.
+Die einzige Parallelisierungsm"oglichkeit steckt also in den der Berechnung
+von $u_{ij}$ aus $u_{i-1,j}$ mit Hilfe des Iterationsverfahrens
+(\ref{heat:iteration}).
+
+Innerhalb des Iterationsverfahrens ist die einzige
+Parallelisierungsm"oglichkeit wieder nur die Anwendung von
+(\ref{heat:iteration}).
+Die Parallelisierung muss daher den Definitionsbereich in einzelne
+Intervalle $J_r=\{j_r,j_r+1,\dots,j_{r+1}-1\}$ von Indizes aufteilen,
+in denen die Iteration durchgef"uhrt werden kann. 
+F"ur den Wert von $u_{i,j}^{(k)}$ werden die Werte
+$u_{i-1,j-1}^{(k-1)}$, $u_{i-1,j}^{(k-1)}$ und $u_{i-1,j+1}^{(k-1)}$ ben"otigt. 
+F"ur die inneren Punkte im Interval $J_r$, als $j_r < j < j_{r+1}-1$
+sind also alle ben"otigten Indizes in $J_r$, aber f"ur die
+Werte $u_{ij_r}$ und $u_{i,j_{r+1}-1}$ sind zus"atzlich Indizes
+aus den benachbarten Intervallen $J_{r-1}$ und $J_{r+1}$ n"otig.
+
+Parallelisiert man den Algorithmus mit Hilfe von OpenMPI, reicht es also
+nicht, dass die einzelnen Prozesse nur ihren Teil von
+$u^{(k)}$ zur Verf"ugung haben, sie brauchen von jedem Nachbarprozess
+auch noch genau einen zus"atzlichen Wert.
 
 \section{Implementation}
+\subsection{Output}
+Die Beispielimplementation schreibt als Output ein NetCDF File mit einem
+zweidimensionalen Array der $u(x,t)$ Werte.
+Ausserdem werden Attribute hinzugef"ugt, in denen die Schrittweiten
+$h_x$ und $h_t$ sowie die Zahl $n$ festgehalten sind.
+
+\subsection{OpenMP}
+F"ur kleine Problem kann man die Iteration in einem einzigen Prozess
+durchf"uhren, und die Parallelisierung von OpenMP durchf"uhren lassen.
 
 \section{Resultate}

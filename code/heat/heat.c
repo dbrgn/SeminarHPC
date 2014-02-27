@@ -1,95 +1,121 @@
 /*
- * heat.c -- MPI implementation of a solver for the heat equation
+ * heat.c -- solution of heat equation
  *
  * (c) 2014 Prof Dr Andreas Mueller, Hochschule Rapperswil
  */
-#include <stdlib.h>
 #include <stdio.h>
-#include <mpi.h>
-#include <math.h>
-#include <unistd.h>
-#include <string.h>
-#include <sys/time.h>
+#include <stdlib.h>
+#include "output.h"
 #include <getopt.h>
 #include <common.h>
 
-/**
- * \brief main function
- */
 int	main(int argc, char *argv[]) {
-	int	rank;
-	int	ierr;
-	int	num_procs;
-	MPI_Status	status;
-	int	tag = 1;
-
-	// initialize MPI
-	ierr = MPI_Init(&argc, &argv);
-
-	// get MPI dimension parameters
-	ierr = MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-	ierr = MPI_Comm_size(MPI_COMM_WORLD, &num_procs);
-	char	rankprefix[10];
-	snprintf(rankprefix, sizeof(rankprefix), "%d", rank);
-
-	// parse the command line
-	int	c;
+	double	ht = 1;
 	int	n = 10;
-	while (EOF != (c = getopt(argc, argv, "n:")))
+	int	steps = 1;
+	double	maxt = 1;
+
+	// parse command line
+	int	c;
+	while (EOF != (c = getopt(argc, argv, "n:h:s:t:")))
 		switch (c) {
 		case 'n':
 			n = atoi(optarg);
 			break;
+		case 'h':
+			ht = atof(optarg);
+			break;
+		case 's':
+			steps = atoi(optarg);
+			break;
+		case 't':
+			maxt = atof(optarg);
+			break;
 		}
 
-	// process zero creates the matrix
-	float	*A = NULL;
-	float	*Ai = NULL;
-	if (rank == 0) {
+	// compute step size
+	double	hx = 1. / (n + 1);
+	ht = ht * hx * hx / 4;
+
+	// next argument must be the file name
+	if (argc <= optind) {
+		fprintf(stderr, "output filename misssing\n");
+		return EXIT_FAILURE;
+	}
+	char	*filename = argv[optind];
+	heatfile_t	*hf = output_create(filename, hx, steps * ht, n);
+	if (NULL == hf) {
+		fprintf(stderr, "cannot create output file\n");
+		return EXIT_FAILURE;
 	}
 
+	// allocate memory for solution
+	double	*u = (double *)malloc((n + 2) * sizeof(double));
+	double	*unew = (double *)malloc((n + 2) * sizeof(double));
+	double	*b = (double *)malloc((n + 2) * sizeof(double));
+
+	// compute initial values
+	for (int i = 0; i < n + 2; i++) {
+		if ((i < (n + 1) / 3) || (i > 2 * (n + 1) / 3)) {
+			u[i] = 0;
+		} else {
+			u[i] = 1;
+		}
+	}
+	output_add(hf, 0, u + 1);
+
+	// timing
 	double	start = gettime();
 
-	// process 0 has to send the data to all the other processes
-	if (rank == 0) {
-		//MPI_Send(buffer, h * n, MPI_FLOAT, r, tag, MPI_COMM_WORLD);
-	} else {
-		// receive my part of the matrix
-		//ierr = MPI_Recv(buffer, height * n, MPI_FLOAT, 0, tag,
-		//	MPI_COMM_WORLD, &status);
-		//int	count;
-		//MPI_Get_count(&status, MPI_FLOAT, &count);
+	// compute the solution
+	double	t = 0;
+	double	hx2 = 2 * hx * hx;
+	int	tcounter = 0;
+	while (t < maxt) {
+		tcounter++;
+		t += ht;
+
+		// compute b array
+		for (int j = 1; j <= n; j++) {
+			b[j] = -(u[j-1] - 2 * u[j] + u[j+1]) / hx2
+				- u[j] / ht;
+		}
+
+		// perform iterative solution
+
+		// first approximation
+		unew[0] = 0;
+		unew[n + 1] = 0;
+		for (int i = 0; i < n + 2; i++) {
+			unew[i] = u[i];
+		}
+
+		for (int k = 0; k < 30; k++) {
+			// iteration step
+#pragma omp parallel for
+			for (int j = 1; j <= n; j++) {
+				unew[j] = -ht * (b[j] - (u[j-1] - 2 * u[j] + u[j+1]) / hx2);
+			}
+
+			// copy new vector to old location
+#pragma omp parallel for
+			for (int j = 0; j < n + 2; j++) {
+				u[j] = unew[j];
+			}
+		}
+
+		// if the result is divisible by steps, we add a row
+		if (0 == tcounter % steps) {
+			output_add(hf, tcounter / steps, u + 1);
+		}
 	}
-	tag++;
 
-	// start the solver algorithm
-
-		// send the pivot row to all other processes, as a side effect,
-		// all processes are synchronized on this point
-		//MPI_Bcast(p, 2 * n, MPI_FLOAT, sender, MPI_COMM_WORLD);
-
-	// the computation is now complete, so rank zero has to collect all
-	// the pieces
-	if (rank == 0) {
-		// receive remaining data from other processes
-		//	MPI_Recv(buffer, h * n, MPI_FLOAT, r, tag,
-		//		MPI_COMM_WORLD, &status);
-	} else {
-		// send the data to process 0
-		//ierr = MPI_Send(buffer, height * n, MPI_FLOAT, 0, tag,
-		//	MPI_COMM_WORLD);
-	}
-
-	// measure end time
+	// report timing
 	double	end = gettime();
+	printf("%d,%f\n", n, end - start);
 
-	// we are now done, process 0 displays the result
-	if (rank == 0) {
-		printf("%d,%.6f,%d\n", n, end - start, num_procs);
-	}
-
-	// cleanup MPI
-	MPI_Finalize();
+	// close the file
+	output_close(hf);
 
 	return EXIT_SUCCESS;
 }

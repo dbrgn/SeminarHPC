@@ -80,7 +80,7 @@ int	main(int argc, char *argv[]) {
 	int	dimensions[3] = { t_dim, x_dim, y_dim };
 	if (NC_NOERR != (status = nc_def_var(fileid, "results", NC_DOUBLE,
 		3, dimensions, &arrayid))) {
-		fprintf(stderr, "%s:%d: cannot define t dimension: %s\n",
+		fprintf(stderr, "%s:%d: cannot create result array: %s\n",
 			__FILE__, __LINE__, nc_strerror(status));
 		return EXIT_FAILURE;
 	}
