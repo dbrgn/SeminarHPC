@@ -3,10 +3,13 @@
 #
 # (c) 2013 Prof Dr Andreas Mueller, Hochschule Rapperswil
 #
+all:	skript.pdf
+
 SAMPLEFILES = sample/sample.tex sample/sample.bib
+HEATFILES = heat/heat.tex
 
 TEXFILES = vorwort.tex einleitung.tex maschinen.tex sprachen.tex \
-	daten.tex algorithm.tex $(SAMPLEFILES)
+	daten.tex algorithm.tex $(SAMPLEFILES) $(HEATFILES)
 
 BLXFILES = skript1-blx.bbl skript2-blx.bbl
 
@@ -29,3 +32,9 @@ skript1-blx.bbl:	skript1-blx.aux
 
 skript2-blx.bbl:	skript2-blx.aux
 	bibtex skript2-blx
+
+# standalone compilation of a single article
+standalone.pdf:	standalone.tex $(TEXFILES)
+	pdflatex standalone.tex
+	bibtex standalone
+	pdflatex standalone.tex

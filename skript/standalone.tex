@@ -1,5 +1,5 @@
 %
-% skript.tex -- Skript ueber High Performance Computing
+% standalone.tex -- 
 %
 % (c) 2012 Prof. Dr. Andreas Mueller, HSR
 % $Id: ws-skript.tex,v 1.34 2008/11/02 22:46:16 afm Exp $
@@ -53,60 +53,10 @@
 %\usepackage{cite}
 \usepackage{standalone}
 \usepackage[sorting=none,backend=bibtex]{biblatex}
-\addbibresource{references.bib}
-\addbibresource{sample/sample.bib}
 \AtEndDocument{\clearpage\ifodd\value{page}\else\null\clearpage\fi}
-\makeindex
 \begin{document}
 %\bibliographystyle{plain}
 \pagestyle{fancy}
-\frontmatter
-\newcommand\HRule{\noindent\rule{\linewidth}{1.5pt}}
-\begin{titlepage}
-\vspace*{\stretch{1}}
-\HRule
-\vspace*{5pt}
-\begin{flushright}
-{
-\LARGE
-Mathematisches Seminar\\
-\vspace*{20pt}
-\Huge
-High Performance Computing}
-\end{flushright}
-\HRule
-\begin{flushright}
-\vspace{60pt}
-\Large
-Leitung: Andreas M"uller\\
-\vspace{40pt}
-\Large
-Dorian Amiet,
-Hannes Badertscher,
-Danilo Bargen,\\
-Marco Bassotti,
-Reto Christen,
-Gregor Dengler,\\
-Fabian Klein,
-Flavio La Morea,
-Andreas Linggi,\\
-Tabea M\'endez,
-Daniel Monti,
-Lukas Murer,\\
-Nicol\'as Rom\'an L"uthold,
-Christian Schmid,
-Philipp Solenthaler,
-Pascal Stump,
-Stefan Steiner,
-Dario Tr"utsch,\\
-Andreas Weilenmann,
-Thomas Ziegler
-\end{flushright}
-\vspace*{\stretch{2}}
-\begin{center}
-Hochschule f"ur Technik, Rapperswil, 2014
-\end{center}
-\end{titlepage}
 \hypersetup{
     colorlinks=true,
     linktoc=all,
@@ -143,31 +93,14 @@ Hochschule f"ur Technik, Rapperswil, 2014
 \renewcommand{\qedsymbol}{$\bigcirc$}
 }{\end{proof}}
 
-\tableofcontents
 \newtheorem{satz}{Satz}[chapter]
 \newtheorem{hilfssatz}{Hilfssatz}[chapter]
 \newtheorem{definition}{Definition}[chapter]
 \newtheorem{annahme}{Annahme}[chapter]
-\mainmatter
-\input linsys.tex
-\input vorwort.tex
-\part{Grundlagen}
-\begin{refsection}
-\input einleitung.tex
-\input maschinen.tex
-\input sprachen.tex
-\input daten.tex
-\input algorithm.tex
-\printbibliography[heading=subbibliography]
-\end{refsection}
 
-\part{Anwendungen und Weiterf"uhrende Themen}
-\lhead{Anwendungen}
 \def\chapterauthor#1{{\large #1}\bigskip\bigskip}
-\input sample/sample.tex
-\input heat/heat.tex
-\lhead{Index}
-\rhead{}
-\input skript.ind
+% To compile a single article, create a file input.tex, which contains
+% a command to input your article
+\input input.tex
 
 \end{document}
