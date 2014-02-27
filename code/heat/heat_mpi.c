@@ -90,6 +90,9 @@ typedef struct {
 	double	*bottom;
 	int	width;
 	int	height;
+	int	length;
+	int	rh;
+	int	rv;
 } udata_t;
 
 static double	U(const udata_t *u, int i, int j) {
@@ -118,6 +121,10 @@ static double	U(const udata_t *u, int i, int j) {
 		return u->right[i - 1];
 	}
 	return u->u[i + j * u->width];
+}
+
+static double	B(const udata_t *u, int i, int j) {
+	return u->b[j - 1 + (i - 1) * u->width];
 }
 
 /**
@@ -236,19 +243,25 @@ int	main(int argc, char *argv[]) {
 
 	// allocate memory for the area we are responsible for
 	udata_t	udata;
+	udata.rh = rank % n;
+	udata.rv = rank / n;
 	udata.width = ranges[4 * rank + 1] - ranges[4 * rank + 0];
 	udata.height = ranges[4 * rank + 3] - ranges[4 * rank + 2];
-	int	length = udata.width * udata.height;
-	udata.u = (double *)malloc(length * sizeof(double));
-	udata.b = (double *)malloc(length * sizeof(double));
-	double	*unew = (double *)malloc(length * sizeof(double));
-	fprintf(stderr, "[%d]: %d bytes allocated\n", rank, length);
+	udata.length = udata.width * udata.height;
+	udata.u = (double *)malloc(udata.length * sizeof(double));
+	udata.b = (double *)malloc(udata.length * sizeof(double));
+	double	*unew = (double *)malloc(udata.length * sizeof(double));
+	fprintf(stderr, "[%d]: %d bytes allocated\n", rank, udata.length);
 
 	// allocate memory for the borders from other areas
 	udata.left = (double *)malloc(udata.height * sizeof(double));
+	memset(udata.left, 0, udata.height * sizeof(double));
 	udata.right = (double *)malloc(udata.height * sizeof(double));
+	memset(udata.right, 0, udata.height * sizeof(double));
 	udata.top = (double *)malloc(udata.width * sizeof(double));
+	memset(udata.top, 0, udata.width * sizeof(double));
 	udata.bottom = (double *)malloc(udata.width * sizeof(double));
+	memset(udata.bottom, 0, udata.width * sizeof(double));
 
 	double	start = gettime();
 
@@ -275,6 +288,7 @@ int	main(int argc, char *argv[]) {
 
 	// start the solver algorithm
 	double	t = 0;
+	double	h2 = 2 * h * h;
 	int	tcounter = 0;
 	while (t < maxtime) {
 		// advance counters
@@ -282,7 +296,7 @@ int	main(int argc, char *argv[]) {
 		tcounter++;
 
 		// copy everything to unew as the initial approximation
-		for (int i = 0; i < length; i++) {
+		for (int i = 0; i < udata.length; i++) {
 			unew[i] = udata.u[i];
 		}
 
@@ -291,6 +305,12 @@ int	main(int argc, char *argv[]) {
 			for (int j = 1; j < udata.width; j++) {
 				// compute b
 				double	b;
+				b = (4 * U(&udata, i, j)
+					- U(&udata, i - 1, j)
+					- U(&udata, i + 1, j)
+					- U(&udata, i, j - 1)
+					- U(&udata, i, j + 1)) / h2
+					- U(&udata, i, j) / ht;
 				udata.b[j - 1 + (i - 1) * udata.width] = b;
 			}
 		}
@@ -298,19 +318,91 @@ int	main(int argc, char *argv[]) {
 		// now perform 30 iterations
 		for (int k = 0; k < 30; k++) {
 			// distribute current values of boundary to neighbors
+			tag++;
 
+			// left
+			if (udata.rh > 0) {
+				for (int i = 0; i < udata.height; i++) {
+					udata.left[i] = udata.u[i * udata.width];
+				}
+				// sent to left neighbor
+				MPI_Send(udata.left, udata.height,
+					MPI_DOUBLE, rank - 1, tag,
+					MPI_COMM_WORLD);
+
+				// read data from left neighbor
+				MPI_Recv(udata.left, udata.height,
+					MPI_DOUBLE, rank - 1, tag,
+					MPI_COMM_WORLD, &status);
+			}
+
+			// right
+			if (udata.rh < n - 1) {
+				for (int i = 0; i < udata.height; i++) {
+					udata.right[i] = udata.u[i * udata.width
+						+ udata.width - 1];
+				}
+				// send to right neighbor
+				MPI_Send(udata.right, udata.height,
+					MPI_DOUBLE, rank + 1, tag,
+					MPI_COMM_WORLD);
+
+				// receive data from right neighbor
+				MPI_Recv(udata.right, udata.height,
+					MPI_DOUBLE, rank + 1, tag,
+					MPI_COMM_WORLD, &status);
+			}
+
+			// top
+			if (udata.rv > 0) {
+				for (int j = 0; j < udata.width; j++) {
+					udata.top[j] = udata.u[j];
+				}
+				// sent to top neighbor
+				MPI_Send(udata.top, udata.width,
+					MPI_DOUBLE, rank - n, tag,
+					MPI_COMM_WORLD);
+
+				// receive data from right neighbor
+				MPI_Recv(udata.top, udata.width,
+					MPI_DOUBLE, rank - n, tag,
+					MPI_COMM_WORLD, &status);
+			}
+
+			// bottom
+			if (udata.rv < n - 1) {
+				for (int j = 0; j < udata.width; j++) {
+					udata.bottom[j] = udata.u[j
+						+ udata.width * (udata.height - 1)];
+				}
+				// send to bottom neighbor
+				MPI_Send(udata.bottom, udata.width,
+					MPI_DOUBLE, rank + n, tag,
+					MPI_COMM_WORLD);
+
+				// receive data from right neighbor
+				MPI_Recv(udata.bottom, udata.width,
+					MPI_DOUBLE, rank + n, tag,
+					MPI_COMM_WORLD, &status);
+			}
 
 			// perform iteration step
 			for (int i = 1; i <= udata.height; i++) {
 				for (int j = 1; j <= udata.width; j++) {
 					double	v;
+					v = ht * (B(&udata, i, j)
+						- (4 * U(&udata, i, j)
+						- U(&udata, i - 1, j)
+						- U(&udata, i + 1, j)
+						- U(&udata, i, j - 1)
+						- U(&udata, i, j + 1)) / h2);
 					unew[j - 1 + (i - 1) * udata.width] = v;
 				}
 			}
 		}
 
 		// copy the new u to the old u
-		for (int i = 0; i < length; i++) {
+		for (int i = 0; i < udata.length; i++) {
 			udata.u[i] = unew[i];
 		}
 
