@@ -434,5 +434,23 @@ $h_x$ und $h_t$ sowie die Zahl $n$ festgehalten sind.
 \subsection{OpenMP}
 F"ur kleine Problem kann man die Iteration in einem einzigen Prozess
 durchf"uhren, und die Parallelisierung von OpenMP durchf"uhren lassen.
+Die Berechnung des Iterationsschrittes kann mit dem Pragma
+{\tt omp parallel for} erfolgen.
+Die erreichten Laufzeiten f"ur verschiedene Diskretisationsgr"osse ist
+in Abbildung~\ref{heat:laufzeit} dargestellt.
+Man kann erkennen, dass die Parallelisierung erst dann "uberhaupt etwas
+bringt, wenn das Problem deutlich gr"osser als einige Cache-Zeilen ist.
+Bei kleinen $n$ wird die Laufzeit bei mehr Threads sogar l"anger, die
+einzelnen Threads tun allerdings kaum etwas sinnvolles, sie w"alzen nur
+permanent den Cache um.
+\begin{figure}
+\begin{center}
+\includegraphics[width=\hsize]{heat/results-heat.pdf}
+\end{center}
+\caption{Laufzeit der mit OpenMP parallelisierten L"osung der
+W"armeleitungsgleichung. Laufzeit mit einem einzelnen Thread ist rot
+dargestellt.
+\label{heat:laufzeit}}
+\end{figure}
 
 \section{Resultate}

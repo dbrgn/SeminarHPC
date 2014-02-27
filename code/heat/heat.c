@@ -14,10 +14,12 @@ int	main(int argc, char *argv[]) {
 	int	n = 10;
 	int	steps = 1;
 	double	maxt = 1;
+	int	threads = 1;
+	int	dryrun = 0;
 
 	// parse command line
 	int	c;
-	while (EOF != (c = getopt(argc, argv, "n:h:s:t:")))
+	while (EOF != (c = getopt(argc, argv, "n:h:s:t:T:r")))
 		switch (c) {
 		case 'n':
 			n = atoi(optarg);
@@ -31,6 +33,12 @@ int	main(int argc, char *argv[]) {
 		case 't':
 			maxt = atof(optarg);
 			break;
+		case 'T':
+			threads = atoi(optarg);
+			break;
+		case 'r':
+			dryrun = 1;
+			break;
 		}
 
 	// compute step size
@@ -43,10 +51,13 @@ int	main(int argc, char *argv[]) {
 		return EXIT_FAILURE;
 	}
 	char	*filename = argv[optind];
-	heatfile_t	*hf = output_create(filename, hx, steps * ht, n);
-	if (NULL == hf) {
-		fprintf(stderr, "cannot create output file\n");
-		return EXIT_FAILURE;
+	heatfile_t	*hf = NULL;
+	if (!dryrun) {
+		hf = output_create(filename, hx, steps * ht, n);
+		if (NULL == hf) {
+			fprintf(stderr, "cannot create output file\n");
+			return EXIT_FAILURE;
+		}
 	}
 
 	// allocate memory for solution
@@ -62,7 +73,9 @@ int	main(int argc, char *argv[]) {
 			u[i] = 1;
 		}
 	}
-	output_add(hf, 0, u + 1);
+	if (hf) {
+		output_add(hf, 0, u + 1);
+	}
 
 	// timing
 	double	start = gettime();
@@ -92,13 +105,13 @@ int	main(int argc, char *argv[]) {
 
 		for (int k = 0; k < 30; k++) {
 			// iteration step
-#pragma omp parallel for
+#pragma omp parallel for num_threads(threads)
 			for (int j = 1; j <= n; j++) {
 				unew[j] = -ht * (b[j] - (u[j-1] - 2 * u[j] + u[j+1]) / hx2);
 			}
 
 			// copy new vector to old location
-#pragma omp parallel for
+#pragma omp parallel for num_threads(threads)
 			for (int j = 0; j < n + 2; j++) {
 				u[j] = unew[j];
 			}
@@ -106,16 +119,20 @@ int	main(int argc, char *argv[]) {
 
 		// if the result is divisible by steps, we add a row
 		if (0 == tcounter % steps) {
-			output_add(hf, tcounter / steps, u + 1);
+			if (hf) {
+				output_add(hf, tcounter / steps, u + 1);
+			}
 		}
 	}
 
 	// report timing
 	double	end = gettime();
-	printf("%d,%f\n", n, end - start);
+	printf("%d,%f,%d\n", n, end - start, threads);
 
 	// close the file
-	output_close(hf);
+	if (hf) {
+		output_close(hf);
+	}
 
 	return EXIT_SUCCESS;
 }

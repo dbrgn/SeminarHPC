@@ -9,10 +9,10 @@
 #include <stdlib.h>
 
 /**
- * \brief create the output file
+ * \brief create the output file, generic version
  */
-heatfile_t	*output_create(const char *filename, double hx, double ht,
-	int n) {
+static heatfile_t	*create0(int dim, const char *filename,
+	double h, double ht, int n) {
 	heatfile_t	*hf = (heatfile_t *)malloc(sizeof(heatfile_t));
 	hf->n = n;
 	hf->ncid = -1;
@@ -27,10 +27,10 @@ heatfile_t	*output_create(const char *filename, double hx, double ht,
 	}
 
 	// add variables hx, hy, and n
-	int	hxid, htid, nid;
-	status = nc_def_var(hf->ncid, "hx", NC_DOUBLE, 0, NULL, &hxid);
+	int	hid, htid, nid;
+	status = nc_def_var(hf->ncid, "h", NC_DOUBLE, 0, NULL, &hid);
 	if (NC_NOERR != status) {
-		fprintf(stderr, "cannot create hx variable: %s\n",
+		fprintf(stderr, "cannot create h variable: %s\n",
 			nc_strerror(status));
 		goto bad;
 	}
@@ -49,11 +49,19 @@ heatfile_t	*output_create(const char *filename, double hx, double ht,
 
 	// create the array dimensions
 	size_t	lenx = n;
-	int	x_dim, t_dim;
+	int	x_dim, y_dim, t_dim;
 	if (NC_NOERR != (status = nc_def_dim(hf->ncid, "x", lenx, &x_dim))) {
 		fprintf(stderr, "cannot define x dimension: %s\n",
 			nc_strerror(status));
 		goto bad;
+	}
+	if (dim == 2) {
+		if (NC_NOERR != (status = nc_def_dim(hf->ncid, "y", lenx,
+			&y_dim))) {
+			fprintf(stderr, "cannot define y dimension: %s\n",
+				nc_strerror(status));
+			goto bad;
+		}
 	}
 	if (NC_NOERR != (status = nc_def_dim(hf->ncid, "t", NC_UNLIMITED,
 		&t_dim))) {
@@ -63,9 +71,9 @@ heatfile_t	*output_create(const char *filename, double hx, double ht,
 	}
 
 	// define the array
-	int	dimensions[2] = { t_dim, x_dim };
+	int	dimensions[3] = { t_dim, x_dim, y_dim };
 	if (NC_NOERR != (status = nc_def_var(hf->ncid, "u", NC_DOUBLE,
-		2, dimensions, &hf->arrayid))) {
+		dim + 1, dimensions, &hf->arrayid))) {
 		fprintf(stderr, "cannot define u array: %s\n",
 			nc_strerror(status));
 		goto bad;
@@ -79,9 +87,9 @@ heatfile_t	*output_create(const char *filename, double hx, double ht,
 	}
 
 	// add values for hx, ht and n
-	status = nc_put_var_double(hf->ncid, hxid, &hx);
+	status = nc_put_var_double(hf->ncid, hid, &h);
 	if (NC_NOERR != status) {
-		fprintf(stderr, "cannot write the hx value: %s\n",
+		fprintf(stderr, "cannot write the h value: %s\n",
 			nc_strerror(status));
 		goto bad;
 	}
@@ -108,11 +116,41 @@ bad:
 }
 
 /**
+ * \brief create output file for 1-dim wave equation
+ */
+heatfile_t	*output_create(const char *filename, double h, double ht,
+			int n) {
+	return create0(1, filename, h, ht, n);
+}
+
+/**
+ * \brief create output file for 2-dim wave equation
+ */
+heatfile_t	*output2_create(const char *filename, double h, double ht,
+			int n) {
+	return create0(2, filename, h, ht, n);
+}
+
+/**
  * \brief add a row to the result fiel
  */
 int	output_add(heatfile_t *hf, int t, double *u) {
 	size_t	start[2] = { t, 0 };
 	size_t	size[2] = { 1, hf->n };
+	int	status = nc_put_vara(hf->ncid, hf->arrayid, start, size, u);
+	if (NC_NOERR != status) {
+		fprintf(stderr, "cannot write data: %s\n",
+			nc_strerror(status));
+	}
+	return 0;
+}
+
+/**
+ * \brief add a row to the result fiel
+ */
+int	output2_add(heatfile_t *hf, int t, double *u) {
+	size_t	start[3] = { t, 0, 0 };
+	size_t	size[3] = { 1, hf->n, hf->n };
 	int	status = nc_put_vara(hf->ncid, hf->arrayid, start, size, u);
 	if (NC_NOERR != status) {
 		fprintf(stderr, "cannot write data: %s\n",

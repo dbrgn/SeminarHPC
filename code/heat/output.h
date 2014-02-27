@@ -15,6 +15,11 @@ typedef struct {
 extern heatfile_t	*output_create(const char *filename,
 				double hx, double ht, int n);
 extern int	output_add(heatfile_t *hf, int t, double *u);
+
+extern heatfile_t	*output2_create(const char *filename,
+				double h, double ht, int n);
+extern int	output2_add(heatfile_t *hf, int t, double *u);
+
 extern int	output_close(heatfile_t *hf);
 
 #endif /* _OUTPUT_H */
