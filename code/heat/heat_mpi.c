@@ -81,6 +81,45 @@ bad:
 	return NULL;
 }
 
+typedef struct {
+	double	*u;
+	double	*b;
+	double	*left;
+	double	*right;
+	double	*top;
+	double	*bottom;
+	int	width;
+	int	height;
+} udata_t;
+
+static double	U(const udata_t *u, int i, int j) {
+	if (i == 0) {
+		if (j == 0) {
+			return 0;
+		}
+		if (j == u->width + 1) {
+			return 0;
+		}
+		return u->top[j - 1];
+	}
+	if (i == u->height) {
+		if (j == 0) {
+			return 0;
+		}
+		if (j == u->width + 1) {
+			return 0;
+		}
+		return u->bottom[j - 1];
+	}
+	if (j == 0) {
+		return u->left[i - 1];
+	}
+	if (j == u->width + 1) {
+		return u->right[i - 1];
+	}
+	return u->u[i + j * u->width];
+}
+
 /**
  * \brief main function
  */
@@ -93,6 +132,7 @@ int	main(int argc, char *argv[]) {
 	double	h = 0.001;
 	int	dryrun = 0;
 	int	steps = 1;
+	double	maxtime = 1;
 
 	// initialize MPI
 	ierr = MPI_Init(&argc, &argv);
@@ -106,7 +146,7 @@ int	main(int argc, char *argv[]) {
 	// parse the command line
 	int	c;
 	int	n = 10;
-	while (EOF != (c = getopt(argc, argv, "h:")))
+	while (EOF != (c = getopt(argc, argv, "h:r:s:t:")))
 		switch (c) {
 		case 'h':
 			h = atof(optarg);
@@ -116,6 +156,9 @@ int	main(int argc, char *argv[]) {
 			break;
 		case 's':
 			steps = atoi(optarg);
+			break;
+		case 't':
+			maxtime = atof(optarg);
 			break;
 		}
 
@@ -192,32 +235,90 @@ int	main(int argc, char *argv[]) {
 		ranges[4 * rank + 2], ranges[4 * rank + 3]);
 
 	// allocate memory for the area we are responsible for
-	int	width = ranges[4 * rank + 1] - ranges[4 * rank + 0] + 2;
-	int	height = ranges[4 * rank + 3] - ranges[4 * rank + 2] + 2;
-	int	length = width * height;
-	double	*u = (double *)malloc(length * sizeof(double));
+	udata_t	udata;
+	udata.width = ranges[4 * rank + 1] - ranges[4 * rank + 0];
+	udata.height = ranges[4 * rank + 3] - ranges[4 * rank + 2];
+	int	length = udata.width * udata.height;
+	udata.u = (double *)malloc(length * sizeof(double));
+	udata.b = (double *)malloc(length * sizeof(double));
 	double	*unew = (double *)malloc(length * sizeof(double));
 	fprintf(stderr, "[%d]: %d bytes allocated\n", rank, length);
+
+	// allocate memory for the borders from other areas
+	udata.left = (double *)malloc(udata.height * sizeof(double));
+	udata.right = (double *)malloc(udata.height * sizeof(double));
+	udata.top = (double *)malloc(udata.width * sizeof(double));
+	udata.bottom = (double *)malloc(udata.width * sizeof(double));
 
 	double	start = gettime();
 
 	// process 0 has to send the data to all the other processes
 	if (rank == 0) {
-		//MPI_Send(buffer, h * n, MPI_FLOAT, r, tag, MPI_COMM_WORLD);
+		for (int r = 1; r < n; r++) {
+			// allocate a temporary buffer to 
+			int	w = ranges[4 * r + 1] - ranges[4 * r + 0];
+			int	h = ranges[4 * r + 3] - ranges[4 * r + 2];
+			// send all data from rectangle r to the process r
+			for (int v = ranges[4*r+2]; v < ranges[4*r+3]; v++) {
+				MPI_Send(image->data + v * image->width + ranges[4*r+0],
+					w, MPI_DOUBLE, r, tag, MPI_COMM_WORLD);
+			}
+		}
 	} else {
 		// receive my part of the matrix
-		//ierr = MPI_Recv(buffer, height * n, MPI_FLOAT, 0, tag,
-		//	MPI_COMM_WORLD, &status);
-		//int	count;
-		//MPI_Get_count(&status, MPI_FLOAT, &count);
+		for (int v = 0; v < udata.height; v++) {
+			ierr = MPI_Recv(udata.u + v * udata.width, udata.width,
+				MPI_DOUBLE, 0, tag, MPI_COMM_WORLD, &status);
+		}
 	}
 	tag++;
 
 	// start the solver algorithm
+	double	t = 0;
+	int	tcounter = 0;
+	while (t < maxtime) {
+		// advance counters
+		t += ht;
+		tcounter++;
 
-		// send the pivot row to all other processes, as a side effect,
-		// all processes are synchronized on this point
-		//MPI_Bcast(p, 2 * n, MPI_FLOAT, sender, MPI_COMM_WORLD);
+		// copy everything to unew as the initial approximation
+		for (int i = 0; i < length; i++) {
+			unew[i] = udata.u[i];
+		}
+
+		// compute b vector
+		for (int i = 1; i <= udata.height; i++) {
+			for (int j = 1; j < udata.width; j++) {
+				// compute b
+				double	b;
+				udata.b[j - 1 + (i - 1) * udata.width] = b;
+			}
+		}
+
+		// now perform 30 iterations
+		for (int k = 0; k < 30; k++) {
+			// distribute current values of boundary to neighbors
+
+
+			// perform iteration step
+			for (int i = 1; i <= udata.height; i++) {
+				for (int j = 1; j <= udata.width; j++) {
+					double	v;
+					unew[j - 1 + (i - 1) * udata.width] = v;
+				}
+			}
+		}
+
+		// copy the new u to the old u
+		for (int i = 0; i < length; i++) {
+			udata.u[i] = unew[i];
+		}
+
+		// decide whether we have to output something
+		if (0 == (tcounter % steps)) {
+			// output needed
+		}
+	}
 
 	// the computation is now complete, so rank zero has to collect all
 	// the pieces
