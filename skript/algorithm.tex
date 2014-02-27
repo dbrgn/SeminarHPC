@@ -190,7 +190,7 @@ T=\begin{pmatrix}
 \end{pmatrix}
 \]
 Mit Hilfe von $T$ kann $A$ in Blockform geschrieben werden:
-\[
+\begin{equation}
 A=
 \begin{pmatrix}
 T&E& & &      & \\
@@ -200,7 +200,8 @@ E&T&E& &      & \\
  & & & &\ddots& \\
  & & & &      &T\\
 \end{pmatrix}
-\]
+\label{algorithm:laplace}
+\end{equation}
 Alle leeren Felder sind dabei gleich $0$ zu setzen, $E$ bezeichnet
 eine $(n-1)\times(n-1)$-Einheitsmatrix.
 Die meisten Eintr"age der Matrix $A$ sind also $0$, 
