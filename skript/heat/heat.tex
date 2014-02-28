@@ -146,7 +146,7 @@ Die rechte Seite wird berechnet aus den Werten von $u_{ij}$,
 f"ur $i=0$ steht dazu die Anfangsfunktion $f$ zur Verf"ugung.
 
 Das Gleichungssystem (\ref{heat:gleichung}) hat die Matrix
-\[
+\begin{equation}
 A=
 \underbrace{
 \frac1{2h_x^2}
@@ -167,7 +167,8 @@ A=
   &  &  &      & 1
 \end{pmatrix}}_M
 =N + M.
-\]
+\label{heat:zerlegung}
+\end{equation}
 Die Matrix ist tridiagonal, und l"asst sich effizient mit dem
 Gauss-Algorithmus l"osen.
 Dieser Vorteil verschwindet allerdings, sobald das Problem auf
@@ -453,4 +454,76 @@ dargestellt.
 \label{heat:laufzeit}}
 \end{figure}
 
-\section{Resultate}
+\subsection{OpenMPI}
+Die Implementation mit OpenMP hat gezeigt, dass im eindimensionalen Fall
+das Teilproblem zu klein ist, als dass die Parallelisierung des
+Iterationsalgorithmus eine Laufzeitverbeserung ergeben k"onnte.
+Das eindimensionale Problem wird also f"ur kleine $n$ am besten von einem
+einzigen Prozessor gel"ost. 
+Die Arbeit, die jeder Prozessor bis zum n"achsten Barrierepunkt
+leistet, ist von der Gr"ossenordnung $O(n)$. 
+
+Wenn eine parallele Implementation der L"osung der W"armeleitungsgleichung
+eine bessere Laufzeit gegen"uber einer sequenziellen Implementation 
+zeigen soll, dann muss die Menge der Arbeit, zwischen Barriere-Punkten
+vergr"ossert werden.
+Nur ein zwei- oder dreidimensionales W"armeleitungsproblem kann diese
+Bedingung erf"ullen:
+die Arbeit zwischen Barrierepunkten w"achst dann mit $O(n^2)$ bzw.~$O(n^3)$.
+
+Die zweidimensionale W"armeleitungsgleichung
+\[
+\frac{\partial u}{\partial t}
+=
+\frac{\partial^2 u}{\partial x^2}
++
+\frac{\partial^2 u}{\partial y^2}
+\]
+kann analog zur eindimensionalen W"armeleitungsgleichung diskretisiert
+werden.
+Die Funktion $u(t,x,y)$ wird ersetzt durch Variablen $u_{ijk}=u(ih_t,jh,kh)$.
+Die zweiten partiellen Ableitungen nach $x$ und $y$ werden approximiert
+werden
+\[
+\frac{\partial^2u}{\partial x^2}
++
+\frac{\partial^2u}{\partial y^2}
+\simeq
+\frac1{h^2}(
+u_{i,j-1,k}
++
+u_{i,j,k-1}
++
+u_{i,j+1,k}
++
+u_{i,j,k+1}
+-
+4u_{ijk}
+)
+\]
+F"ur diesen Operator wurde bereits fr"uher die Matrix $A$ in
+(\ref{algorithm:laplace}) gefunden, die wir in "Ubereinstimmung mit
+(\ref{heat:zerlegung}) wieder mit $N$ bezeichnen.
+Dann wird die Iterationsformel wieder die gleiche Form haben wie
+(\ref{heat:iteration}).
+
+\begin{satz}
+Das Iterationsverfahren (\ref{heat:iteration}) f"ur die zweidimensionale
+W"armeleitungsgleichung konvergiert, wenn 
+\begin{align*}
+8\frac{h_t}{2h_x^2}&<1
+&&\Leftrightarrow
+&
+h_t&<\frac{h_x^2}{4}
+\end{align*}
+\end{satz}
+
+Zur Parallelisierung und Verteilung auf verschiedene Prozesse kann
+der Definitionsbereich in eine Menge von Rechtecken zerlegt werden.
+F"ur die Durchf"uhrung des Iterationsschrittes werden am Rand jeweils
+die Variablen am Rande der Nachbarrechtecke ben"otigt.
+Nach jedem Iterationsschritt m"ussen diese Werte zwischen den einzelnen
+Prozessen ausgetauscht werden.
+
+
+
