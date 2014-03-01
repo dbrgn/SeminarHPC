@@ -137,7 +137,6 @@ int	main(int argc, char *argv[]) {
 	MPI_Status	status;
 	int	tag = 1;
 	double	h = 0.001;
-	int	dryrun = 0;
 	int	steps = 1;
 	double	maxtime = 1;
 
@@ -158,9 +157,6 @@ int	main(int argc, char *argv[]) {
 		case 'h':
 			h = atof(optarg);
 			break;
-		case 'r':
-			dryrun = 1;
-			break;
 		case 's':
 			steps = atoi(optarg);
 			break;
@@ -179,11 +175,10 @@ int	main(int argc, char *argv[]) {
 	char	*imagefilename = argv[optind++];
 
 	// next argument is output file name
+	char	*netcdffilename = NULL;
 	if (argc <= optind) {
-		fprintf(stderr, "netcdf file name argument missing\n");
-		return EXIT_FAILURE;
+		netcdffilename = argv[optind++];
 	}
-	char	*netcdffilename = argv[optind++];
 
 	// image file and output file
 	heatfile_t      *hf = NULL;
@@ -193,7 +188,7 @@ int	main(int argc, char *argv[]) {
 	// process zero initializes and writes data
 	if (rank == 0) {
 		// create the output file
-		if (!dryrun) {
+		if (netcdffilename) {
 			hf = output_create(netcdffilename, h, steps * ht, n);
 			if (NULL == hf) {
 				fprintf(stderr, "cannot create output file\n");
