@@ -19,14 +19,16 @@ test:	heat
 	./heat -n 999 -s 1 -t 0.1 out.nc
 
 # OpenMPI implementation of 2 dimensional heat equation solver
-FILES2 = output.c heat_mpi.c
+FILES2 = output.c image.c heat_mpi.c
 
 heat_mpi:	$(FILES2)
 	mpicc $(CFLAGS) -o heat_mpi $(FILES2) $(LDFLAGS) -lcfitsio
 
 testmpi:	heat_mpi
 	rm -f out.nc
-	mpirun -n 4 ./heat_mpi f027.fits out.nc
+	rm -f images/*.fits
+	mpirun -n 4 ./heat_mpi -b images -t 4 -s 2 -h 0.1 -x 2 -y 2 \
+		testimage.fits 2>&1 | tee test.log
 
 # measurements
 results-heat.pdf:	results.csv results.R

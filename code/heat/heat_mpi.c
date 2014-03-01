@@ -1,5 +1,5 @@
 /*
- * heat.c -- MPI implementation of a solver for the heat equation
+ * heat_mpi.c -- MPI implementation of a solver for the heat equation
  *
  * (c) 2014 Prof Dr Andreas Mueller, Hochschule Rapperswil
  */
@@ -12,89 +12,80 @@
 #include <sys/time.h>
 #include <getopt.h>
 #include <common.h>
-#include <fitsio.h>
 #include "output.h"
+#include "image.h"
+
+int	debug = 0;
 
 typedef struct {
-	int	width;
-	int	height;
-	double	*data;
-} image_t;
-
-image_t	*readimage(const char *filename) {
-	char	errmsg[80];
-	image_t	*image = NULL;
-	// open the FITS file
-	int	status = 0;
-	fitsfile	*fits = NULL;
-	if (fits_open_file(&fits, filename, READONLY, &status)) {
-		fits_get_errstatus(status, errmsg);
-		fprintf(stderr, "cannot read fits file %s: %s\n",
-			filename, errmsg);
-		return NULL;
-	}
-
-	// find dimensions of pixel array
-	int	igt;
-	int	naxis;
-	long	naxes[3];
-	if (fits_get_img_param(fits, 3, &igt, &naxis, naxes, &status)) {
-		fits_get_errstatus(status, errmsg);
-		fprintf(stderr, "cannot read fits file info: %s\n", errmsg);
-		goto bad;
-	}
-	image = (image_t *)malloc(sizeof(image_t));
-	image->width = naxes[0];
-	image->height = naxes[1];
-
-	// read the pixel data
-	long	npixels = image->width * image->height;
-	image->data = (double *)malloc(npixels * sizeof(double));
-	long	firstpixel[3] = { 1, 1, 1 };
-	if (fits_read_pix(fits, TDOUBLE, firstpixel, npixels, NULL, image->data,
-		NULL, &status)) {
-		fits_get_errstatus(status, errmsg);
-		fprintf(stderr, "cannot read pixel data: %s\n", errmsg);
-		goto bad;
-	}
-
-	// close the file
-	if (fits_close_file(fits, &status)) {
-		fits_get_errstatus(status, errmsg);
-		fprintf(stderr, "cannot close fits file %s: %s\n",
-			filename, errmsg);
-		goto bad;
-	}
-
-	// return the image
-	return image;
-bad:
-	if (image) {
-		if (image->data) {
-			free(image->data);
-		}
-		free(image);
-	}
-	if (fits) {
-		fits_close_file(fits, &status);
-	}
-	return NULL;
-}
-
-typedef struct {
-	double	*u;
-	double	*b;
-	double	*left;
-	double	*right;
-	double	*top;
-	double	*bottom;
-	int	width;
-	int	height;
-	int	length;
-	int	rh;
-	int	rv;
+	double	*u;	// u values
+	double	*b;	// b values
+	double	*left;	// left border (left neighbor)
+	double	*right;	// right border (right neighbor)
+	double	*top;	// top border (top neighbor)
+	double	*bottom;// bottom border (bottom neighbor)
+	double	*send_left;
+	double	*send_right;
+	double	*send_top;
+	double	*send_bottom;
+	MPI_Request	left_request;
+	MPI_Request	right_request;
+	MPI_Request	top_request;
+	MPI_Request	bottom_request;
+	int	width;	// width of this part of u
+	int	height;	// height of this part of u
+	int	length;	// number of values in this patch
+	int	rh;	// range index in x direction
+	int	rv;	// range index in y direction
+	int	*ranges;
+	int	nx;	// number of ranges in x direction
+	int	ny;	// number of ranges in y direction
+	int	rank;	// rank of this processes
+	double	ht;	// time step
+	double	h2;	// 2h^2_x, used in laplacian computation
 } udata_t;
 
+/**
+ * \brief initialize a double vector of a given size
+ */
+static double	*doublevector(int size) {
+	double	*result = (double *)malloc(size * sizeof(double));
+	for (int i = 0; i < size; i++) {
+		result[i] = 0;
+	}
+	return result;
+}
+
+/**
+ * \brief allocate all data arrays needed for the computation
+ */
+static void	allocate_u(udata_t *u) {
+	u->length = u->width * u->height;
+	u->u = doublevector(u->length);
+	u->b = doublevector(u->length);
+	if (debug) {
+		fprintf(stderr, "[%d]: %ld bytes allocated\n", u->rank,
+			u->length * sizeof(double));
+	}
+
+	// allocate memory for the borders from other areas
+	u->left = doublevector(u->height);
+	u->right = doublevector(u->height);
+	u->top = doublevector(u->width);
+	u->bottom = doublevector(u->width);
+
+	u->send_left = doublevector(u->height);
+	u->send_right = doublevector(u->height);
+	u->send_top = doublevector(u->width);
+	u->send_bottom = doublevector(u->width);
+}
+
+/**
+ * \brief Access to the u data
+ *
+ * This method gives access to the data in the u array, including the special
+ * cases when (i,j) is a boundary point.
+ */
 static double	U(const udata_t *u, int i, int j) {
 	if (i == 0) {
 		if (j == 0) {
@@ -105,7 +96,7 @@ static double	U(const udata_t *u, int i, int j) {
 		}
 		return u->top[j - 1];
 	}
-	if (i == u->height) {
+	if (i == u->height + 1) {
 		if (j == 0) {
 			return 0;
 		}
@@ -120,40 +111,492 @@ static double	U(const udata_t *u, int i, int j) {
 	if (j == u->width + 1) {
 		return u->right[i - 1];
 	}
-	return u->u[i + j * u->width];
+	return u->u[(j - 1) + (i - 1) * u->width];
 }
 
+/**
+ * \brief Access to the b vector
+ */
 static double	B(const udata_t *u, int i, int j) {
 	return u->b[j - 1 + (i - 1) * u->width];
+}
+
+/**
+ * \brief Partition the domain
+ *
+ * This function computes the ranges of indices of the original image
+ * this each rank is responsible for.
+ */
+static void	partitiondomain(udata_t *u, const image_t *image) {
+	double	w = image->width / (double)u->nx;
+	double	h = image->height / (double)u->ny;
+	int	num_procs = u->nx * u->ny;
+	for (int r = 0; r < num_procs; r++) {	
+		int	rx = r % u->nx;
+		int	ry = r / u->nx;
+		u->ranges[4 * r + 0] = rx * w;
+		u->ranges[4 * r + 1] = (rx + 1) * w;
+		u->ranges[4 * r + 2] = ry * h;
+		u->ranges[4 * r + 3] = (ry + 1) * h;
+		if (debug) {
+			fprintf(stderr, "%s:%d[%d]: range for "
+				"rank %d = (%d,%d): [%d,%d) x [%d,%d)\n",
+				__FILE__, __LINE__, u->rank,
+				r, rx, ry,
+				u->ranges[4 * r + 0],
+				u->ranges[4 * r + 1],
+				u->ranges[4 * r + 2],
+				u->ranges[4 * r + 3]);
+		}
+	}
+}
+
+/**
+ * \brief Compute the laplacian
+ *
+ * This uses the U function to compute the laplacian operator at point (i,j)
+ */
+static double	laplacian(const udata_t *u, int i, int j) {
+	double	l = (-4 * U(u, i, j)
+			+ U(u, i - 1, j)
+			+ U(u, i + 1, j)
+			+ U(u, i,     j - 1)
+			+ U(u, i,     j + 1)) / u->h2;
+	return l;
+}
+
+/**
+ * \brief Compute the b vector
+ */
+static void	compute_b(udata_t *u) {
+	if (debug) {
+		fprintf(stderr, "%s:%d[%d]: computation of b\n",
+			__FILE__, __LINE__, u->rank);
+	}
+	for (int i = 1; i <= u->height; i++) {
+		for (int j = 1; j <= u->width; j++) {
+			double	b;
+			b = -laplacian(u, i, j) - U(u, i, j) / u->ht;
+			u->b[j - 1 + (i - 1) * u->width] = b;
+		}
+	}
+	if (debug) {
+		fprintf(stderr, "%s:%d:[%d]: computation of b complete\n",
+			__FILE__, __LINE__, u->rank);
+	}
+}
+
+/**
+ * \brief Compute a single u iteration step
+ */
+static void	iterate_u(double *unew, const udata_t *u) {
+	if (debug) {
+		fprintf(stderr, "%s:%d[%d]: iteration step for u\n",
+			__FILE__, __LINE__, u->rank);
+	}
+	// perform iteration step
+	for (int i = 1; i <= u->height; i++) {
+		for (int j = 1; j <= u->width; j++) {
+			double	v;
+			v = -u->ht * (B(u, i, j) - laplacian(u, i, j));
+			unew[j - 1 + (i - 1) * u->width] = v;
+		}
+	}
+	if (debug) {
+		fprintf(stderr, "%s:%d[%d]: iteration step for u complete\n",
+			__FILE__, __LINE__, u->rank);
+	}
+}
+
+/**
+ * \brief Send image data to a rank != 0 process
+ *
+ * This functions sends the data for a given rank found in the image to
+ * that rank. The range of data to send is found in the udata structure
+ * handed in as the first argument.
+ */
+static void	sendimagerange(const udata_t *u, const image_t *image,
+	int rank, int tag) {
+	if (debug) {
+		fprintf(stderr, "%s:%d[%d]: sending image to %d\n",
+			__FILE__, __LINE__, u->rank, rank);
+	}
+	// allocate a temporary buffer to 
+	int	width = u->ranges[4 * rank + 1] - u->ranges[4 * rank + 0];
+	int	fromrow = u->ranges[4 * rank + 2];
+	int	torow = u->ranges[4 * rank + 3];
+	int	offset = u->ranges[4 * rank + 0];
+	// send all data from rectangle r to the process r
+	for (int row = fromrow; row < torow; row++) {
+		int	ierr;
+		if (debug) {
+			fprintf(stderr, "%s:%d[%d]: sending row %d to %d\n",
+				__FILE__, __LINE__, u->rank, row, rank);
+		}
+		ierr = MPI_Send(image->data + row * image->width + offset,
+			width, MPI_DOUBLE, rank, tag, MPI_COMM_WORLD);
+		if (ierr) {
+			fprintf(stderr, "%s:%d[%d]: send error: %d\n",
+				__FILE__, __LINE__, u->rank, ierr);
+		}
+	}
+	if (debug) {
+		fprintf(stderr, "%s:%d[%d]: sending image to %d complete\n",
+			__FILE__, __LINE__, u->rank, rank);
+	}
+}
+
+/**
+ * \brief Receive image data from a different rank
+ *
+ * This function is used by rank 0 to receive image data from a different rank
+ * and integrate it into the image.
+ */
+static void	receiveimagerange(const udata_t *u, image_t *image, int rank,
+	int tag) {
+	if (debug) {
+		fprintf(stderr, "%s:%d[%d]: receiving image from %d\n",
+			__FILE__, __LINE__, u->rank, rank);
+	}
+	// dimensions and parameters of data we want to receive
+	int	width = u->ranges[4 * rank + 1] - u->ranges[4 * rank + 0];
+	int	fromrow = u->ranges[4 * rank + 2];
+	int	torow = u->ranges[4 * rank + 3];
+	int	offset = u->ranges[4 * rank + 0];
+	// send all data from rectangle r to the process r
+	for (int row = fromrow; row < torow; row++) {
+		int	ierr;
+		MPI_Status	status;
+		if (debug) {
+			fprintf(stderr, "%s:%d[%d]: receive row %d from %d\n",
+				__FILE__, __LINE__, u->rank, row, rank);
+		}
+		ierr = MPI_Recv(image->data + row * image->width + offset,
+			width, MPI_DOUBLE, rank, tag, MPI_COMM_WORLD, &status);
+		if (ierr) {
+			fprintf(stderr, "%s:%d[%d]: receive error: %d\n",
+				__FILE__, __LINE__, u->rank, ierr);
+		}
+	}
+	if (debug) {
+		fprintf(stderr, "%s:%d[%d]: image from %d received\n",
+			__FILE__, __LINE__, u->rank, rank);
+	}
+}
+
+/**
+ * \brief Copy image data 
+ *
+ * This function is used by rank 0 to copy the u array, where computation
+ * is performed to the image data structure, which is used for output.
+ */
+static void	copytoimage(const udata_t *u, image_t *image) {
+	if (u->rank != 0) {
+		return;
+	}
+	int	width = u->ranges[1];
+	int	fromrow = u->ranges[2];
+	int	torow = u->ranges[3];
+	for (int row = fromrow; row < torow; row++) {
+		memcpy(image->data + row * image->width, u->u + row * width,
+			width * sizeof(double));
+	}
+}
+
+/**
+ * \brief Copy image data to image
+ *
+ * This function is used by rank 0 to copy image data to the u array
+ */
+static void	copyfromimage(udata_t *u, const image_t *image){
+	if (u->rank != 0) {
+		return;
+	}
+	int	width = u->ranges[1];
+	int	fromrow = u->ranges[2];
+	int	torow = u->ranges[3];
+	for (int row = fromrow; row < torow; row++) {
+		memcpy(u->u + row * width, image->data + row * image->width,
+			width * sizeof(double));
+	}
+}
+
+/**
+ * \brief Receive initial data from rank 0
+ *
+ * This function is used by ranks different from 0 to receive image data
+ * and stores it in the u->u data array.
+ */
+static void	receiverange(udata_t *u, int tag) {
+	if (debug) {
+		fprintf(stderr, "%s:%d[%d]: receiving range %d\n",
+			__FILE__, __LINE__, u->rank, u->rank);
+	}
+	MPI_Status	status;
+	for (int row = 0; row < u->height; row++) {
+		if (debug) {
+			fprintf(stderr, "%s:%d[%d]: receive row %d\n",
+				__FILE__, __LINE__, u->rank, row);
+		}
+		int	ierr;
+		ierr = MPI_Recv(u->u + row * u->width, u->width,
+			MPI_DOUBLE, 0, tag, MPI_COMM_WORLD, &status);
+		if (ierr) {
+			fprintf(stderr, "%s:%d[%d]: receive error: %d\n",
+				__FILE__, __LINE__, u->rank, ierr);
+		}
+	}
+	if (debug) {
+		fprintf(stderr, "%s:%d[%d]: range %d received\n",
+			__FILE__, __LINE__, u->rank, u->rank);
+	}
+}
+
+/**
+ * \brief Send data range to rank 0
+ *
+ * This method is used by the ranks different from 0 to send computed
+ * data back to rank 0, where it can be stored in the image array.
+ */
+static void	sendrange(const udata_t *u, int tag) {
+	if (debug) {
+		fprintf(stderr, "%s:%d[%d]: send range\n",
+			__FILE__, __LINE__, u->rank);
+	}
+	for (int row = 0; row < u->height; row++) {
+		if (debug) {
+			fprintf(stderr, "%s:%d[%d]: receive row %d\n",
+				__FILE__, __LINE__, u->rank, row);
+		}
+		int	ierr;
+		ierr = MPI_Send(u->u + row * u->width, u->width,
+			MPI_DOUBLE, 0, tag, MPI_COMM_WORLD);
+		if (ierr) {
+			fprintf(stderr, "%s:%d[%d]: receive error: %d\n",
+				__FILE__, __LINE__, u->rank, ierr);
+		}
+	}
+	if (debug) {
+		fprintf(stderr, "%s:%d[%d]: range %d sent\n",
+			__FILE__, __LINE__, u->rank, u->rank);
+	}
+}
+
+/**
+ * \brief Send the boundary data 
+ *
+ * This function is used to send the boundary data to other ranks.
+ */
+static void	send_boundary(double *data, int size, int partnerrank, int tag,
+	MPI_Request *request) {
+	if (debug) {
+		fprintf(stderr, "%s:%d: send %d values to %d\n",
+			__FILE__, __LINE__,  size, partnerrank);
+	}
+	int	ierr = MPI_Isend(data, size, MPI_DOUBLE, partnerrank, tag,
+		MPI_COMM_WORLD, request);
+	if (ierr) {
+		fprintf(stderr, "cannot send to %d: %d\n", ierr, partnerrank);
+		return;
+	}
+}
+
+/**
+ * \brief Send all the boundary data to other processes
+ *
+ * This function copies the data to the send buffer and call the send_boundary
+ * function for each boundary.
+ */
+static void	send_boundaries(udata_t *u, int tag) {
+	if (debug) {
+		fprintf(stderr, "%s:%d[%d]: sending boundaries\n",
+			__FILE__, __LINE__, u->rank);
+	}
+	// left
+	if (u->rh > 0) {
+		for (int i = 0; i < u->height; i++) {
+			u->send_left[i] = u->u[i * u->width];
+		}
+		// exchange with left neighbor
+		send_boundary(u->send_left, u->height, u->rank - 1, tag,
+			&u->left_request);
+	}
+
+	// right
+	if (u->rh < u->nx - 1) {
+		for (int i = 0; i < u->height; i++) {
+			u->send_right[i] = u->u[i * u->width + u->width - 1];
+		}
+		// exchange with right neighbor
+		send_boundary(u->send_right, u->height, u->rank + 1, tag,
+			&u->right_request);
+	}
+
+	// top
+	if (u->rv > 0) {
+		for (int j = 0; j < u->width; j++) {
+			u->send_top[j] = u->u[j];
+		}
+		// exchange with top neighbor
+		send_boundary(u->send_top, u->width, u->rank - u->nx, tag,
+			&u->top_request);
+	}
+
+	// bottom
+	if (u->rv < u->ny - 1) {
+		for (int j = 0; j < u->width; j++) {
+			u->send_bottom[j] = u->u[j + u->width * (u->height - 1)];
+		}
+		// exchange with bottom neighbor
+		send_boundary(u->send_bottom, u->width, u->rank + u->nx, tag,
+			&u->bottom_request);
+	}
+	if (debug) {
+		fprintf(stderr, "%s:%d[%d]: boundaries sent\n",
+			__FILE__, __LINE__, u->rank);
+	}
+}
+
+/**
+ * \brief Receive boundary data from other processes
+ *
+ * This function receives boundary data into the boundary arrays
+ */
+static void	recv_boundary(double *data, int size, int partnerrank,
+		int tag) {
+	if (debug) {
+		fprintf(stderr, "%s:%d: receive %d values from %d\n",
+			__FILE__, __LINE__, size, partnerrank);
+	}
+	int	ierr;
+	MPI_Status	status;
+	ierr = MPI_Recv(data, size, MPI_DOUBLE, partnerrank, tag,
+		MPI_COMM_WORLD, &status);
+	if (ierr) {
+		fprintf(stderr, "%s:%d: could not receive data: %d\n",
+			__FILE__, __LINE__, ierr);
+	}
+	if (debug) {
+		fprintf(stderr, "%s:%d: %d values from %d received\n",
+			__FILE__, __LINE__, size, partnerrank);
+	}
+}
+
+/**
+ * \brief Receive all the boundary data
+ */
+static void	recv_boundaries(udata_t *u, int tag) {
+	if (debug) {
+		fprintf(stderr, "%s:%d[%d]: start boundary exchange\n",
+			__FILE__, __LINE__, u->rank);
+	}
+	// left
+	if (u->rh > 0) {
+		// exchange with left neighbor
+		recv_boundary(u->left, u->height, u->rank - 1, tag);
+	}
+
+	// right
+	if (u->rh < u->nx - 1) {
+		// exchange with right neighbor
+		recv_boundary(u->right, u->height, u->rank + 1, tag);
+	}
+
+	// top
+	if (u->rv > 0) {
+		// exchange with top neighbor
+		recv_boundary(u->top, u->width, u->rank - u->nx, tag);
+	}
+
+	// bottom
+	if (u->rv < u->ny - 1) {
+		recv_boundary(u->bottom, u->width, u->rank + u->nx, tag);
+
+	}
+	if (debug) {
+		fprintf(stderr, "%s:%d[%d]: boundary exchange complete\n",
+			__FILE__, __LINE__, u->rank);
+	}
+}
+
+/**
+ * \brief Synchronize boundary data with all other processes
+ */
+static void	exchange_boundaries(udata_t *u, int tag) {
+	if (debug) {
+		fprintf(stderr, "%s:%d[%d]: start boundary exchange\n",
+			__FILE__, __LINE__, u->rank);
+	}
+	send_boundaries(u, tag);
+	recv_boundaries(u, tag);
+
+	if (debug) {
+		fprintf(stderr, "%s:%d[%d]: boundary exchange complete\n",
+			__FILE__, __LINE__, u->rank);
+	}
+}
+
+/**
+ * \brief Synchronize image data
+ *
+ * This function is called by all processes and ensures computed data is
+ * sent to rank 0 and integrated into the image.
+ */
+static void	synchronize_image(const udata_t *u, image_t *image, int tag) {
+	if (u->rank == 0) {
+		// copy data from all other ranks
+		int	num_procs = u->nx * u->ny;
+		for (int r = 1; r < num_procs; r++) {
+			receiveimagerange(u, image, r, tag);
+		}
+		// copy our own rank 0 data to the image
+		copytoimage(u, image);
+	} else {
+		sendrange(u, tag);
+	}
 }
 
 /**
  * \brief main function
  */
 int	main(int argc, char *argv[]) {
-	int	rank;
 	int	ierr;
 	int	num_procs;
-	MPI_Status	status;
 	int	tag = 1;
-	double	h = 0.001;
+	double	h = 1;
 	int	steps = 1;
 	double	maxtime = 1;
+	char	*basedir = NULL;
+
+	udata_t	udata;
+	udata.nx = 1;
+	udata.ny = 1;
 
 	// initialize MPI
 	ierr = MPI_Init(&argc, &argv);
+	if (ierr) {
+		fprintf(stderr, "cannot initialize MPI: %d\n", ierr);
+		return EXIT_FAILURE;
+	}
 
 	// get MPI dimension parameters
-	ierr = MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+	ierr = MPI_Comm_rank(MPI_COMM_WORLD, &udata.rank);
 	ierr = MPI_Comm_size(MPI_COMM_WORLD, &num_procs);
 	char	rankprefix[10];
-	snprintf(rankprefix, sizeof(rankprefix), "%d", rank);
+	snprintf(rankprefix, sizeof(rankprefix), "%d", udata.rank);
+
+	if (debug) {
+		fprintf(stderr, "%s:%d[%d]: process id %d\n",
+			__FILE__, __LINE__, udata.rank, getpid());
+	}
 
 	// parse the command line
 	int	c;
-	int	n = 10;
-	while (EOF != (c = getopt(argc, argv, "h:r:s:t:")))
+	while (EOF != (c = getopt(argc, argv, "dh:r:s:t:x:y:b:")))
 		switch (c) {
+		case 'd':
+			debug++;
+			break;
 		case 'h':
 			h = atof(optarg);
 			break;
@@ -163,9 +606,35 @@ int	main(int argc, char *argv[]) {
 		case 't':
 			maxtime = atof(optarg);
 			break;
+		case 'x':
+			udata.nx = atoi(optarg);
+			break;
+		case 'y':
+			udata.ny = atoi(optarg);
+			break;
+		case 'b':
+			basedir = optarg;
+			break;
 		}
 
-	double	ht = h * h / 8;
+	udata.ht = h * h / 8;
+	udata.h2 = 2 * h * h;
+
+	// make sure the arguments are consistent
+	if (num_procs != udata.nx * udata.ny) {
+		fprintf(stderr, "number of processes does not match "
+			"dimensions: %d != %d x %d\n", num_procs, udata.nx,
+			udata.ny);
+		return EXIT_FAILURE;
+	}
+
+	// compute horizontal and vertical index
+	udata.rh = udata.rank % udata.nx;
+	udata.rv = udata.rank / udata.nx;
+	if (debug) {
+		fprintf(stderr, "%s:%d[%d]: rh = %d, rv = %d\n",
+			__FILE__, __LINE__, udata.rank, udata.rh, udata.rv);
+	}
 
 	// next argument is image file name
 	if (argc <= optind) {
@@ -176,8 +645,12 @@ int	main(int argc, char *argv[]) {
 
 	// next argument is output file name
 	char	*netcdffilename = NULL;
-	if (argc <= optind) {
+	if (argc > optind) {
 		netcdffilename = argv[optind++];
+		if (debug) {
+			fprintf(stderr, "%s:%d: netcdffilename: %s\n",
+				__FILE__, __LINE__, netcdffilename);
+		}
 	}
 
 	// image file and output file
@@ -186,245 +659,165 @@ int	main(int argc, char *argv[]) {
 	int	dimensions[2];
 	
 	// process zero initializes and writes data
-	if (rank == 0) {
-		// create the output file
-		if (netcdffilename) {
-			hf = output_create(netcdffilename, h, steps * ht, n);
-			if (NULL == hf) {
-				fprintf(stderr, "cannot create output file\n");
-				return EXIT_FAILURE;
-			}
-		}
-
+	if (udata.rank == 0) {
 		// read the image file
 		image = readimage(imagefilename);
 		if (NULL == image) {
 			fprintf(stderr, "cannot read image\n");
 			return EXIT_FAILURE;
 		}
-		fprintf(stderr, "%d x %d image read\n", image->width,
-			image->height);
+		if (debug) {
+			fprintf(stderr, "%s:%d[%d]: %d x %d image read\n",
+				__FILE__, __LINE__, udata.rank,
+				image->width, image->height);
+		}
+
+		// create the output file
+		if (netcdffilename) {
+			if (debug) {
+				fprintf(stderr, "%s:%d: creating NetCDF %s\n",
+					__FILE__, __LINE__, netcdffilename);
+			}
+			hf = output2_create(netcdffilename, h,
+				steps * udata.ht, image->width, image->height);
+			if (NULL == hf) {
+				fprintf(stderr, "cannot create output file\n");
+				return EXIT_FAILURE;
+			}
+		}
 
 		// send the image dimensions to all the other processes
 		dimensions[0] = image->width;
 		dimensions[1] = image->height;
 	}
 
+	// write the first image
+	if ((basedir) && (udata.rank == 0)) {
+		char	outfilename[1024];
+		snprintf(outfilename, sizeof(outfilename), "%s/00000.fits",
+			basedir);
+		writeimage(image, outfilename);
+	}
+
 	// synchronize image dimensions
 	MPI_Bcast(dimensions, 2, MPI_INT, 0, MPI_COMM_WORLD);
-	fprintf(stderr, "[%d]: %d x %d\n", rank, dimensions[0], dimensions[1]);
+	if (debug) {
+		fprintf(stderr, "%s:%d[%d]: %d x %d\n",
+			__FILE__, __LINE__, udata.rank,
+			dimensions[0], dimensions[1]);
+	}
 
 	// index ranges for each rank
-	int	*ranges = (int *)malloc(4 * num_procs * sizeof(int));
-	if (rank == 0) {
-		n = sqrt(num_procs);
-		double	w = image->width / (double)n;
-		double	h = image->height / (double)n;
-		for (int r = 0; r < num_procs; r++) {	
-			ranges[4 * r + 0] = r * w;
-			ranges[4 * r + 1] = image->width;
-			ranges[4 * r + 2] = r * h;
-			ranges[4 * r + 3] = image->height;
-			if (r) {
-				ranges[4 * r - 3] = ranges[4 * r + 0];
-				ranges[4 * r - 1] = ranges[4 * r + 2];
-			}
-		}
+	udata.ranges = (int *)malloc(4 * num_procs * sizeof(int));
+	if (udata.rank == 0) {
+		partitiondomain(&udata, image);
 	}
-	MPI_Bcast(ranges, 4 * num_procs, MPI_INT, 0, MPI_COMM_WORLD);
-	fprintf(stderr, "[%d]: [%d,%d) x [%d,%d)\n", rank,
-		ranges[4 * rank + 0], ranges[4 * rank + 1],
-		ranges[4 * rank + 2], ranges[4 * rank + 3]);
+	MPI_Bcast(udata.ranges, 4 * num_procs, MPI_INT, 0, MPI_COMM_WORLD);
+	int	*range = &udata.ranges[4 * udata.rank];
+	if (debug) {
+		fprintf(stderr, "%s:%d:[%d]: [%d,%d) x [%d,%d)\n",
+			__FILE__, __LINE__, udata.rank,
+			range[0], range[1], range[2], range[3]);
+	}
 
 	// allocate memory for the area we are responsible for
-	udata_t	udata;
-	udata.rh = rank % n;
-	udata.rv = rank / n;
-	udata.width = ranges[4 * rank + 1] - ranges[4 * rank + 0];
-	udata.height = ranges[4 * rank + 3] - ranges[4 * rank + 2];
-	udata.length = udata.width * udata.height;
-	udata.u = (double *)malloc(udata.length * sizeof(double));
-	udata.b = (double *)malloc(udata.length * sizeof(double));
+	udata.width = range[1] - range[0];
+	udata.height = range[3] - range[2];
+	allocate_u(&udata);
 	double	*unew = (double *)malloc(udata.length * sizeof(double));
-	fprintf(stderr, "[%d]: %d bytes allocated\n", rank, udata.length);
+	if (debug) {
+		fprintf(stderr, "%s:%d[%d]: arrays allocated, %d x %d\n",
+			__FILE__, __LINE__,
+			udata.rank, udata.width, udata.height);
+	}
 
-	// allocate memory for the borders from other areas
-	udata.left = (double *)malloc(udata.height * sizeof(double));
-	memset(udata.left, 0, udata.height * sizeof(double));
-	udata.right = (double *)malloc(udata.height * sizeof(double));
-	memset(udata.right, 0, udata.height * sizeof(double));
-	udata.top = (double *)malloc(udata.width * sizeof(double));
-	memset(udata.top, 0, udata.width * sizeof(double));
-	udata.bottom = (double *)malloc(udata.width * sizeof(double));
-	memset(udata.bottom, 0, udata.width * sizeof(double));
+	// write initial data to the output file
+	if ((hf) && (udata.rank == 0)) {
+		output2_add(hf, 0, image->data);
+	}
 
+	// measure start time (after all allocations are done)
 	double	start = gettime();
 
 	// process 0 has to send the data to all the other processes
-	if (rank == 0) {
-		for (int r = 1; r < n; r++) {
-			// allocate a temporary buffer to 
-			int	w = ranges[4 * r + 1] - ranges[4 * r + 0];
-			int	h = ranges[4 * r + 3] - ranges[4 * r + 2];
-			// send all data from rectangle r to the process r
-			for (int v = ranges[4*r+2]; v < ranges[4*r+3]; v++) {
-				MPI_Send(image->data + v * image->width + ranges[4*r+0],
-					w, MPI_DOUBLE, r, tag, MPI_COMM_WORLD);
-			}
+	if (udata.rank == 0) {
+		for (int r = 1; r < num_procs; r++) {
+			sendimagerange(&udata, image, r, tag);
 		}
+		copyfromimage(&udata, image);
 	} else {
 		// receive my part of the matrix
-		for (int v = 0; v < udata.height; v++) {
-			ierr = MPI_Recv(udata.u + v * udata.width, udata.width,
-				MPI_DOUBLE, 0, tag, MPI_COMM_WORLD, &status);
-		}
+		receiverange(&udata, tag);
 	}
 	tag++;
 
 	// start the solver algorithm
 	double	t = 0;
-	double	h2 = 2 * h * h;
 	int	tcounter = 0;
 	while (t < maxtime) {
 		// advance counters
-		t += ht;
+		t += udata.ht;
 		tcounter++;
+
+		// compute b vector
+		compute_b(&udata);
 
 		// copy everything to unew as the initial approximation
 		for (int i = 0; i < udata.length; i++) {
 			unew[i] = udata.u[i];
 		}
 
-		// compute b vector
-		for (int i = 1; i <= udata.height; i++) {
-			for (int j = 1; j < udata.width; j++) {
-				// compute b
-				double	b;
-				b = (4 * U(&udata, i, j)
-					- U(&udata, i - 1, j)
-					- U(&udata, i + 1, j)
-					- U(&udata, i, j - 1)
-					- U(&udata, i, j + 1)) / h2
-					- U(&udata, i, j) / ht;
-				udata.b[j - 1 + (i - 1) * udata.width] = b;
-			}
-		}
-
-		// now perform 30 iterations
+		// now perform 30 Jordan iterations
 		for (int k = 0; k < 30; k++) {
-			// distribute current values of boundary to neighbors
+			// synchronize current values of boundary with neighbors
 			tag++;
-
-			// left
-			if (udata.rh > 0) {
-				for (int i = 0; i < udata.height; i++) {
-					udata.left[i] = udata.u[i * udata.width];
-				}
-				// sent to left neighbor
-				MPI_Send(udata.left, udata.height,
-					MPI_DOUBLE, rank - 1, tag,
-					MPI_COMM_WORLD);
-
-				// read data from left neighbor
-				MPI_Recv(udata.left, udata.height,
-					MPI_DOUBLE, rank - 1, tag,
-					MPI_COMM_WORLD, &status);
-			}
-
-			// right
-			if (udata.rh < n - 1) {
-				for (int i = 0; i < udata.height; i++) {
-					udata.right[i] = udata.u[i * udata.width
-						+ udata.width - 1];
-				}
-				// send to right neighbor
-				MPI_Send(udata.right, udata.height,
-					MPI_DOUBLE, rank + 1, tag,
-					MPI_COMM_WORLD);
-
-				// receive data from right neighbor
-				MPI_Recv(udata.right, udata.height,
-					MPI_DOUBLE, rank + 1, tag,
-					MPI_COMM_WORLD, &status);
-			}
-
-			// top
-			if (udata.rv > 0) {
-				for (int j = 0; j < udata.width; j++) {
-					udata.top[j] = udata.u[j];
-				}
-				// sent to top neighbor
-				MPI_Send(udata.top, udata.width,
-					MPI_DOUBLE, rank - n, tag,
-					MPI_COMM_WORLD);
-
-				// receive data from right neighbor
-				MPI_Recv(udata.top, udata.width,
-					MPI_DOUBLE, rank - n, tag,
-					MPI_COMM_WORLD, &status);
-			}
-
-			// bottom
-			if (udata.rv < n - 1) {
-				for (int j = 0; j < udata.width; j++) {
-					udata.bottom[j] = udata.u[j
-						+ udata.width * (udata.height - 1)];
-				}
-				// send to bottom neighbor
-				MPI_Send(udata.bottom, udata.width,
-					MPI_DOUBLE, rank + n, tag,
-					MPI_COMM_WORLD);
-
-				// receive data from right neighbor
-				MPI_Recv(udata.bottom, udata.width,
-					MPI_DOUBLE, rank + n, tag,
-					MPI_COMM_WORLD, &status);
-			}
+			exchange_boundaries(&udata, tag);
 
 			// perform iteration step
-			for (int i = 1; i <= udata.height; i++) {
-				for (int j = 1; j <= udata.width; j++) {
-					double	v;
-					v = ht * (B(&udata, i, j)
-						- (4 * U(&udata, i, j)
-						- U(&udata, i - 1, j)
-						- U(&udata, i + 1, j)
-						- U(&udata, i, j - 1)
-						- U(&udata, i, j + 1)) / h2);
-					unew[j - 1 + (i - 1) * udata.width] = v;
-				}
-			}
-		}
+			iterate_u(unew, &udata);
 
-		// copy the new u to the old u
-		for (int i = 0; i < udata.length; i++) {
-			udata.u[i] = unew[i];
+			// copy the new u to the old u
+			for (int i = 0; i < udata.length; i++) {
+				udata.u[i] = unew[i];
+			}
 		}
 
 		// decide whether we have to output something
-		if (0 == (tcounter % steps)) {
-			// output needed
-		}
-	}
+		if (0 == tcounter % steps) {
+			// time value for this data output
+			int	tvalue = tcounter / steps;
 
-	// the computation is now complete, so rank zero has to collect all
-	// the pieces
-	if (rank == 0) {
-		// receive remaining data from other processes
-		//	MPI_Recv(buffer, h * n, MPI_FLOAT, r, tag,
-		//		MPI_COMM_WORLD, &status);
-	} else {
-		// send the data to process 0
-		//ierr = MPI_Send(buffer, height * n, MPI_FLOAT, 0, tag,
-		//	MPI_COMM_WORLD);
+			// output needed, so we synchronize image data
+			tag++;
+			synchronize_image(&udata, image, tag);
+
+			// write an image
+			if ((basedir) && (udata.rank == 0)) {
+				char	outfilename[1024];
+				snprintf(outfilename, sizeof(outfilename),
+					"%s/%05d.fits", basedir, tvalue);
+				writeimage(image, outfilename);
+			}
+
+			// write solution data
+			if ((hf) && (udata.rank == 0)) {
+				output2_add(hf, tvalue, image->data);
+			}
+		}
 	}
 
 	// measure end time
 	double	end = gettime();
 
 	// we are now done, process 0 displays the result
-	if (rank == 0) {
-		printf("%d,%.6f,%d\n", n, end - start, num_procs);
+	if (udata.rank == 0) {
+		printf("%d,%.6f,%d\n", image->width * image->height,
+			end - start, num_procs);
+	}
+
+	// close the netcdf file
+	if ((udata.rank == 0) && (hf)) {
+		output_close(hf);
 	}
 
 	// cleanup MPI

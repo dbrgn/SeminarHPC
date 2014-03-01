@@ -9,6 +9,8 @@
 #include <getopt.h>
 #include <common.h>
 
+int	debug = 0;
+
 int	main(int argc, char *argv[]) {
 	double	ht = 1;
 	int	n = 10;

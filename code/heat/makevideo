@@ -1,0 +1,17 @@
+#! /bin/sh
+#
+# create video from the fits files found in the images directory
+#
+# (c) 2014 Prof Dr Anreas Mueller, Hochschule Rapperswil
+#
+if false 
+then
+	for f in images/*.fits
+	do
+		jpgname=images/`basename $f .fits`.jpg
+		convert $f -resize 50% ${jpgname}
+	done
+fi
+
+jpeg2yuv -v 1 -I p -f 25 -j images/%05d.jpg | \
+	mpeg2enc --no-constraints -q 1 -b 12000 -l m -f 8 -o heat.mpg
