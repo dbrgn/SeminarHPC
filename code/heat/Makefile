@@ -27,7 +27,7 @@ heat_mpi:	$(FILES2)
 testmpi:	heat_mpi
 	rm -f out.nc
 	rm -f images/*.fits
-	mpirun -n 4 ./heat_mpi -b images -t 4 -s 2 -h 0.1 -x 2 -y 2 \
+	time mpirun -n 4 ./heat_mpi -b images -t 4 -s 2 -h 0.1 -x 2 -y 2 \
 		testimage.fits 2>&1 | tee test.log
 
 # measurements
