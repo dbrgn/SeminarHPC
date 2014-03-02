@@ -3,7 +3,14 @@
 #
 # (c) 2013 Prof Dr Andreas Mueller, Hochschule Rapperswil
 #
-all:	skript.pdf
+all:	subdirs skript.pdf
+
+subdirs:
+	for d in heat; \
+	do \
+		cd $${d}; make; cd ..; \
+	done
+
 
 SAMPLEFILES = sample/sample.tex sample/sample.bib
 HEATFILES = heat/heat.tex
