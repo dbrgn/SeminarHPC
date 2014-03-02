@@ -9,7 +9,7 @@ verbatimtex
 etex;
 beginfig(1)
 
-fill (-30,-30)--(180,-30)--(180, 95)--(-30, 95)--cycle withcolor(0.9,0.9,1.0);
+fill (-30,-30)--(190,-30)--(190, 95)--(-30, 95)--cycle withcolor(0.9,0.9,1.0);
 fill ( 25,105)--(135,105)--(135,135)--( 25,135)--cycle withcolor(1.0,0.9,0.9);
 
 pickup pencircle scaled 0.5pt;
@@ -72,37 +72,37 @@ draw (120,160) withcolor(1.0,1.0,1.0);
 draw (160,160) withcolor(1.0,1.0,1.0);
 
 pickup pencircle scaled 1pt;
-draw (-28,  0);
-draw (-24,  0);
-draw (-20,  0);
-draw (-28, 40);
-draw (-24, 40);
-draw (-20, 40);
-draw (-28, 80);
-draw (-24, 80);
-draw (-20, 80);
-draw (-28,120);
-draw (-24,120);
-draw (-20,120);
-draw (-28,160);
-draw (-24,160);
-draw (-20,160);
+draw (-28,  0); draw (180,  0);
+draw (-24,  0); draw (184,  0);
+draw (-20,  0); draw (188,  0);
+draw (-28, 40); draw (180, 40);
+draw (-24, 40); draw (184, 40);
+draw (-20, 40); draw (188, 40);
+draw (-28, 80); draw (180, 80);
+draw (-24, 80); draw (184, 80);
+draw (-20, 80); draw (188, 80);
+draw (-28,120); draw (180,120);
+draw (-24,120); draw (184,120);
+draw (-20,120); draw (188,120);
+draw (-28,160); draw (180,160);
+draw (-24,160); draw (184,160);
+draw (-20,160); draw (188,160);
 
-draw (  0, -20);
-draw (  0, -24);
-draw (  0, -28);
-draw ( 40, -20);
-draw ( 40, -24);
-draw ( 40, -28);
-draw ( 80, -20);
-draw ( 80, -24);
-draw ( 80, -28);
-draw (120, -20);
-draw (120, -24);
-draw (120, -28);
-draw (160, -20);
-draw (160, -24);
-draw (160, -28);
+draw (  0, -20); draw (  0,180);
+draw (  0, -24); draw (  0,184);
+draw (  0, -28); draw (  0,188);
+draw ( 40, -20); draw ( 40,180);
+draw ( 40, -24); draw ( 40,184);
+draw ( 40, -28); draw ( 40,188);
+draw ( 80, -20); draw ( 80,180);
+draw ( 80, -24); draw ( 80,184);
+draw ( 80, -28); draw ( 80,188);
+draw (120, -20); draw (120,180);
+draw (120, -24); draw (120,184);
+draw (120, -28); draw (120,188);
+draw (160, -20); draw (160,180);
+draw (160, -24); draw (160,184);
+draw (160, -28); draw (160,188);
 
 label.urt(btex $u_{ij}$ etex,    ( 80, 80));
 label.urt(btex $u_{i,j+1}$ etex, (120, 80));
@@ -132,10 +132,10 @@ label.rt(btex $(i+\frac12,j)$ etex, (80,100));
 
 pickup pencircle scaled 1pt;
 
-drawarrow (-35,-35)--(180,-35);
+drawarrow (-35,-35)--(190,-35);
 drawarrow (-35,-35)--(-35,180);
 
-label.urt(btex $x$ etex, (180,-35));
+label.urt(btex $x$ etex, (190,-35));
 label.urt(btex $t$ etex, (-35,180));
 
 endfig;
@@ -198,37 +198,45 @@ draw (120,160) withcolor(1.0,1.0,1.0);
 draw (160,160) withcolor(1.0,1.0,1.0);
 
 pickup pencircle scaled 1pt;
-draw (-28,  0);
-draw (-24,  0);
-draw (-20,  0);
-draw (-28, 40);
-draw (-24, 40);
-draw (-20, 40);
-draw (-28, 80);
-draw (-24, 80);
-draw (-20, 80);
-draw (-28,120);
-draw (-24,120);
-draw (-20,120);
-draw (-28,160);
-draw (-24,160);
-draw (-20,160);
+draw (-28,   0); draw (180,   0);
+draw (-24,   0); draw (184,   0);
+draw (-20,   0); draw (188,   0);
 
-draw (  0, -20);
-draw (  0, -24);
-draw (  0, -28);
-draw ( 40, -20);
-draw ( 40, -24);
-draw ( 40, -28);
-draw ( 80, -20);
-draw ( 80, -24);
-draw ( 80, -28);
-draw (120, -20);
-draw (120, -24);
-draw (120, -28);
-draw (160, -20);
-draw (160, -24);
-draw (160, -28);
+draw (-28,  40); draw (180,  40);
+draw (-24,  40); draw (184,  40);
+draw (-20,  40); draw (188,  40);
+
+draw (-28,  80); draw (180,  80);
+draw (-24,  80); draw (184,  80);
+draw (-20,  80); draw (188,  80);
+
+draw (-28, 120); draw (180, 120);
+draw (-24, 120); draw (184, 120);
+draw (-20, 120); draw (188, 120);
+
+draw (-28, 160); draw (180, 160);
+draw (-24, 160); draw (184, 160);
+draw (-20, 160); draw (188, 160);
+
+draw (  0, -20); draw (  0, 180);
+draw (  0, -24); draw (  0, 184);
+draw (  0, -28); draw (  0, 188);
+
+draw ( 40, -20); draw ( 40, 180);
+draw ( 40, -24); draw ( 40, 184);
+draw ( 40, -28); draw ( 40, 188);
+
+draw ( 80, -20); draw ( 80, 180);
+draw ( 80, -24); draw ( 80, 184);
+draw ( 80, -28); draw ( 80, 188);
+
+draw (120, -20); draw (120, 180);
+draw (120, -24); draw (120, 184);
+draw (120, -28); draw (120, 188);
+
+draw (160, -20); draw (160, 180);
+draw (160, -24); draw (160, 184);
+draw (160, -28); draw (160, 188);
 
 label.urt(btex $u_{ijk}$ etex,    ( 80, 80));
 label.urt(btex $u_{ij+1,k}$ etex, (120, 80));

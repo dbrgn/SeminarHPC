@@ -110,7 +110,7 @@ Die erste Ableitung in $x$-Richtung kann angen"ahert werden durch
 \frac{\partial u}{\partial y}(ih,jh)&\simeq \frac{u_{i,j+1}-u_{ij}}h.
 \end{align*}
 Daraus kann dann auch eine Approximation von der zweiten Ableitung
-gefunden werden:
+gefunden werden (siehe auch Abbildung~\ref{algorithm:laplacian}):
 \begin{align*}
 \frac{\partial^2 u}{\partial x^2}(ih,jh)&=\frac1h\biggl(
 \frac{u_{i+1,j}-u_{ij}}h-\frac{u_{ij}-u_{i-j,j}}h
@@ -119,6 +119,13 @@ gefunden werden:
 \frac{\partial^2 u}{\partial y^2}(ih,jh)&=
 =\frac1{h^2}(u_{i,j-1}-2u_{ij}+u_{i,j+1}).
 \end{align*}
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.7\hsize]{graphics/laplacian-1.pdf}
+\end{center}
+\caption{Diskretisation des Laplace-Operators an der Stelle $(x,y)=(ih, jh)$.
+\label{algorithm:laplacian}}
+\end{figure}
 Die Differentialgleichung wir damit zu einer approximativen linearen
 Gleichung 
 \begin{equation}
