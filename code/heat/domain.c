@@ -62,8 +62,6 @@ void	free_u(udata_t *u) {
 	free(u->send_right);	u->send_right = NULL;
 	free(u->send_top);	u->send_top = NULL;
 	free(u->send_bottom);	u->send_bottom = NULL;
-
-	free(u);
 }
 
 /**

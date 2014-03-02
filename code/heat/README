@@ -1,2 +1,47 @@
 Solution of the heat equation
 
+This directory contains two solutions of the heat equation:
+
+heat.c
+	implements a solution to the one-dimensional heat equation.  In this
+	case, the linear system of equations has tridiagonal form, and can
+	easily be solved using the Gauss algorithm. However, we want to prepare
+	the ground for the two-dimensional problem, which cannot be solved that
+	easily. So we use the same iterative algorithm that we will usein the
+	twodimensional case. The amount of data in this case is so small, that
+	it fits easily in the cache, so that parallelization with OpenMP does
+	not give much improved performance.
+
+heat_mpi.c
+	implements a solution to the two-dimensional heat equation.  In this
+	case, the number of variables for the linear systems is much larger,
+	and the potential for parallelization much improved. This implementation
+	shows how the domain can be partionned several rectangles, where data
+	exchange is only necessary along the borders of the rectangles.
+
+	image.h image.c
+		Read and write image data, internal data structure for images.
+
+	domain.h domain.c
+		Domain patches, i.e. the values of the function u, the b
+		vector, and the boundary values.
+
+	boundary.h boundary.c
+		Data exchange along the boundaries of domain patches between
+		processes.
+
+	iteration.h iteration.c
+		Functions related to computation, i.e. values of u, values
+		of the laplacian, computation of the right hand side of the
+		linear systems of equation, iteration step.
+
+	partition.h partition.c
+		Computation of domain rectangles, transfer data from image
+		to domain patches in other processes and back.
+
+Common files:
+	output.h output.c
+		Functions to open/close and define the netcdf file, and to
+		write data to it.
+
+For invocation syntax, check the Makefile

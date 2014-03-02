@@ -1,5 +1,6 @@
 #
-# Makefile to build the MPI version of the heat equation solution
+# Makefile to build the onedimensional and the MPI version of
+# the heat equation solution
 #
 # (c) 2014 Prof Dr Andreas Mueller, Hochschule Rapperswil
 #
@@ -19,7 +20,8 @@ test:	heat
 	./heat -n 999 -s 1 -t 0.1 out.nc
 
 # OpenMPI implementation of 2 dimensional heat equation solver
-FILES2 = output.c image.c domain.c iteration.c partition.c boundary.c heat_mpi.c
+FILES2 = output.c image.c domain.c iteration.c partition.c boundary.c \
+	heat_mpi.c
 
 heat_mpi:	$(FILES2)
 	mpicc $(CFLAGS) -o heat_mpi $(FILES2) $(LDFLAGS) -lcfitsio

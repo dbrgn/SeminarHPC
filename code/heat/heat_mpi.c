@@ -19,6 +19,27 @@
 int	debug = 0;
 
 /**
+ * \brief usage function
+ *
+ * Tell user about options and command line arguments
+ */
+static void	usage(const char *progname) {
+	fprintf(stderr, "usage: mpirun -n <n> %s [ -d? ] [ -b basedir ] [ -h h ] [ -s steps ] [ -t maxtime ] [ -x nx ] [ -y ny ] imagefile [ netcdffile ]\n", progname);
+	fprintf(stderr, "Solve heat equation for initial condition from <imagefile>\n");
+	fprintf(stderr, "and write results to <netcdffile>.\n");
+	fprintf(stderr, "options:\n");
+	fprintf(stderr, " -b basedir    write images to <basedir> (default: don't write images)\n");
+	fprintf(stderr, " -d            increase debug level\n");
+	fprintf(stderr, " -h h          h_x value to use (default 1)\n");
+	fprintf(stderr, " -s steps      write data/image every <steps> steps (default 1)\n");
+	fprintf(stderr, " -t maxtime    maximum time\n");
+	fprintf(stderr, " -x nx         number of patches in x direction (default 1)\n");
+	fprintf(stderr, " -y ny         number of patches in y direction (default 1)\n");
+	fprintf(stderr, "This is a MPI-programm, it cannot be run standalone. Run it using mpirun,\n");
+	fprintf(stderr, "as shown above. You must start <n> = <nx> x <ny> processes.\n");
+}
+
+/**
  * \brief main function
  */
 int	main(int argc, char *argv[]) {
@@ -54,7 +75,7 @@ int	main(int argc, char *argv[]) {
 
 	// parse the command line
 	int	c;
-	while (EOF != (c = getopt(argc, argv, "dh:r:s:t:x:y:b:")))
+	while (EOF != (c = getopt(argc, argv, "b:dh:r:s:t:x:y:?")))
 		switch (c) {
 		case 'd':
 			debug++;
@@ -77,8 +98,12 @@ int	main(int argc, char *argv[]) {
 		case 'b':
 			basedir = optarg;
 			break;
+		case '?':
+			usage(argv[0]);
+			return EXIT_SUCCESS;
 		}
 
+	// compute step sizes from h
 	udata.ht = h * h / 8;
 	udata.h2 = 2 * h * h;
 
@@ -87,10 +112,11 @@ int	main(int argc, char *argv[]) {
 		fprintf(stderr, "number of processes does not match "
 			"dimensions: %d != %d x %d\n", num_procs, udata.nx,
 			udata.ny);
+		usage(argv[0]);
 		return EXIT_FAILURE;
 	}
 
-	// compute horizontal and vertical index
+	// compute horizontal and vertical index of this rank
 	udata.rh = udata.rank % udata.nx;
 	udata.rv = udata.rank / udata.nx;
 	if (debug) {
@@ -101,6 +127,7 @@ int	main(int argc, char *argv[]) {
 	// next argument is image file name
 	if (argc <= optind) {
 		fprintf(stderr, "image file name argument missing\n");
+		usage(argv[0]);
 		return EXIT_FAILURE;
 	}
 	char	*imagefilename = argv[optind++];
@@ -118,7 +145,6 @@ int	main(int argc, char *argv[]) {
 	// image file and output file
 	heatfile_t      *hf = NULL;
 	image_t	*image = NULL;
-	int	dimensions[2];
 	
 	// process zero initializes and writes data
 	if (udata.rank == 0) {
@@ -147,10 +173,6 @@ int	main(int argc, char *argv[]) {
 				return EXIT_FAILURE;
 			}
 		}
-
-		// send the image dimensions to all the other processes
-		dimensions[0] = image->width;
-		dimensions[1] = image->height;
 	}
 
 	// write the first image
@@ -161,19 +183,15 @@ int	main(int argc, char *argv[]) {
 		writeimage(image, outfilename);
 	}
 
-	// synchronize image dimensions
-	MPI_Bcast(dimensions, 2, MPI_INT, 0, MPI_COMM_WORLD);
-	if (debug) {
-		fprintf(stderr, "%s:%d[%d]: %d x %d\n",
-			__FILE__, __LINE__, udata.rank,
-			dimensions[0], dimensions[1]);
-	}
-
 	// index ranges for each rank
 	udata.ranges = (int *)malloc(4 * num_procs * sizeof(int));
 	if (udata.rank == 0) {
 		partitiondomain(&udata, image);
 	}
+
+	// exchange range size information with all other ranks. The ranks
+	// then pick the dimensions they need from the array, this is
+	// the purpose of the range pointer
 	MPI_Bcast(udata.ranges, 4 * num_procs, MPI_INT, 0, MPI_COMM_WORLD);
 	int	*range = &udata.ranges[4 * udata.rank];
 	if (debug) {
@@ -214,8 +232,8 @@ int	main(int argc, char *argv[]) {
 	tag++;
 
 	// start the solver algorithm
-	double	t = 0;
-	int	tcounter = 0;
+	double	t = 0;		// simulation time
+	int	tcounter = 0;	// counter for time steps
 	while (t < maxtime) {
 		// advance counters
 		t += udata.ht;
@@ -271,7 +289,7 @@ int	main(int argc, char *argv[]) {
 	// measure end time
 	double	end = gettime();
 
-	// we are now done, process 0 displays the result
+	// we are now done, rank 0 displays the result
 	if (udata.rank == 0) {
 		printf("%d,%.6f,%d\n", image->width * image->height,
 			end - start, num_procs);
@@ -284,6 +302,10 @@ int	main(int argc, char *argv[]) {
 
 	// cleanup MPI
 	MPI_Finalize();
+
+	// cleanup the memory we have allocated (silence Raphael Nestler ;-)
+	free(udata.ranges); udata.ranges = NULL;
+	free_u(&udata);
 
 	return EXIT_SUCCESS;
 }
