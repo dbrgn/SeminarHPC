@@ -33,5 +33,10 @@ testmpi:	heat_mpi
 		testimage.fits 2>&1 | tee test.log
 
 # measurements
+results:	results-heat.pdf results-heat-mpi.pdf results-heat-threads.pdf
+
 results-heat.pdf:	results.csv results.R
 	R --vanilla --quiet < results.R
+
+results-heat-mpi.pdf results-heat-threads.pdf:	results-mpi.csv results-mpi.R
+	R --vanilla --quiet < results-mpi.R
