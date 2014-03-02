@@ -14,112 +14,10 @@
 #include <common.h>
 #include "output.h"
 #include "image.h"
+#include "domain.h"
+#include "iteration.h"
 
 int	debug = 0;
-
-typedef struct {
-	double	*u;	// u values
-	double	*b;	// b values
-	double	*left;	// left border (left neighbor)
-	double	*right;	// right border (right neighbor)
-	double	*top;	// top border (top neighbor)
-	double	*bottom;// bottom border (bottom neighbor)
-	double	*send_left;
-	double	*send_right;
-	double	*send_top;
-	double	*send_bottom;
-	MPI_Request	left_request;
-	MPI_Request	right_request;
-	MPI_Request	top_request;
-	MPI_Request	bottom_request;
-	int	width;	// width of this part of u
-	int	height;	// height of this part of u
-	int	length;	// number of values in this patch
-	int	rh;	// range index in x direction
-	int	rv;	// range index in y direction
-	int	*ranges;
-	int	nx;	// number of ranges in x direction
-	int	ny;	// number of ranges in y direction
-	int	rank;	// rank of this processes
-	double	ht;	// time step
-	double	h2;	// 2h^2_x, used in laplacian computation
-} udata_t;
-
-/**
- * \brief initialize a double vector of a given size
- */
-static double	*doublevector(int size) {
-	double	*result = (double *)malloc(size * sizeof(double));
-	for (int i = 0; i < size; i++) {
-		result[i] = 0;
-	}
-	return result;
-}
-
-/**
- * \brief allocate all data arrays needed for the computation
- */
-static void	allocate_u(udata_t *u) {
-	u->length = u->width * u->height;
-	u->u = doublevector(u->length);
-	u->b = doublevector(u->length);
-	if (debug) {
-		fprintf(stderr, "[%d]: %ld bytes allocated\n", u->rank,
-			u->length * sizeof(double));
-	}
-
-	// allocate memory for the borders from other areas
-	u->left = doublevector(u->height);
-	u->right = doublevector(u->height);
-	u->top = doublevector(u->width);
-	u->bottom = doublevector(u->width);
-
-	u->send_left = doublevector(u->height);
-	u->send_right = doublevector(u->height);
-	u->send_top = doublevector(u->width);
-	u->send_bottom = doublevector(u->width);
-}
-
-/**
- * \brief Access to the u data
- *
- * This method gives access to the data in the u array, including the special
- * cases when (i,j) is a boundary point.
- */
-static double	U(const udata_t *u, int i, int j) {
-	if (i == 0) {
-		if (j == 0) {
-			return 0;
-		}
-		if (j == u->width + 1) {
-			return 0;
-		}
-		return u->top[j - 1];
-	}
-	if (i == u->height + 1) {
-		if (j == 0) {
-			return 0;
-		}
-		if (j == u->width + 1) {
-			return 0;
-		}
-		return u->bottom[j - 1];
-	}
-	if (j == 0) {
-		return u->left[i - 1];
-	}
-	if (j == u->width + 1) {
-		return u->right[i - 1];
-	}
-	return u->u[(j - 1) + (i - 1) * u->width];
-}
-
-/**
- * \brief Access to the b vector
- */
-static double	B(const udata_t *u, int i, int j) {
-	return u->b[j - 1 + (i - 1) * u->width];
-}
 
 /**
  * \brief Partition the domain
@@ -148,63 +46,6 @@ static void	partitiondomain(udata_t *u, const image_t *image) {
 				u->ranges[4 * r + 2],
 				u->ranges[4 * r + 3]);
 		}
-	}
-}
-
-/**
- * \brief Compute the laplacian
- *
- * This uses the U function to compute the laplacian operator at point (i,j)
- */
-static double	laplacian(const udata_t *u, int i, int j) {
-	double	l = (-4 * U(u, i, j)
-			+ U(u, i - 1, j)
-			+ U(u, i + 1, j)
-			+ U(u, i,     j - 1)
-			+ U(u, i,     j + 1)) / u->h2;
-	return l;
-}
-
-/**
- * \brief Compute the b vector
- */
-static void	compute_b(udata_t *u) {
-	if (debug) {
-		fprintf(stderr, "%s:%d[%d]: computation of b\n",
-			__FILE__, __LINE__, u->rank);
-	}
-	for (int i = 1; i <= u->height; i++) {
-		for (int j = 1; j <= u->width; j++) {
-			double	b;
-			b = -laplacian(u, i, j) - U(u, i, j) / u->ht;
-			u->b[j - 1 + (i - 1) * u->width] = b;
-		}
-	}
-	if (debug) {
-		fprintf(stderr, "%s:%d:[%d]: computation of b complete\n",
-			__FILE__, __LINE__, u->rank);
-	}
-}
-
-/**
- * \brief Compute a single u iteration step
- */
-static void	iterate_u(double *unew, const udata_t *u) {
-	if (debug) {
-		fprintf(stderr, "%s:%d[%d]: iteration step for u\n",
-			__FILE__, __LINE__, u->rank);
-	}
-	// perform iteration step
-	for (int i = 1; i <= u->height; i++) {
-		for (int j = 1; j <= u->width; j++) {
-			double	v;
-			v = -u->ht * (B(u, i, j) - laplacian(u, i, j));
-			unew[j - 1 + (i - 1) * u->width] = v;
-		}
-	}
-	if (debug) {
-		fprintf(stderr, "%s:%d[%d]: iteration step for u complete\n",
-			__FILE__, __LINE__, u->rank);
 	}
 }
 
