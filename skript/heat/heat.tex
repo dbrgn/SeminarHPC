@@ -548,14 +548,31 @@ W"armeleitungsgleichung konvergiert, wenn
 8\frac{h_t}{2h_x^2}&<1
 &&\Leftrightarrow
 &
-h_t&<\frac{h_x^2}{4}
+h_t&<\frac{h_x^2}{4}.
 \end{align*}
 \end{satz}
 
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.8\hsize]{heat/heat-3.pdf}
+\end{center}
+\caption{Unterteilung des Definitionsbereiches in Teilbereiche (grau)
+f"ur jeden OpenMPI Rang $r$, $0\le r<n_xn_y$.
+Die d"unn ausgezogenen Rechtecke beinhalten Werte, die vor jedem 
+Iterationsschritt ausgetauscht werden m"ussen.
+\label{heat:domainpartition}}
+\end{figure}
+
 Zur Parallelisierung und Verteilung auf verschiedene Prozesse kann
-der Definitionsbereich in eine Menge von Rechtecken zerlegt werden.
-F"ur die Durchf"uhrung des Iterationsschrittes werden am Rand jeweils
-die Variablen am Rande der Nachbarrechtecke ben"otigt.
+der Definitionsbereich in $n_x$ Rechtecke in horizontaler Richtung
+und $n_y$ Rechtecke in vertikaler Richtung zerlegt werden
+(Abbildung~\ref{heat:domainpartition}).
+Alle Teilrechtecke haben jeweils ungef"ahr die gleiche Gr"osse.
+F"ur jedes Teilrechteck ist ein eigner OpenMPI Prozess zust"andig.
+
+F"ur die Durchf"uhrung des Iterationsschrittes werden entlang des Randes
+eines Teilrechtecks jeweils
+die Variablen von den R"andern der Nachbarrechtecke ben"otigt.
 Nach jedem Iterationsschritt m"ussen diese Werte zwischen den einzelnen
 Prozessen ausgetauscht werden.
 Beim Austausch fliessen die Daten in beiden Richtungen. Die Funktion

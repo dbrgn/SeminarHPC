@@ -266,4 +266,97 @@ label.urt(btex $y$ etex, (-35,180));
 
 endfig;
 
+beginfig(3)
+
+pickup pencircle scaled 1pt;
+
+fill (  1,  1)--( 79,  1)--( 79, 79)--(  1, 79)--cycle withcolor(0.9,0.9,0.9);
+fill ( 81,  1)--(159,  1)--(159, 79)--( 81, 79)--cycle withcolor(0.9,0.9,0.9);
+fill (  1, 81)--( 79, 81)--( 79,159)--(  1,159)--cycle withcolor(0.9,0.9,0.9);
+fill ( 81, 81)--(159, 81)--(159,159)--( 81,159)--cycle withcolor(0.9,0.9,0.9);
+fill (  1,201)--( 79,201)--( 79,279)--(  1,279)--cycle withcolor(0.9,0.9,0.9);
+fill ( 81,201)--(159,201)--(159,279)--( 81,279)--cycle withcolor(0.9,0.9,0.9);
+
+fill (201,  1)--(279,  1)--(279, 79)--(201, 79)--cycle withcolor(0.9,0.9,0.9);
+fill (201, 81)--(279, 81)--(279,159)--(201,159)--cycle withcolor(0.9,0.9,0.9);
+fill (201,201)--(279,201)--(279,279)--(201,279)--cycle withcolor(0.9,0.9,0.9);
+
+draw (176, 40);
+draw (180, 40);
+draw (184, 40);
+
+draw (176,120);
+draw (180,120);
+draw (184,120);
+
+draw (176,240);
+draw (180,240);
+draw (184,240);
+
+draw ( 40, 176);
+draw ( 40, 180);
+draw ( 40, 184);
+
+draw (120, 176);
+draw (120, 180);
+draw (120, 184);
+
+draw (240, 176);
+draw (240, 180);
+draw (240, 184);
+
+label(btex $r = 0$ etex, ( 40, 40));
+label(btex $r = 1$ etex, (120, 40));
+label(btex $r = n_x - 1$ etex, (240, 40));
+
+label(btex $r = n_x$ etex, (40, 120));
+label(btex $r = n_x + 1$ etex, (120, 120));
+label(btex $r = 2n_x - 1$ etex, (240, 120));
+
+label(btex $r = (n_y - 1)n_x$ etex, ( 40, 240));
+label(btex $r = (n_y - 1)n_x + 1$ etex, (120, 240));
+label(btex $r = n_xn_y - 1$ etex, (240, 240));
+
+pickup pencircle scaled 0.2pt;
+
+fill ( 81, 81)--(159, 81)--(159, 84)--( 81, 84)--cycle withcolor (1.0,0.9,0.9);
+fill ( 81, 76)--(159, 76)--(159, 79)--( 81, 79)--cycle withcolor (1.0,0.9,0.9);
+
+fill ( 81,159)--(159,159)--(159,156)--( 81,156)--cycle withcolor (1.0,0.9,0.9);
+fill ( 81,161)--(159,161)--(159,164)--( 81,164)--cycle withcolor (1.0,0.9,0.9);
+
+fill ( 81, 81)--( 84, 81)--( 84,159)--( 81,159)--cycle withcolor (1.0,0.9,0.9);
+fill ( 79, 81)--( 76, 81)--( 76,159)--( 79,159)--cycle withcolor (1.0,0.9,0.9);
+
+fill (159, 81)--(156, 81)--(156,159)--(159,159)--cycle withcolor (1.0,0.9,0.9);
+fill (161, 81)--(164, 81)--(164,159)--(161,159)--cycle withcolor (1.0,0.9,0.9);
+
+draw ( 81, 81)--(159, 81)--(159, 84)--( 81, 84)--cycle;
+draw ( 81, 76)--(159, 76)--(159, 79)--( 81, 79)--cycle;
+
+draw ( 81,159)--(159,159)--(159,156)--( 81,156)--cycle;
+draw ( 81,161)--(159,161)--(159,164)--( 81,164)--cycle;
+
+draw ( 81, 81)--( 84, 81)--( 84,159)--( 81,159)--cycle;
+draw ( 79, 81)--( 76, 81)--( 76,159)--( 79,159)--cycle;
+
+draw (159, 81)--(156, 81)--(156,159)--(159,159)--cycle;
+draw (161, 81)--(164, 81)--(164,159)--(161,159)--cycle;
+
+pickup pencircle scaled 0.5pt;
+
+draw (0,0)--(280,0)--(280,280)--(0,280)--cycle;
+
+pickup pencircle scaled 1pt;
+
+drawarrow (-10,-10)--(290,-10);
+drawarrow (-10,-10)--(-10,290);
+label.urt(btex $x$ etex, (290,-10));
+label.urt(btex $y$ etex, (-10,290));
+
+label.top (btex $w$ etex, (140,280));
+label.rt(btex $h$ etex, (280,140));
+
+endfig;
+
 end
