@@ -70,6 +70,21 @@ Die W"arme im Punkt $0$ hat sich also mit unendlich grosser Geschwindigkeit
 ausgebreitet.
 
 \section{Diskretisation\label{heat:section-diskretisation}}
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.70\hsize]{heat/heat-1.pdf}
+\end{center}
+\caption{Diskretisation der W"armeleitungsgleichung. 
+Aus jeweils drei horizontal benachbarten Punkten k"onnen die zweiten
+Ableitungen berechnet werden.
+Zwei in $t$-Richtung benachbarte solche Werte ergeben einen Mittelwert,
+der f"ur die zweite Ableitung im Punkt $(i+\frac12,j)$ (schwarz)
+stehen kann. Die erste Ableitung nach $t$ in diese Punkt kann aus
+dem Differenzenquotienten ermittelt werden. So entstehen lineare
+Gleichungen, die jeweils drei benachbarte noch nicht bekannte
+$u$-Werte (rot) mit bereits bekannten Werten (blau) vernk"upfen.
+\label{heat:diskretisation1}}
+\end{figure}
 Zur Diskretisation w"ahlen wir im Gebiet $[0,1]\times \mathbb R_+$ ein
 Gitter. 
 Da $x$- und $t$-Richtung offensichtlich nicht symmetrisch sind,
@@ -425,12 +440,15 @@ nicht, dass die einzelnen Prozesse nur ihren Teil von
 $u^{(k)}$ zur Verf"ugung haben, sie brauchen von jedem Nachbarprozess
 auch noch genau einen zus"atzlichen Wert.
 
-\section{Implementation}
-\subsection{Output}
+\section{Output}
 Die Beispielimplementation schreibt als Output ein NetCDF File mit einem
 zweidimensionalen Array der $u(x,t)$ Werte.
 Ausserdem werden Attribute hinzugef"ugt, in denen die Schrittweiten
 $h_x$ und $h_t$ sowie die Zahl $n$ festgehalten sind.
+
+\section{Resultate}
+In diesem Kapitel stellen wir Messresultate f"ur Parallelisierungsversuche
+f"ur die W"armeleitungsgleichung mit OpenMP und OpenMPI zusammen.
 
 \subsection{OpenMP}
 F"ur kleine Problem kann man die Iteration in einem einzigen Prozess
@@ -457,7 +475,7 @@ dargestellt.
 \subsection{OpenMPI}
 Die Implementation mit OpenMP hat gezeigt, dass im eindimensionalen Fall
 das Teilproblem zu klein ist, als dass die Parallelisierung des
-Iterationsalgorithmus eine Laufzeitverbeserung ergeben k"onnte.
+Iterationsalgorithmus eine Laufzeitverbesserung ergeben k"onnte.
 Das eindimensionale Problem wird also f"ur kleine $n$ am besten von einem
 einzigen Prozessor gel"ost. 
 Die Arbeit, die jeder Prozessor bis zum n"achsten Barrierepunkt
@@ -483,13 +501,22 @@ kann analog zur eindimensionalen W"armeleitungsgleichung diskretisiert
 werden.
 Die Funktion $u(t,x,y)$ wird ersetzt durch Variablen $u_{ijk}=u(ih_t,jh,kh)$.
 Die zweiten partiellen Ableitungen nach $x$ und $y$ werden approximiert
-werden
-\[
+werden (siehe auch Abbildung~\ref{heat:diskretisation2})
+\begin{align*}
 \frac{\partial^2u}{\partial x^2}
 +
 \frac{\partial^2u}{\partial y^2}
+&
 \simeq
 \frac1{h^2}(
+u_{i,j-1,k}-2u_{ijk}+u_{i,j+1,k}
+)
++
+\frac1{h^2}(
+u_{i,j,k-1}-2u_{ijk}+u_{i,j,k+1}
+)
+\\
+&=\frac1{h^2}(
 u_{i,j-1,k}
 +
 u_{i,j,k-1}
@@ -500,12 +527,19 @@ u_{i,j,k+1}
 -
 4u_{ijk}
 )
-\]
+\end{align*}
 F"ur diesen Operator wurde bereits fr"uher die Matrix $A$ in
 (\ref{algorithm:laplace}) gefunden, die wir in "Ubereinstimmung mit
 (\ref{heat:zerlegung}) wieder mit $N$ bezeichnen.
 Dann wird die Iterationsformel wieder die gleiche Form haben wie
 (\ref{heat:iteration}).
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.70\hsize]{heat/heat-2.pdf}
+\end{center}
+\caption{Approximation f"ur den Laplace-Operator $\Delta u$ im Punkt $(i,j)$
+\label{heat:diskretisation2}}
+\end{figure}
 
 \begin{satz}
 Das Iterationsverfahren (\ref{heat:iteration}) f"ur die zweidimensionale
@@ -524,6 +558,23 @@ F"ur die Durchf"uhrung des Iterationsschrittes werden am Rand jeweils
 die Variablen am Rande der Nachbarrechtecke ben"otigt.
 Nach jedem Iterationsschritt m"ussen diese Werte zwischen den einzelnen
 Prozessen ausgetauscht werden.
+Beim Austausch fliessen die Daten in beiden Richtungen. Die Funktion
+\verb+MPI_Send+ blockiert, bis die Daten im Zielprozess angekommen sind.
+Daher wurde in der Implementation die Funktion \verb+MPI_Isend+ verwendet,
+welche sofort zur"uckkommt. Alle Prozesse kopieren daher ihre Randdaten in
+einen Sende-Puffer, und "ubermitteln ihn mit \verb+MPI_Isend+.
+Danach k"onnen alle Prozesse die Rand-Daten in beliebiger Reihenfolge
+empfangen. Wenn die Empfangs-Funktionen (\verb+MPI_Recv+) abgeschlossen sind,
+dann sind auch die Sende-Operationen fertig.
+
+Abbildung \ref{heat:threadzahl} zeigt die Abh"angigkeit der Laufzeit von der
+Threadzahl f"ur ein Problem der Gr"osse $n=2560 \times 1440=3686400$.
+F"ur einen einzelnen Iterationsschritt, also zwischen zwei Austauschschritten
+f"ur die Randwerte m"ussen bei 4 Prozessen in jedem Prozess fast eine Million
+Variablen neu berechnet werden, was mindestens 6 Rechenoperationen erfordert.
+Damit ist sichergestellt, dass die reine Rechenzeit in den Iterationsschritten
+die Gesamtzeit dominiert, was sich auch in der guten Skalierung bis
+zur Gesamtzahl der Prozesse zeigt.
 
 \begin{figure}
 \begin{center}
@@ -531,6 +582,8 @@ Prozessen ausgetauscht werden.
 \end{center}
 \caption{Laufzeit der mit OpenMPI parallelisierten L"osung der
 W"armeleitungsgleichung in Abh"angigkeit von der Prozesszahl.
+Mehr als vier Prozesse gegen auf der verwendeten 4-Prozessor-Maschine
+keine verbesserte Laufzeit.
 \label{heat:threadzahl}}
 \end{figure}
 
