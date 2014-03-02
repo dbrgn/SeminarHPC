@@ -6,13 +6,6 @@
 #include "domain.h"
 #include <stdlib.h>
 #include <stdio.h>
-#include <mpi.h>
-#include <math.h>
-#include <unistd.h>
-#include <string.h>
-#include <sys/time.h>
-#include <getopt.h>
-#include <common.h>
 #include "output.h"
 #include "image.h"
 
