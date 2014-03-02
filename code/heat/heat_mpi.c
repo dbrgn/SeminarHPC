@@ -16,9 +16,11 @@
 #include "image.h"
 #include "domain.h"
 #include "iteration.h"
+#include "partition.h"
 
 int	debug = 0;
 
+#if 0
 /**
  * \brief Partition the domain
  *
@@ -222,6 +224,7 @@ static void	sendrange(const udata_t *u, int tag) {
 			__FILE__, __LINE__, u->rank, u->rank);
 	}
 }
+#endif 
 
 /**
  * \brief Send the boundary data 
@@ -377,6 +380,7 @@ static void	exchange_boundaries(udata_t *u, int tag) {
 	}
 }
 
+#if 0
 /**
  * \brief Synchronize image data
  *
@@ -396,6 +400,7 @@ static void	synchronize_image(const udata_t *u, image_t *image, int tag) {
 		sendrange(u, tag);
 	}
 }
+#endif
 
 /**
  * \brief main function
