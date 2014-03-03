@@ -4,7 +4,7 @@
 # (c) 2014 Prof Dr Andreas Mueller, Hochschule Rappersil
 # $Id$
 # 
-all:	work numa laplacian
+all:	work numa laplacian descent
 
 work:	work-1.pdf
 
@@ -24,3 +24,8 @@ laplacian-1.pdf:	laplacian.mp
 	TEX=latex mpost laplacian.mp
 	mptopdf laplacian.1
 
+descent:	descent-1.pdf
+
+descent-1.pdf:	descent.mp
+	TEX=latex mpost descent.mp
+	mptopdf descent.1

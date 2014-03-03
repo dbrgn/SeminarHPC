@@ -807,3 +807,222 @@ Dieses erweiterte Potenzverfahren heisst Francis Verfahren, es
 wurde von John Francis 1961 entwickelt.
 Eine gute Beschreibung findet man auch im Buch von Watkins \cite{watkins}.
 
+\section{Iterative Methoden f"ur symmetrische Matrizen}
+Das Motivationsbeispiel hat eine Eigenschaft, welche bis jetzt noch
+nicht verwendet werden ist:
+Die zugeh"orige Matrix ist symmetrisch und positiv definit.
+Der Gauss-Algorithmus tr"agt der Symmetrie "uberhaupt nicht Rechnung,
+im Gegenteil: sie wird sofort zuerst"ort.
+Die bisher besprochenen iterativen Verfahren sind ebenfalls "uberhaupt
+nicht daf"ur geeignet, aus der Symmetrie einen Nutzen zu ziehen.
+Es ist jedoch bekannt, dass symmetrische positiv definite Matrizen
+eine Reihe von besonderen Eigenschaften haben, sie haben zum Beispiel
+immer eine Cholesky-Zerlegung, und sie sind immer diagonalisierbar.
+Ziel dieses Abschnittes ist daher, nach iterativen Algorithmen zu
+suchen, welche f"ur symmetrische, positiv definite Matrizen besonders
+gut geeignet sind.
+
+In diesem Abschnitt geht es also wieder um das Gleichungssystem
+\[
+Ax=b,
+\]
+wobei $A$ eine symmetrische, positiv definite Matrix ist.
+Positiv definit heisst, dass 
+\[
+x^tAx > 0\qquad \forall x\in\mathbb R^n\setminus\{0\}.
+\]
+Das Einf"uhrungsbeispiel ist eine Beispiel f"ur ein solches Gleichungssystem.
+
+\subsection{Minimalprinzipien}
+Positiv definite Matrizen treten h"aufig bei der Diskretisation von 
+Problemen auf, die auch als Minimalproblem formuliert werden k"onnen.
+Umgekehrt k"onnen wir aus einem symmetrischen linearen Gleichungssystem
+wieder ein Minimalproblem gewinnen.
+Wir betrachten dazu die Gr"osse
+\[
+J(x)=\frac12x^tAx-x^tb =
+\frac12\sum_{i,j}a_{ij}x_ix_j-\sum_ix_ib_i.
+\]
+L"asst man den Vektor $x$ anwachsen, zum Beispiel indem man ihn mit
+einem Skalenfaktor streckt, dann w"achst der erste Term von $J(sx)$
+quadratisch mit $x$ an, der zweite aber nur linear,
+\[
+J(sx)=s^2\cdot\frac12x^tAx - s\cdot x^tb.
+\]
+Da $x^tAx >0$ ist, wird also f"ur grosse $s$ immer der quadratische
+Term "uberhand nehmen und $J(sx)$ wird "uber alle Grenzen wachsen.
+Die Funktion $J(x)$ muss daher irgendwo ein absolutes Minimum
+haben.
+
+Sei jetzt also $x_0$ das Minimum von $J(x)$.
+Wir behaupten, dass dann $Ax_0=b$, $x_0$ also eine L"osung des
+Gleichungssystems ist.
+F"ur ein Minimum gilt, dass dort der Gradient verschwinden muss,
+alle ersten partiellen Ableitungen sind.
+Wir berechnen daher die ersten partielle Ableitung nach $x_k$:
+\begin{align}
+(\operatorname{grad}J(x))_k
+&=
+\frac{\partial}{\partial x_k}\biggl(
+\frac12\sum_{i,j}a_{ij}x_ix_j-\sum_ix_ib_i\biggr)
+\notag
+\\
+&=
+\frac12\sum_j a_{kj}x_j+\frac12\sum_i a_{ik}x_i-b_k
+\notag
+\\
+&=\sum_j a_{kj}x_j-b_k = (Ax-b)_k.
+\label{minimal:grad}
+\end{align}
+Dabei haben wir verwendet, dass
+\[
+\frac{\partial x_i}{\partial x_k}=\delta_{ik}=\begin{cases}1&\qquad i=k\\
+0&\qquad\text{sonst.}\end{cases}
+\]
+Der Ausdruck (\ref{minimal:grad}) ist aber gerade die $k$-te Komponente
+von $Ax-b$.
+Beim Minimum verschwinden alle Komponenten des Gradienten und es folgt
+\[
+0=\operatorname{grad}J(x_0) = 0\qquad\Rightarrow\qquad Ax_0-b=0.
+\]
+Damit haben wir den folgenden Satz bewiesen.
+
+\begin{satz}
+Sei $A$ eine symmetrische, positiv definite Matrix und $b\in\mathbb R^n$.
+Dann ist der Vektor $x\in\mathbb R^n$ genau dann ein Minimum von
+der Funktion $J(x)=\frac12x^tAx-x^tb$, wenn $Ax=b$.
+\end{satz}
+
+\subsection{Abstieg}
+Statt das lineare Gleichungssystem direkt zu l"osen, k"onnen wir nach
+den Resultaten des vorangegangenen Abschnittes
+also auch versuchen, das zugeh"orige Minimalproblem zu l"osen. 
+Die Funktion $J(x)$ ist differenzierbar, und der Gradient kann uns in
+jedem Punkt $x\in\mathbb R^n$ anzeigen, in welche Richtung der Wert
+von $J$ abnimmt. Eine m"ogliche L"osungsstrategie k"onnte daher
+wie folgt aussehen:
+\begin{enumerate}
+\item W"ahle eine beliebige Anfangsapproximation $x_1$ der L"osung.
+\item \label{descent:loop0}
+Berechne den Gradienten $v=\operatorname{grad}J(x_1)$ und
+korrigiere $x_{i+1}= x_i + sv$.
+\item Wiederhole \ref{descent:loop0} so lange,
+bis $|J(x_{i+1})-J(x_i)|<\varepsilon$.
+\end{enumerate}
+In diesem Algorithmus ist der Wert von $s$ nicht definiert.
+Am besten wird $t$ so gew"ahlt, dass $x_{i+1}$ von allen m"oglichen $t$
+den kleinstm"oglichen Wert ergibt.
+Wir berechnen daher 
+\begin{align*}
+J(x_i+sv)
+&=
+\frac12(x_i+sv)^tA(x_i+sv)-(x_i+sv)^tb
+\\
+&=
+\frac12x_i^tAx_i -x_i^tb + s\cdot \biggl(\frac12v^tAx_i +\frac12x_i^tAv-v^tb\biggr) + s^2\cdot \frac12v^tAv
+\\
+&=
+J(x_i)+s\cdot v^t(Ax_i-b) +s^2\cdot \frac12v^tAv
+\end{align*}
+Eine quadratische Funktion $s\mapsto as^2+bs+c$ hat ihr Minimum an der
+Stelle $s=-\frac{b}{2a}$. 
+Im vorliegenden Fall f"uhrt dies auf die optimale Wahl f"ur $s$
+\[
+s=-\frac{v^t(Ax_i-b)}{v^tAv}.
+\]
+Setzen wir jetzt wieder $v=\operatorname{grad}J(x_i)=Ax_i-b$ ein, erhalten
+wir
+\[
+s=-\frac{v^tv}{v^tAv}.
+\]
+Damit k"onnen wir den Algorithmus jetzt ausformulieren:
+\begin{enumerate}
+\item W"ahle eine beliebige Anfangsapproximation $x_1$ der L"osung
+\item Berechne den Gradienten $v=Ax_i-b$ von $J$ an der Stelle
+$x_i$
+\item Berechnen 
+\begin{equation}
+x_{i+1}=x_i -\frac{v^tv}{v^tAv}v.
+\label{descent:iteration}
+\end{equation}
+\item Wiederhole Schritte 2 und 3 bis $|x_{i+1}-x_i|<\varepsilon$.
+\end{enumerate}
+Dies ist ein Beispiel eines Abstiegsalgorithmus.
+Man kann nicht allzuviel von ihm erwarten, denn er sucht ja nur immer
+entlang einer Geraden.
+
+\begin{beispiel}
+Wir wenden den Abstiegsalgorithmus auf das Gleichungssystem
+\[
+A=\begin{pmatrix}1&\frac12\\\frac12&1\end{pmatrix},
+\qquad
+b=\begin{pmatrix}1\\-1\end{pmatrix}
+\]
+an, welches wir auch schon mit dem Jacobi-Algorithmus behandelt haben.
+Wir beginnen wieder mit dem Nullpunkt, und erhalten 
+\begin{align*}
+x_1&=\begin{pmatrix}0\\0\end{pmatrix}&v&=Ax_1-b=-b=\begin{pmatrix}-1\\1\end{pmatrix}
+&v^tv&=2&v^tAv&=1\\
+x_2&=\begin{pmatrix}2\\-2\end{pmatrix}&v&=0.
+\end{align*}
+In diesem speziellen Fall liefert der Algorithmus also die L"osung in einem
+Schritt, ein Gl"ucksfall, von dem wir im Allgemeinen nicht ausgehen d"urfen.
+Mit zuf"alligen Anfangswerten liefert
+die Iterationsformel (\ref{descent:iteration}) 
+\begin{center}
+\begin{tabular}{|>{$}r<{$}|>{$}r<{$}|>{$}r<{$}|>{$}r<{$}|}
+\hline
+i&x_{i,0}&x_{i,1}&|v|\\
+\hline
+0& 1.1000&  0.1000&\\
+1& 0.9624& -1.4135&1.6568\phantom{000}\\
+2& 1.7805& -1.4879&0.74743\phantom{00}\\
+3& 1.7470& -1.8570&0.40402\phantom{00}\\
+4& 1.9465& -1.8751&0.18226\phantom{00}\\
+5& 1.9383& -1.9651&0.098521\phantom{0}\\
+6& 1.9869& -1.9695&0.044445\phantom{0}\\
+7& 1.9850& -1.9915&0.024025\phantom{0}\\
+8& 1.9968& -1.9926&0.010838\phantom{0}\\
+9& 1.9963& -1.9979&0.0058584\\
+10&1.9992& -1.9982&0.0026429\\
+11&1.9991& -1.9995&0.0014286\\
+12&1.9998& -1.9996&0.0006444\\
+13&1.9998& -1.9999&0.0003484\\
+14&2.0000& -1.9999&0.0001572\\
+15&1.9999& -2.0000&0.0000850\\
+16&2.0000& -2.0000&0.0000383\\
+\hline
+\end{tabular}
+\end{center}
+Wieder halbiert sich der Fehler in jedem Iterationsschritt, das Verfahren
+ist also nicht besser als der Jacobi-Algorithmus.
+\end{beispiel}
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=\hsize]{graphics/descent-1.pdf}
+\end{center}
+\caption{Abstiegsl"osung f"ur lineares Gleichungsystem
+\label{descent:path}}
+\end{figure}
+
+Die Abbildung~\ref{descent:path} zeigt den Pfade des steilsten Abstiegs.
+In diesem zweidimensionalen Fall ist sofort erkennbar, wie dass der
+Pfadselbst"ahnlich ist, die Genauigkeit wird also in jedem Iterationsschritt
+um den gleichen Faktor kleiner.
+
+
+\subsection{Konjugierte Gradienten}
+Besonders schnell zur L"osung kommt man, wenn der Startpunkt auf einer
+der Koordinaten-Achsen liegt.
+Man k"onnte daher versuchen, zwar die Richtung des Abstiegs beizubehalten,
+aber nur bis zur n"achsten Koordinatenachse abzusteigen, statt bis zum
+Minimum.
+Das zweidimensionale Problem liesse sich so in zwei Schritten l"osen.
+
+Im mehrdimensionalen Fall k"onnte man entlang des Gradienten bis zur
+n"achsten Koordiaten-Hyperebene absteigen.
+Im Hauptachsensystem w"urde man so in jedem Schritt eine weitere Komponente
+der L"osung exakt finden, insbesondere w"are die L"osung nach $n$
+Schritten exakt gefunden.
+
