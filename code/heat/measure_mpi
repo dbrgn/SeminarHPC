@@ -1,0 +1,24 @@
+#
+# measure run time of heat equation algorithm
+#
+# (c) 2014 Prof Dr Andreas Mueller, Hochschule Rapperswil
+#
+(
+echo "n,time,threads"
+for scale in 12.5 25 50 100
+do
+	# scale image
+	convert testimage.fits -resize ${scale}% scaledimage.fits
+
+	# run simulation on image with increasing numbers of threads
+	for nx in 1 2 3
+	do
+		for ny in 1 2 3
+		do
+			n=`expr $nx \* $ny`
+			mpirun -n ${n} ./heat_mpi -x ${nx} -y ${ny} \
+				scaledimage.fits
+		done
+	done 
+done
+) > results-mpi
