@@ -974,23 +974,23 @@ die Iterationsformel (\ref{descent:iteration})
 \hline
 i&x_{i,0}&x_{i,1}&|v|\\
 \hline
-0& 1.1000&  0.1000&\\
-1& 0.9624& -1.4135&1.6568\phantom{000}\\
-2& 1.7805& -1.4879&0.74743\phantom{00}\\
-3& 1.7470& -1.8570&0.40402\phantom{00}\\
-4& 1.9465& -1.8751&0.18226\phantom{00}\\
-5& 1.9383& -1.9651&0.098521\phantom{0}\\
-6& 1.9869& -1.9695&0.044445\phantom{0}\\
-7& 1.9850& -1.9915&0.024025\phantom{0}\\
-8& 1.9968& -1.9926&0.010838\phantom{0}\\
-9& 1.9963& -1.9979&0.0058584\\
-10&1.9992& -1.9982&0.0026429\\
-11&1.9991& -1.9995&0.0014286\\
-12&1.9998& -1.9996&0.0006444\\
-13&1.9998& -1.9999&0.0003484\\
-14&2.0000& -1.9999&0.0001572\\
-15&1.9999& -2.0000&0.0000850\\
-16&2.0000& -2.0000&0.0000383\\
+ 0& 1.1000&  0.1000&\\
+ 1& 0.9624& -1.4135& 1.6568\phantom{000}\\
+ 2& 1.7805& -1.4879& 0.74743\phantom{00}\\
+ 3& 1.7470& -1.8570& 0.40402\phantom{00}\\
+ 4& 1.9465& -1.8751& 0.18226\phantom{00}\\
+ 5& 1.9383& -1.9651& 0.098521\phantom{0}\\
+ 6& 1.9869& -1.9695& 0.044445\phantom{0}\\
+ 7& 1.9850& -1.9915& 0.024025\phantom{0}\\
+ 8& 1.9968& -1.9926& 0.010838\phantom{0}\\
+ 9& 1.9963& -1.9979& 0.0058584\\
+10& 1.9992& -1.9982& 0.0026429\\
+11& 1.9991& -1.9995& 0.0014286\\
+12& 1.9998& -1.9996& 0.0006444\\
+13& 1.9998& -1.9999& 0.0003484\\
+14& 2.0000& -1.9999& 0.0001572\\
+15& 1.9999& -2.0000& 0.0000850\\
+16& 2.0000& -2.0000& 0.0000383\\
 \hline
 \end{tabular}
 \end{center}
@@ -1021,8 +1021,124 @@ Minimum.
 Das zweidimensionale Problem liesse sich so in zwei Schritten l"osen.
 
 Im mehrdimensionalen Fall k"onnte man entlang des Gradienten bis zur
-n"achsten Koordiaten-Hyperebene absteigen.
+n"achsten Koordinaten-Hyperebene absteigen.
 Im Hauptachsensystem w"urde man so in jedem Schritt eine weitere Komponente
 der L"osung exakt finden, insbesondere w"are die L"osung nach $n$
 Schritten exakt gefunden.
 
+\subsubsection{Abstieg f"ur eine Kugel}
+F"ur dieses Beispiel wollen wir von $A=\operatorname{diag}(a_1,\dots,a_n)$
+und $b=0$ ausgehen.
+Wie kann man mit der Abstiegsmethode von einem beliebigen Punkt $x$
+zum Nullpunkt absteigen?
+W"ahlen wir $e_i$ eine der Koordinaten-Achsen, dann liefert die
+Abstiegsformel
+\[
+x_2=x_1-\frac{e_i^tAx_1}{e_i^tAe_i}e_i
+=x_1-x_{1,i}e_i,
+\]
+d.~h. $x_2$ ist der gleiche Vektor wie $x_1$, ausser in der Koordinate $i$,
+die auf $0$ gesetzt worden ist.
+W"ahlt man also nacheinander $e_{i_1}$, $e_{i_2},\dots$, dann werden
+nacheinander die Koordinaten $i_i$, $i_2,\dots$ zu Null gemacht.
+Durch geeignete Wahl der Folge $i_1,i_2,\dots$ zum Beispiel so,
+dass die Komponenten $x_{i_1},x_{i_2},\dots$ die absteigend sortierten
+Komponenten von $x$ sind, erhalten wir eine Folge Vektoren, die schnelle
+gegen $0$ konvergiert, und in genau $n$ Schritten den Nullpunkt exakt
+erreicht.
+
+F"ur $A=E$ h"atte sogar
+statt der Koordinatenrichtungen h"atte jede andere Orthogonalbasis
+von Vektoren $v_i$ verwendet werden k"onnen. Die Abstiegsformel
+\[
+x_{i+1}=x_i-\frac{v_i^tx_i}{v_i^tv_i}v_i
+\]
+produziert dann eine Folge $x_i$ von Vektoren, deren Projektionen auf die
+Richtungen $v_i$ abnehmen.
+Ein solche orthonormierte Basis kann mit dem Orthognalisierungsverfahren
+von Gram-Schmidt ausgehend von einer beliebigen Vektorfolge konstruiert
+werden.
+
+\subsubsection{Das Skalarprodukt zu $A$}
+Das gew"ohnliche Skalarprodukt wurde f"ur die Definition einer Folge von
+Vektoren verwendet, um die Folge von Richtungen $v_i$ zu konstruieren.
+Nat"urlich funktioniert das nur f"ur $A=E$, also f"ur eine Kugel als 
+Niveaufl"ache der Funktion $J(x)$.
+
+Die Matrix $A$ definiert auch ein Skalarprodukt
+\[
+\langle x,y\rangle_A=x^tAy,
+\]
+und eine Norm
+\[
+|x|_A=\sqrt{\langle x,x\rangle_A}.
+\]
+Sei $x_0$ die gesuchte L"osung, also $Ax_0=b$.
+Dann gilt
+\begin{align*}
+\langle x-x_0,x-x_0\rangle_A
+&=
+(x-x_0)^tA(x-x_0)
+\\
+&=x^tAx-2x^tAx_0+x_0^tAx_0
+\\
+&=\langle x,x\rangle_A -2x^tb+x_0^tb
+\\
+&=2J(x)+x_0^tb
+\end{align*}
+Die L"osung wird also gefunden als das Minimum einer quadratischen Form
+$\langle x-x_0,x-x_0\rangle_A$.
+Verwendet man das von $A$ erzeugte Skalarprodukt zur L"angenbestimmung,
+dann sind die Niveaufl"achen Kugeln, und es kann eine beliebige Folge
+von orthonormierten Vektoren f"ur den Abstieg verwendet werden.
+Allerdings muss Orthogonalit"at ebenfalls im Sinne des Skalarprodukts
+$\langle\cdot ,\cdot \rangle_A$ gew"ahlt werden.
+
+\begin{beispiel}
+Wir wollen einmal mehr das Gleichungssystem mit Matrix
+\[
+A=\begin{pmatrix}
+1&\frac12\\\frac12&1
+\end{pmatrix}
+\qquad
+\text{und}
+\qquad
+b=\begin{pmatrix}1\\-1\end{pmatrix}
+\]
+l"osen. Ausgehend vom Punkt $(1,0)$ bestimmen wir jetzt eine Folge
+von Vektoren.
+Als ersten Vektor verwenden wir wieder den Gradienten an dieser 
+Stelle:
+\begin{align*}
+x_1&=\begin{pmatrix}1\\0\end{pmatrix},
+&
+v_1&=Ax_1-b=\begin{pmatrix}0\\\frac32\end{pmatrix},
+&
+|v_1|_A&=\frac32,
+&
+v_1'&=\frac1{|v_1|_A}v_1=\begin{pmatrix}0\\1\end{pmatrix}
+\end{align*}
+\begin{align*}
+x_2&=x_1-\frac{\langle v_1',Ax_1-b \rangle_A}{\langle v_1',v_1'\rangle_A}v_1'=
+\begin{pmatrix}1\\0\end{pmatrix}-\frac32\begin{pmatrix}0\\1\end{pmatrix}
+=
+\begin{pmatrix}1\\-\frac32\end{pmatrix}.
+\end{align*}
+Jetzt muss die n"achste Richtung bestimmt werden.
+Wir m"ochten dazu zwar wieder $Ax_2-b$ verwenden, davon aber nur die Komponente
+senkrecht auf $v_1$, also
+\begin{align*}
+v_2&=Ax_2-b=\begin{pmatrix}-\frac34\\0\end{pmatrix},
+&
+v_2'&=v_2-\langle v_1,v_2\rangle_A v_1
+=\begin{pmatrix}-\frac34\\-1\end{pmatrix}
+%&
+%v_2'
+%&=\frac{v_2-\langle v_1,v_2\rangle_A v_1}{|v_2-\langle v_1,v_2\rangle_A v_1|}_A
+%=
+\end{align*}
+Jetzt erfolgt wieder ein Abstiegsschritt in Richtung $v_2'$
+\begin{align*}
+
+\end{align*}
+\end{beispiel}
