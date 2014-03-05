@@ -4,7 +4,7 @@
 # (c) 2014 Prof Dr Andreas Mueller, Hochschule Rappersil
 # $Id$
 # 
-all:	work numa laplacian descent
+all:	work numa laplacian descent descent3d.png
 
 work:	work-1.pdf
 
@@ -30,3 +30,9 @@ descent-1.pdf descent-2.pdf:	descent.mp
 	TEX=latex mpost descent.mp
 	mptopdf descent.1
 	mptopdf descent.2
+
+descent3d.png:	descent3d.pov
+	povray -W1920 -H1080 descent3d.pov
+
+descent3d.jpg:	descent3d.png
+	convert descent3d.png -scale 50% descent3d.jpg
