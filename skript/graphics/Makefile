@@ -26,6 +26,7 @@ laplacian-1.pdf:	laplacian.mp
 
 descent:	descent-1.pdf
 
-descent-1.pdf:	descent.mp
+descent-1.pdf descent-2.pdf:	descent.mp
 	TEX=latex mpost descent.mp
 	mptopdf descent.1
+	mptopdf descent.2

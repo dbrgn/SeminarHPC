@@ -100,4 +100,30 @@ descent;
 
 endfig;
 
+beginfig(2)
+
+label.urt(btex $x_1$ etex, (50,50));
+pickup pencircle scaled 0.1pt;
+draw fullcircle scaled (sqrt(2) * 100);
+pickup pencircle scaled 3pt;
+draw(50,50) withcolor (1.0,0.0,0.0);
+pickup pencircle scaled 1pt;
+label.rt(btex $x_2$ etex, (50,0));
+draw (50,50)--(50,0) withcolor (1.0,0.0,0.0);
+pickup pencircle scaled 3pt;
+draw (50,0) withcolor (1.0,0.0,0.0);
+pickup pencircle scaled 0.1pt;
+draw fullcircle scaled 100pt;
+pickup pencircle scaled 1pt;
+draw (0,0)--(50,0) withcolor (1.0,0.0,0.0);
+pickup pencircle scaled 3pt;
+draw (0,0) withcolor(1.0,0.0,0.0);
+label.lft(btex $x_3$ etex, (0,0));
+
+pickup pencircle scaled 1pt;
+drawarrow (-80,-80)--(80,-80); label.urt(btex $x$ etex, (80,-80));
+drawarrow (-80,-80)--(-80,80); label.urt(btex $y$ etex, (-80,80));
+
+endfig;
+
 end

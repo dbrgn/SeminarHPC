@@ -858,7 +858,7 @@ Sei jetzt also $x_0$ das Minimum von $J(x)$.
 Wir behaupten, dass dann $Ax_0=b$, $x_0$ also eine L"osung des
 Gleichungssystems ist.
 F"ur ein Minimum gilt, dass dort der Gradient verschwinden muss,
-alle ersten partiellen Ableitungen sind.
+alle ersten partiellen Ableitungen sind $0$.
 Wir berechnen daher die ersten partielle Ableitung nach $x_k$:
 \begin{align}
 (\operatorname{grad}J(x))_k
@@ -889,14 +889,94 @@ Damit haben wir den folgenden Satz bewiesen.
 
 \begin{satz}
 Sei $A$ eine symmetrische, positiv definite Matrix und $b\in\mathbb R^n$.
-Dann ist der Vektor $x\in\mathbb R^n$ genau dann ein Minimum von
+Dann ist der Vektor $x\in\mathbb R^n$ genau dann ein Minimum 
 der Funktion $J(x)=\frac12x^tAx-x^tb$, wenn $Ax=b$.
 \end{satz}
 
 \subsection{Abstieg}
 Statt das lineare Gleichungssystem direkt zu l"osen, k"onnen wir nach
 den Resultaten des vorangegangenen Abschnittes
-also auch versuchen, das zugeh"orige Minimalproblem zu l"osen. 
+auch versuchen, das zugeh"orige Minimalproblem zu l"osen. 
+Ausgehend von einer ersten N"aherung $x_1$ der L"osung suchen wir nach einer 
+verbesserten L"osung $x_2$.
+F"ur die Suche nach $x_2$ 
+schr"anken wir uns auf eine einzige Gerade mit Richtungsvektor $r$
+ein, dadurch wird das Problem eindimensional und damit einfacher l"osbar.
+
+Wir suchen also denjenigen Wert von $s$, f"ur den $J(x_1+sr)$ minimal
+wird. Dazu berechnen wir
+\begin{align*}
+J(x_1+sr)
+&=
+\frac12(x_1+sr)^tA(x_1+sr)-(x_1+sr)^tb\\
+&=
+\frac12 x_1^tAx_1 +s\cdot x_1^tAr +s^2\cdot \frac12 r^tAr-x_1^tb - s\cdot r^t b
+\\
+&=s^2\cdot \underbrace{\frac12 r^tAr}_{\text{``$a$''}} + s\cdot \underbrace{(r^tAx_1-r^tb)}_{\text{``$b$''}} +\underbrace{\frac12 x_1^tAx_1 -x_1^tb}_{\text{``$c$''}}
+\end{align*}
+Eine quadratische Funktion der Form $ax^2+bx+c$ mit $a>0$ erreicht ihr
+Minimum bei $-b/2a$. Somit ist die beste Wahl von $s$
+\[
+s=-\frac{r^t(Ax_1-b)}{r^tAr}.
+\]
+Damit bekommen wir jetzt als neue Sch"atzung der L"osung 
+der Abstiegsformel
+\begin{equation}
+x_{i+1}=x_i-\frac{r^t(Ax_i-b)}{r^tAr} r.
+\label{descent:main}
+\end{equation}
+Bis jetzt wurde $r$ nicht weiter festgelegt, die Wahl von $r$ wird uns
+in den folgenden Abschnitten ausf"uhrlich besch"aftigen.
+
+\begin{beispiel}
+Man l"ose das lineare Gleichungssystem $Ax=b$ mit
+\[
+A=\begin{pmatrix}1&\frac12\\\frac12&1\end{pmatrix},
+\qquad
+b=\begin{pmatrix}1\\-1\end{pmatrix}
+\]
+mit Hilfe von Abstiegsschritten, wobei abwechselnd die beiden
+Standardbasis-Vektoren $e_1$ und $e_2$ also Abstiegsrichtungen  $r$
+verwendet werden sollen.
+
+Zun"achst halten wir fest, dass
+\begin{align*}
+e_1^tAe_1&=1,&
+e_2^tAe_2&=1.
+\end{align*}
+Die Abstiegsformel korrigiert jeweils nur die erste bzw.~zweite Komponente
+der L"osung. Wir erhalten
+
+\begin{center}
+\begin{tabular}{|>{$}r<{$}|>{$}r<{$}>{$}r<{$}|>{$}r<{$}|}
+\hline
+i&x_{i,0}&x_{i,1}&|e|\\
+\hline
+ 1& 0.0000& 0.0000& 2.8284\phantom{0}\\
+ 2& 1.0000& 0.0000& 2.2361\phantom{0}\\
+ 3& 1.0000&-1.5000& 1.1180\phantom{0}\\
+ 4& 1.7500&-1.5000& 0.55902\\
+ 5& 1.7500&-1.8750& 0.27951\\
+ 6& 1.9375&-1.8750& 0.13975\\
+ 7& 1.9375&-1.9688& 0.06987\\
+ 8& 1.9844&-1.9688& 0.03494\\
+ 9& 1.9844&-1.9922& 0.01747\\
+10& 1.9961&-1.9922& 0.00873\\
+11& 1.9961&-1.9989& 0.00437\\
+\hline
+\end{tabular}
+\end{center}
+Wobei $e=x_i-x_0$ der Fehler der Approximation ist.
+Wieder halbiert sich der Fehler in jedem Schritt.
+\end{beispiel}
+
+Die Konvergenz in diesem Beispiel ist nicht besonders gut, was nat"urlich
+an der unzweckm"assigen Wahl der Abstiegsrichtungen liegt.
+Es geht im Folgenden darum, eine Folge von Abstiegsrichtungen zu finden,
+so dass die Approximationen $x_i$ m"oglichst schnell gegen die L"osung
+konvergieren.
+
+\subsection{Steilster Abstieg}
 Die Funktion $J(x)$ ist differenzierbar, und der Gradient kann uns in
 jedem Punkt $x\in\mathbb R^n$ anzeigen, in welche Richtung der Wert
 von $J$ abnimmt. Eine m"ogliche L"osungsstrategie k"onnte daher
@@ -905,49 +985,10 @@ wie folgt aussehen:
 \item W"ahle eine beliebige Anfangsapproximation $x_1$ der L"osung.
 \item \label{descent:loop0}
 Berechne den Gradienten $v=\operatorname{grad}J(x_1)$ und
-korrigiere $x_{i+1}= x_i + sv$.
+korrigiere gem"ass der Abstiegsformel (\ref{descent:main})
 \item Wiederhole \ref{descent:loop0} so lange,
 bis $|J(x_{i+1})-J(x_i)|<\varepsilon$.
 \end{enumerate}
-In diesem Algorithmus ist der Wert von $s$ nicht definiert.
-Am besten wird $t$ so gew"ahlt, dass $x_{i+1}$ von allen m"oglichen $t$
-den kleinstm"oglichen Wert ergibt.
-Wir berechnen daher 
-\begin{align*}
-J(x_i+sv)
-&=
-\frac12(x_i+sv)^tA(x_i+sv)-(x_i+sv)^tb
-\\
-&=
-\frac12x_i^tAx_i -x_i^tb + s\cdot \biggl(\frac12v^tAx_i +\frac12x_i^tAv-v^tb\biggr) + s^2\cdot \frac12v^tAv
-\\
-&=
-J(x_i)+s\cdot v^t(Ax_i-b) +s^2\cdot \frac12v^tAv
-\end{align*}
-Eine quadratische Funktion $s\mapsto as^2+bs+c$ hat ihr Minimum an der
-Stelle $s=-\frac{b}{2a}$. 
-Im vorliegenden Fall f"uhrt dies auf die optimale Wahl f"ur $s$
-\[
-s=-\frac{v^t(Ax_i-b)}{v^tAv}.
-\]
-Setzen wir jetzt wieder $v=\operatorname{grad}J(x_i)=Ax_i-b$ ein, erhalten
-wir
-\[
-s=-\frac{v^tv}{v^tAv}.
-\]
-Damit k"onnen wir den Algorithmus des steilsten Abstiegs jetzt ausformulieren:
-\begin{enumerate}
-\item W"ahle eine beliebige Anfangsapproximation $x_1$ der L"osung
-\item Berechne den Gradienten $v=Ax_i-b$ von $J$ an der Stelle
-$x_i$
-\item Berechnen 
-\begin{equation}
-x_{i+1}=x_i -\frac{v^tv}{v^tAv}v.
-\label{descent:iteration}
-\end{equation}
-\item Wiederhole Schritte 2 und 3 bis $|x_{i+1}-x_i|<\varepsilon$.
-\end{enumerate}
-Dies ist ein Beispiel eines Abstiegsalgorithmus.
 Man kann nicht allzuviel von ihm erwarten, denn er sucht ja nur immer
 entlang einer Geraden.
 
@@ -1006,9 +1047,9 @@ ist also nicht besser als der Jacobi-Algorithmus.
 \label{descent:path}}
 \end{figure}
 
-Die Abbildung~\ref{descent:path} zeigt den Pfade des steilsten Abstiegs.
+Die Abbildung~\ref{descent:path} zeigt den Pfad des steilsten Abstiegs.
 In diesem zweidimensionalen Fall ist sofort erkennbar, wie dass der
-Pfadselbst"ahnlich ist, die Genauigkeit wird also in jedem Iterationsschritt
+Pfad selbst"ahnlich ist, die Genauigkeit wird also in jedem Iterationsschritt
 um den gleichen Faktor kleiner.
 
 
@@ -1027,6 +1068,15 @@ der L"osung exakt finden, insbesondere w"are die L"osung nach $n$
 Schritten exakt gefunden.
 
 \subsubsection{Abstieg f"ur eine Kugel}
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.45\hsize]{graphics/descent-2.pdf}
+\end{center}
+\caption{Abstieg entlang der Koordinatenachsen f"ur $A=E$:
+die Approximationsfolge konvergiert in nur zwei Schritten zur exakten
+L"osung.
+\label{descent:exact}}
+\end{figure}
 F"ur dieses Beispiel wollen wir von $A=\operatorname{diag}(a_1,\dots,a_n)$
 und $b=0$ ausgehen.
 Wie kann man mit der Abstiegsmethode von einem beliebigen Punkt $x$
@@ -1138,7 +1188,4 @@ v_2'&=v_2-\langle v_1,v_2\rangle_A v_1
 %=
 \end{align*}
 Jetzt erfolgt wieder ein Abstiegsschritt in Richtung $v_2'$
-\begin{align*}
-
-\end{align*}
 \end{beispiel}
