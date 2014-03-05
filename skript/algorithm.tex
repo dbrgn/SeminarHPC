@@ -1067,7 +1067,13 @@ Im Hauptachsensystem w"urde man so in jedem Schritt eine weitere Komponente
 der L"osung exakt finden, insbesondere w"are die L"osung nach $n$
 Schritten exakt gefunden.
 
-\subsubsection{Abstieg f"ur eine Kugel}
+\subsubsection{Abstieg f"ur eine Diagonalmatrix}
+\begin{figure}
+\includegraphics[width=\hsize]{graphics/descent3d.jpg}
+\caption{Abstieg entlang der Koordinatenrichtungen f"ur eine Diagonalmatrix
+$A$
+\label{descent3d}}
+\end{figure}
 \begin{figure}
 \begin{center}
 \includegraphics[width=0.45\hsize]{graphics/descent-2.pdf}
@@ -1077,8 +1083,8 @@ die Approximationsfolge konvergiert in nur zwei Schritten zur exakten
 L"osung.
 \label{descent:exact}}
 \end{figure}
-F"ur dieses Beispiel wollen wir von $A=\operatorname{diag}(a_1,\dots,a_n)$
-und $b=0$ ausgehen.
+F"ur dieses Beispiel wollen wir von einer Diagonalmatrix
+$A=\operatorname{diag}(a_1,\dots,a_n)$ und $b=0$ ausgehen.
 Wie kann man mit der Abstiegsmethode von einem beliebigen Punkt $x$
 zum Nullpunkt absteigen?
 W"ahlen wir $e_i$ eine der Koordinaten-Achsen, dann liefert die
@@ -1095,7 +1101,7 @@ Durch geeignete Wahl der Folge $i_1,i_2,\dots$ zum Beispiel so,
 dass die Komponenten $x_{i_1},x_{i_2},\dots$ die absteigend sortierten
 Komponenten von $x$ sind, erhalten wir eine Folge Vektoren, die schnelle
 gegen $0$ konvergiert, und in genau $n$ Schritten den Nullpunkt exakt
-erreicht.
+erreicht (Abbildung~\ref{descent3d}).
 
 F"ur $A=E$ h"atte sogar
 statt der Koordinatenrichtungen h"atte jede andere Orthogonalbasis
@@ -1104,10 +1110,58 @@ von Vektoren $v_i$ verwendet werden k"onnen. Die Abstiegsformel
 x_{i+1}=x_i-\frac{v_i^tx_i}{v_i^tv_i}v_i
 \]
 produziert dann eine Folge $x_i$ von Vektoren, deren Projektionen auf die
-Richtungen $v_i$ abnehmen.
-Ein solche orthonormierte Basis kann mit dem Orthognalisierungsverfahren
-von Gram-Schmidt ausgehend von einer beliebigen Vektorfolge konstruiert
-werden.
+Richtungen $v_i$ abnehmen (\ref{descent:exact}).
+
+Aus diesen beiden Beispielen k"onnen wir ablesen, dass der Abstieg in
+maximal $n$-Schritten mit achsparallelen Abstiegsrichtungen
+m"oglich w"are, wenn die Niveaufl"achen der Funktion $J(x)$ bereits
+achsparallele Ellipsoide w"aren.
+
+Nat"urlich k"onnte man eine Koordinaten-Transformation durchf"uhren,
+mit der man die symmetrische Matrix $A$ zu einer Diagonalmatrix oder
+sogar zu einer Einheitsmatrix machen kann.
+Die Eigenvektoren sind dann die geeigneten Achsrichtungen, entlang derer
+der Abstieg erfolgen kann.
+Um eine solche Koordinatentransformation zu finden muss allerdings das
+Eigenwertproblem f"ur die Matrix $A$ gel"ost werden, was unter anderem
+die L"osung der Gleichung $(A-\lambda E)x=0$ beinhaltet. Um mit der
+Abstiegsmethode das Gleichungssystem zu l"osen, m"ussten wir also zuerst
+das Gleichungssystem l"osen\dots
+
+Selbst wenn die Diagonalisierung ganz einfach w"are, w"are man immer noch nicht
+sicher, dass man die bestm"oglichen Abstiegsrichtungen gew"ahlt hat.
+Die Idee beim steilsten Abstieg war ja, dass der Gradient die optimale
+Richtung ist. Man sollte also einen Abstiegspfad w"ahlen, der mit
+dem Gradienten beginnt, dann aber immer nur Richtungen ``senkrecht'' dazu
+w"ahlt. Mit so einem Pfad m"usste man in $n$ Schritten die exakte L"osung
+finden k"onnen.
+
+\subsubsection{Der Fall $n=2$}
+Wir versuchen das eben skizzierte Programm im Falle $n=2$ an unserem
+altbekannten Beispiel
+\begin{align*}
+A&=\begin{pmatrix}1&\frac12\\\frac12&1\end{pmatrix},&
+b&=\begin{pmatrix}1\\-1\end{pmatrix},&
+x_1&=\begin{pmatrix}2\\0\end{pmatrix}
+\end{align*}
+durchzuf"uhren. Der Gradient im Punkt $x_1$ ist
+\[
+v_1=\operatorname{grad}J(x_1)=Ax_1-b=\begin{pmatrix}1\\2\end{pmatrix}
+\]
+Die erste Abstiegsrichtung ist $v_1$ und die Abstiegsformel liefert
+\[
+x_2
+=
+x_1-\frac{v_1^t(Ax_1-b)}{v_1^tAv_1}v_1
+=
+x_1-\frac{v_1^tv_1}{v_1^tAv_1}v_1
+=x_1-\frac{5}{\begin{pmatrix}1\\2\end{pmatrix}^t\begin{pmatrix}2\\\frac52\end{pmatrix}}\begin{pmatrix}1\\2\end{pmatrix}
+=\begin{pmatrix}2\\0 \end{pmatrix}
+-\frac57\begin{pmatrix}1\\2\end{pmatrix}
+=\frac17\begin{pmatrix}9\\-10\end{pmatrix}.
+\]
+Wenn das angek"undigte Programm funktionieren soll, dann muss der n"achste
+Abstiegsschritt bereits die L"osung liefern.
 
 \subsubsection{Das Skalarprodukt zu $A$}
 Das gew"ohnliche Skalarprodukt wurde f"ur die Definition einer Folge von

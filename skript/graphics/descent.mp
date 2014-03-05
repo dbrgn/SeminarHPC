@@ -126,4 +126,54 @@ drawarrow (-80,-80)--(-80,80); label.urt(btex $y$ etex, (-80,80));
 
 endfig;
 
+beginfig(3)
+
+pickup pencircle scaled 1pt;
+
+numeric e;
+e := 50;
+
+drawarrow (-10,0)--(3 * e, 0); label.urt(btex $x$ etex, (3*e,0));
+drawarrow (0,-3 * e)--(0,10); label.urt(btex $y$ etex, (0,10));
+
+z1 = (2 * e, 0);
+z2 = ((9./7.) * e, -(10/7) * e);
+z3 = (2 * e, -2 * e);
+
+
+pickup pencircle scaled 0.1pt;
+numeric l;
+l := 4 * 2 / sqrt(3);
+draw fullcircle xscaled (l * sqrt(0.5) * e) yscaled (l * sqrt(1.5) * e) rotated 45 shifted (z3);
+l := 1.508;
+draw fullcircle xscaled (l * sqrt(0.5) * e) yscaled (l * sqrt(1.5) * e) rotated 45 shifted (z3);
+
+z0 = (0,0);
+z4 = (4 * e, 0);
+z5 = (0, -4 * e);
+z6 = (4 * e, -4 * e);
+
+draw (-0.05)[z0,z6]--(1.05)[z0,z6];
+draw (-0.05)[z4,z5]--(1.05)[z4,z5];
+
+
+label.urt(btex $x_1$ etex, z1);
+label.lft(btex $x_2$ etex, z2);
+label.rt(btex $x_3$ etex, z3);
+
+pickup pencircle scaled 3pt;
+draw z1 withcolor(1.0,0.0,0.0);
+pickup pencircle scaled 1pt;
+draw z1--z2 withcolor(1.0,0.0,0.0);
+pickup pencircle scaled 3pt;
+draw z2 withcolor(1.0,0.0,0.0);
+pickup pencircle scaled 1pt;
+draw z2--z3 withcolor(1.0,0.0,0.0);
+pickup pencircle scaled 3pt;
+draw z3 withcolor(1.0,0.0,0.0);
+
+clip currentpicture to (-20,20)--(3 * e + 20,20)--(3 * e + 20, -3 * e - 20)--(-20,-3 * e - 20)--cycle;
+
+endfig;
+
 end
