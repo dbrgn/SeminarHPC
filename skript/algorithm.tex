@@ -1161,85 +1161,139 @@ x_1-\frac{v_1^tv_1}{v_1^tAv_1}v_1
 =\frac17\begin{pmatrix}9\\-10\end{pmatrix}.
 \]
 Wenn das angek"undigte Programm funktionieren soll, dann muss der n"achste
-Abstiegsschritt bereits die L"osung liefern.
+Abstiegsschritt bereits die L"osung liefern (Abbildung~\ref{descent3}).
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.55\hsize]{graphics/descent-3.pdf}
+\end{center}
+\caption{Optimaler Abstieg in zwei Dimensionen, mit Gradient von $J(x_1)$
+als erster Abstiegsrichtung.
+\label{descent3}}
+\end{figure}
+Die zweite Abstiegsrichtung ist also
+\[
+v_2=
+x_3-x_2
+=\begin{pmatrix}2\\-2\end{pmatrix}-
+\frac17\begin{pmatrix}9\\-10\end{pmatrix}
+=
+\frac17\begin{pmatrix}5\\-4\end{pmatrix}
+\]
+Die Richtungen $v_1$ und $v_2$ sind offensichtlich nicht orthogonal,
+wie der Fall $A=E$ suggeriert hat (Abbildung~\ref{descent:exact}).
+Aber es gilt
+\begin{align}
+v_1^tAv_2
+&=
+\frac17\begin{pmatrix}5\\-4\end{pmatrix}
+\begin{pmatrix}
+1&\frac12\\
+\frac12&1
+\end{pmatrix}
+\begin{pmatrix}1\\2\end{pmatrix}
+=
+\frac17\begin{pmatrix}5\\-4\end{pmatrix}
+\begin{pmatrix}2\\\frac52\end{pmatrix}
+=\frac17\biggl(5\cdot 2-4\cdot\frac52\biggr)=0.
+\label{descent:ortho}
+\end{align}
+Man nennt zwei Richtungen $v_1$ und $v_2$ mit dieser Eigenschaft
+konjugierte Richtungen zur Matrix $A$.
 
 \subsubsection{Das Skalarprodukt zu $A$}
-Das gew"ohnliche Skalarprodukt wurde f"ur die Definition einer Folge von
-Vektoren verwendet, um die Folge von Richtungen $v_i$ zu konstruieren.
-Nat"urlich funktioniert das nur f"ur $A=E$, also f"ur eine Kugel als 
-Niveaufl"ache der Funktion $J(x)$.
+Der allgemeine Fall ist nur deshalb schwierig, weil wir Ellipsen
+erhalten, wenn wir die Niveau-Linien von $J(x)$ aufzeichen.
+Und auch nur, weil wir darauf bestehen, als L"ange eines Vektors den
+Wert $v^tv$ zu verwenden.
+W"urden wir stattdessen als L"angenmass die ebenfalls positive
+Gr"osse $v^tAv$ verwenden, dann w"aren alle Punkte mit gleichem $J(x)$
+gleich weit von der L"osung entfernt.
+Wenn $v^tAv$ das L"angenmass sein soll, dann muss nat"urlich auch das
+Skalarprodukt ersetzt werden, statt des gew"ohnlichen Skalarproduktes
+$\langle x,y\rangle =x^ty$ muss man also das verallgemeinerte
+Skalarprodukt $\langle x, y\rangle_A=x^tAy$ verwenden.
 
-Die Matrix $A$ definiert auch ein Skalarprodukt
-\[
-\langle x,y\rangle_A=x^tAy,
-\]
-und eine Norm
-\[
-|x|_A=\sqrt{\langle x,x\rangle_A}.
-\]
-Sei $x_0$ die gesuchte L"osung, also $Ax_0=b$.
-Dann gilt
+Die zweite Abstiegsrichtung k"onnen wir also wieder den Gradienten
+verwenden, aber in Richtung $v_1$ ist ja schon der optimale Abstiegsschritt
+durchgef"uhrt worden, wir m"ussen also die Komponenten des Gradienten
+in Richtung von $v_1$ abziehen:
 \begin{align*}
-\langle x-x_0,x-x_0\rangle_A
-&=
-(x-x_0)^tA(x-x_0)
-\\
-&=x^tAx-2x^tAx_0+x_0^tAx_0
-\\
-&=\langle x,x\rangle_A -2x^tb+x_0^tb
-\\
-&=2J(x)+x_0^tb
+v_2'&=\operatorname{grad}J(x_2)=Ax_2-b
+&\Rightarrow&
+&
+v_2&=v_2'-\frac{\langle v_1,v_2'\rangle_A}{\langle v_1,v_1\rangle_A}v_1.
 \end{align*}
-Die L"osung wird also gefunden als das Minimum einer quadratischen Form
-$\langle x-x_0,x-x_0\rangle_A$.
-Verwendet man das von $A$ erzeugte Skalarprodukt zur L"angenbestimmung,
-dann sind die Niveaufl"achen Kugeln, und es kann eine beliebige Folge
-von orthonormierten Vektoren f"ur den Abstieg verwendet werden.
-Allerdings muss Orthogonalit"at ebenfalls im Sinne des Skalarprodukts
-$\langle\cdot ,\cdot \rangle_A$ gew"ahlt werden.
 
 \begin{beispiel}
-Wir wollen einmal mehr das Gleichungssystem mit Matrix
-\[
-A=\begin{pmatrix}
-1&\frac12\\\frac12&1
-\end{pmatrix}
-\qquad
-\text{und}
-\qquad
-b=\begin{pmatrix}1\\-1\end{pmatrix}
-\]
-l"osen. Ausgehend vom Punkt $(1,0)$ bestimmen wir jetzt eine Folge
-von Vektoren.
-Als ersten Vektor verwenden wir wieder den Gradienten an dieser 
-Stelle:
+Im altbekannten Beispiel bekommen wir
 \begin{align*}
-x_1&=\begin{pmatrix}1\\0\end{pmatrix},
-&
-v_1&=Ax_1-b=\begin{pmatrix}0\\\frac32\end{pmatrix},
-&
-|v_1|_A&=\frac32,
-&
-v_1'&=\frac1{|v_1|_A}v_1=\begin{pmatrix}0\\1\end{pmatrix}
+v_2'&
+=Ax_2-b
+=\begin{pmatrix}1&\frac12\\\frac12&1\end{pmatrix}\frac17\begin{pmatrix}9\\-10\end{pmatrix}-\begin{pmatrix}1\\-1\end{pmatrix}
+=\frac17\begin{pmatrix}4\\-\frac{11}2\end{pmatrix}
+ -\begin{pmatrix}1\\-1\end{pmatrix}
+=\frac17\begin{pmatrix}-3\\\frac32\end{pmatrix}
 \end{align*}
+Dies ist aber nicht die Abstiegsrichtung, davon muss erst die Komponente
+in $v_1$-Richtung entfernt werden. Dazu m"ussen die Skalarprodukte
+$\langle v_1,v_1\rangle_A$ und $\langle v_1,v_2'\rangle_A$ berechnet
+werden
 \begin{align*}
-x_2&=x_1-\frac{\langle v_1',Ax_1-b \rangle_A}{\langle v_1',v_1'\rangle_A}v_1'=
-\begin{pmatrix}1\\0\end{pmatrix}-\frac32\begin{pmatrix}0\\1\end{pmatrix}
+\langle v_1,v_1\rangle_A
+&=
+v_1^tAv_1
 =
-\begin{pmatrix}1\\-\frac32\end{pmatrix}.
+\begin{pmatrix}1\\2\end{pmatrix}^t
+\begin{pmatrix}1&\frac12\\\frac12&1\end{pmatrix}
+\begin{pmatrix}1\\2\end{pmatrix}
+=
+\begin{pmatrix}1\\2\end{pmatrix}^t
+\begin{pmatrix}2\\\frac52\end{pmatrix}=7
+\\
+\langle v_1,v_2'\rangle_A
+&=
+v_2'^tAv_1=
+\frac17
+\begin{pmatrix}-3\\\frac32\end{pmatrix}^t
+\begin{pmatrix}2\\\frac52\end{pmatrix}
+=\frac17\biggl(-6+\frac{15}{4}\biggr)
+=-\frac9{28}
+\\
+v_2&=
+v_2'-\frac{\langle v_1,v_2'\rangle_A}{\langle v_1,v_1\rangle_A}v_1
+=
+\frac17\biggl(
+\begin{pmatrix}-3\\\frac32\end{pmatrix}
++\frac9{28}
+\begin{pmatrix}1\\2\end{pmatrix}
+\biggr)
+=
+\frac{15}{196}\begin{pmatrix}-5\\4\end{pmatrix}.
 \end{align*}
-Jetzt muss die n"achste Richtung bestimmt werden.
-Wir m"ochten dazu zwar wieder $Ax_2-b$ verwenden, davon aber nur die Komponente
-senkrecht auf $v_1$, also
-\begin{align*}
-v_2&=Ax_2-b=\begin{pmatrix}-\frac34\\0\end{pmatrix},
-&
-v_2'&=v_2-\langle v_1,v_2\rangle_A v_1
-=\begin{pmatrix}-\frac34\\-1\end{pmatrix}
-%&
-%v_2'
-%&=\frac{v_2-\langle v_1,v_2\rangle_A v_1}{|v_2-\langle v_1,v_2\rangle_A v_1|}_A
-%=
-\end{align*}
-Jetzt erfolgt wieder ein Abstiegsschritt in Richtung $v_2'$
+Der Vektor $v_2'$ hat genau die Richtung, die wir als die optimale
+Richtung im vorangegangenen Beispiel erkannt haben.
 \end{beispiel}
+
+\subsubsection{Optimale Abstiegsrichtungsfolge}
+Das Skalarprodukt $\langle\cdot,\cdot\rangle_A$ kann also dazu verwendet
+werden, aus der Folge der Gradienten $v_i'=\operatorname{grad}J(x_i)$
+durch Orthogonalisieren eine Folge von Abstiegsrichtungen zu 
+konstruieren. Dabei gilt
+\[
+v_i=v_i' - \sum_{j=1}^{i-1}\frac{\langle v_i,v_j\rangle_A}{\langle v_j,v_j\rangle_A}v_j
+\]
+Diese Formel kann sogar noch etwas vereinfacht werden, wenn man die
+Vektoren $v_j$ normiert bez"uglich der L"angenmessung mit dem Skalarprodukt
+$\langle\cdot,\cdot\rangle_A$.
+Die L"ange eines Vektors in diesem Skalarprodukt ist
+\[
+|v|_A=\sqrt{\langle v,v\rangle_A}.
+\]
+Wir definieren die Folge der Vektoren $v_i$ daher wie folgt:
+\begin{align*}
+v_{i+1}'&=\operatorname{grad}J(x_i)=Ax_i-b\\
+v_{i+1}''&=v_{i+1}'-\sum_{j=1}^{i}\langle v_j,v_{i+1}'\rangle_A v_j\\
+v_{i+1}&=\frac1{|v_{i+1}''|_A}v_{i+1}''
+\end{align*}
+Mit dieser Richtung f"uhrt man dann den Abstiegsschritt durch.
+
