@@ -386,7 +386,7 @@ m"oglich ist, man m"usste aber vom Jacobi-Algorithmus ausgehenG
 
 \subsection{Matrix-Aufteilung}
 Das Jacobi- und das Gauss-Seidel-Verfahren sind beide Spezialf"alle
-der folgenden Aufteilung der Matrix $A$ in zwei Teile. 
+einer Aufteilung der Matrix $A$ in zwei Teile. 
 Von einer Matrix-Aufteilung sprechen wir, wenn $A$ als $M+N$ geschrieben
 werden kann, so dass
 \begin{equation}
@@ -395,7 +395,15 @@ Mx=b-Nx
 \Rightarrow
 \qquad
 x=M^{-1}(b-Nx).
+\label{aufteilung:iteration}
 \end{equation}
+Wenn $x$ noch nicht die L"osung ist, dann kann man versuchen, aus einer
+approximativen L"osung $x_i$ eine verbesserte L"osung zu bestimmen:
+\[
+x_{i+1}=M^{-1}(b - Nx).
+\]
+Ob das Verfahren konvergiert, werden wir sp"ater untersuchen.
+
 Der Jacobi-Algorithmus entspricht dem Fall 
 \begin{equation}
 M=\begin{pmatrix}
@@ -403,11 +411,32 @@ a_{11}&     0&\dots &0\\
      0&a_{22}&\dots &0\\
 \vdots&\vdots&\ddots&\vdots\\
      0&     0&\dots &a_{nn}
-\end{pmatrix}=D.
+\end{pmatrix}=D,
 \label{jacobi-aufteilung}
 \end{equation}
-Der Gauss-Seidel-Algorithmus entspricht dem Fall
-\[
+denn (\ref{aufteilung:iteration}) bedeutet nichts anderes,
+als dass auf Zeile $i$ alle Variablen ausser $x_i$ auf die rechte
+Seite geschafft werden, das sind genau diejenigen Variablen, f"ur die
+auf Zeilen $i$ von $N$ nicht verschwindende Koeffizienten vorhanden sind.
+
+Die Zerlegung, die dem Gauss-Seidel-Algorithmus entspricht, ist etwas
+schwieriger.
+Bezeichnen wir die alten Variablen mit $x$ und die neuen mit $x'$, dann
+bedeutet Gauss Seidel, dass die Variablen $x'$ mit folgenden Gleichungen
+bestimmt werden:
+\begin{equation}
+\begin{linsys}{8}
+a_{11}x_1'   &+&             & &     &          &=&b_1    &-&a_{12}x_2&-&a_{13}x_3&-&\dots&-&a_{1n}x_n\\
+a_{21}x_1'   &+&a_{22}x_2'   & &     &          &=&b_2    & &         &-&a_{23}x_3&-&\dots&-&a_{2n}x_n\\
+a_{31}x_1'   &+&a_{32}x_2'   & &     &          &=&b_3    & &         & &         & &\dots&-&a_{3n}x_n\\
+   \vdots    & &\vdots       & &     &          & &       & &         & &         & &     & &         \\
+a_{n-1,1}x_1'&+&a_{n-1,2}x_2'&+&     &          &=&b_{n-1}& &         & &         & &     &-&a_{3,n-1}x_{n-1}\\
+a_{n1}x_1'   &+&a_{n2}x_2'   &+&\dots&a_{nn}x_n'&=&b_n    & &         & &         & &     & &
+\end{linsys}
+\label{gauss-seidel:herleitung}
+\end{equation}
+Schreibt man
+\begin{equation}
 M=\begin{pmatrix}
 a_{11}&     0& \dots&     0\\
 a_{21}&a_{22}& \dots&     0\\
@@ -420,8 +449,16 @@ N=\begin{pmatrix}
      0&     0&\dots &a_{2n}\\
 \vdots&\vdots&\ddots&\vdots\\
      0&     0&\dots &     0
-\end{pmatrix}.
+\end{pmatrix},
+\label{gauss-seidel:zerlegung}
+\end{equation}
+dann wird  (\ref{gauss-seidel:herleitung}) zur Matrixgleichung
+\[
+Mx' = b - Nx\qquad\Rightarrow\qquad x'=M^{-1}(b-Nx).
 \]
+Die Zerlegung von $A$ in die Matrizen $M$ und $N$ aus
+(\ref{gauss-seidel:zerlegung}) liefert also den Gauss-Seidel-Algorithmus.
+
 Nat"urlich ist so eine Aufteilung nur dann sinnvoll, wenn 
 $M$ auf effiziente Art invertierbar ist.
 F"ur (\ref{jacobi-aufteilung}) ist dies klar, die Inverse der
@@ -430,6 +467,76 @@ Diagonalelemente von $D$.
 Im Gauss-Seidel-Fall ist eine Dreicksmatrix zu invertieren, 
 was durch die Formeln (\ref{gauss-seidel-iteration}) bereits
 erledigt ist.
+
+Nat"urlich kann man sich viele weitere Aufteilungen einer
+Matrix ausdenken:
+
+\begin{beispiel}
+Wir untersuchen die L"osung eines Gleichungssystems mit folgender
+Koeffizientenmatrix:
+\begin{align*}
+A=\begin{pmatrix}
+2&1&0\\
+2&3&2\\
+0&1&2
+\end{pmatrix}
+=
+\frac52E
++
+\underbrace{
+\frac12
+\begin{pmatrix}
+-1&2& 0\\
+ 2&1& 2\\
+ 0&2&-1
+\end{pmatrix}
+}_N
+,
+\quad
+M=\frac52E
+\end{align*}
+Die Matrix $M$ ist leicht zu invertieren, es ist $M=\frac25E$.
+Die Iterationsformel (\ref{aufteilung:iteration}) wird damit zu
+\begin{equation}
+x=
+\frac25(b-Nx)
+=\frac25b - \frac15\begin{pmatrix}
+-1&2& 0\\
+ 2&1& 2\\
+ 0&2&-1
+\end{pmatrix}x.
+\end{equation}
+Mit 
+\begin{align*}
+b&=
+\begin{pmatrix}1\\2\\3\end{pmatrix},
+&
+x&=
+\begin{pmatrix}0\\0\\0\end{pmatrix}
+\end{align*}
+erhalten wir die folgende Iterationsfolge:
+\begin{center}
+\begin{tabular}{|>{$}r<{$}|>{$}r<{$}>{$}r<{$}>{$}r<{$}|>{$}r<{$}|}
+\hline
+i&x_{i,0}&x_{i,1}&x_{i,2}&e_i\\
+\hline
+1& 0.00000& 0.00000& 0.00000& 3.7417\\
+2& 0.40000& 0.80000& 1.20000& 2.0976\\
+3& 0.16000& 0.00000& 1.12000& 1.2484\\
+4& 0.43200& 0.28800& 1.42400& 0.74833\\
+5& 0.37120& 0.00000& 1.36960& 0.44895\\
+6& 0.47424& 0.10368& 1.47392& 0.26937\\
+7& 0.45338& 0.00000& 1.45331& 0.16162\\
+8& 0.49066& 0.03733& 1.49066& 0.09697\\
+9& 0.48321& 0.00000& 1.48320& 0.05818\\
+\vdots&   &        &        &        \\
+\infty& 0.50000& 0.00000& 1.50000&\\
+\hline
+\end{tabular}
+\end{center}
+Das Verfahren funktioniert, allerdings ist es nicht schneller als der 
+gew"ohnliche Jacobi-Algo\-rithmus.
+\end{beispiel}
 
 \subsection{Konvergenz\label{section-konvergenz}}
 Die Aufteilung der Matrix $A=M+N$ erm"oglicht nun auch eine Untersuchung
@@ -489,7 +596,7 @@ d_1C^ku_1+\dots+d_nC^ku_n
 d_1\lambda_1^ku_1+\dots+d_n\lambda_n^ku_n.
 \]
 Die Summe auf der rechten Seite kann nur dann gegen 0 konvergieren, wenn
-jeder der $\lambda_i$ Betrag $|\lambda_i|<1$ haben. 
+jedes $\lambda_i$ Betrag $|\lambda_i|<1$ hat. 
 
 \begin{definition}
 Sind $\lambda_i$ alle Eigenwerte einer Matrix $C$, dann heisst
@@ -637,7 +744,7 @@ Auch in diesem Fall werden die Komponenten $v_2,\dots,v_n$,
 immer kleiner, im Grenzwert $k\to\infty$ bleibt nur die Komponente
 $v_1$ normiert auf L"ange $1$.
 
-Der neue Algorithmus lautet also: man beginne mit irgen einem Vektor
+Der neue Algorithmus lautet also: man beginne mit irgend einem Vektor
 $u_0$, und konstruiere daraus die Folge
 \begin{equation}
 u_{k+1}=\frac{Au_k}{|Au_k|}, \quad k\ge 0
@@ -987,7 +1094,7 @@ wie folgt aussehen:
 Berechne den Gradienten $v=\operatorname{grad}J(x_1)$ und
 korrigiere gem"ass der Abstiegsformel (\ref{descent:main})
 \item Wiederhole \ref{descent:loop0} so lange,
-bis $|J(x_{i+1})-J(x_i)|<\varepsilon$.
+bis $|x_{i+1}-x_i|<\varepsilon$.
 \end{enumerate}
 Man kann nicht allzuviel von ihm erwarten, denn er sucht ja nur immer
 entlang einer Geraden.
@@ -1009,7 +1116,7 @@ x_2&=\begin{pmatrix}2\\-2\end{pmatrix}&v&=0.
 In diesem speziellen Fall liefert der Algorithmus also die L"osung in einem
 Schritt, ein Gl"ucksfall, von dem wir im Allgemeinen nicht ausgehen d"urfen.
 Mit zuf"alligen Anfangswerten liefert
-die Iterationsformel (\ref{descent:iteration}) 
+die Iterationsformel (\ref{descent:main}) 
 \begin{center}
 \begin{tabular}{|>{$}r<{$}|>{$}r<{$}|>{$}r<{$}|>{$}r<{$}|}
 \hline
@@ -1061,15 +1168,22 @@ zum Kreismittelpunkt, also zur L"osung f"uhren.
 
 In $n$ Dimensionen ist der schlimmste Fall, dass sich der Abstieg in
 der Ebene abspielt, die von den Eigenvektoren zum kleinsten und gr"ossten
-Eigenwert aufgespannt wird. Es gen"ugt daher, sich diesen Fall genauer
-zu "uberlegen. Aus Abbildung~\ref{descent:path} kann man ablesen,
+Eigenwert aufgespannt wird. Es gen"ugt daher, sich den zweidimensionalen
+Fall genauer zu "uberlegen.
+
+Aus Abbildung~\ref{descent:path} kann man ablesen,
 dass in zwei Dimensionen die Richtungen der aufeinanderfolgenden 
 Abstiegsschritte immer senkrecht aufeinander stehen.
+Die Gerade, entlang der der Abstieg erfolgt, ber"uhrt n"amlich die
+Niveaulinie im n"achsten Punkt der Absteigsfolge. 
+Der Gradient an dieser Stelle ist die n"achste Abstiegsrichtung, und
+dieser steht senkrecht auf der Tangente.
+
 Insbesondere ist die Richtung des Gradienten beim dritten Schritt wieder
 die gleiche wie beim zweiten Schritt.
 Dies ist nur m"oglich, wenn der Pfad ausgehend von $x_3$ durch
-zentrische Streckung aus dem Pfad $x_1$ hervorgeht.
-Sei $q$ der zugeh"orige Streckfaktor.
+zentrische Streckung aus dem Pfad ausgehend von $x_1$ hervorgeht.
+Sei $q$ der zugeh"orige Streckfaktor, $x_{i+2}=q^2x_i$.
 In jeweils zwei Abstiegsschritten nimmt der Fehler daher ebenfalls um
 den Faktor $q$ ab. Man kann also die Konvergenzgeschwindigkeit im
 schlimmsten Fall absch"atzen, wenn man $q$ kennt.
