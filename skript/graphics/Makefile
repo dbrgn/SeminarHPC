@@ -4,7 +4,7 @@
 # (c) 2014 Prof Dr Andreas Mueller, Hochschule Rappersil
 # $Id$
 # 
-all:	work numa laplacian descent descent3d.png
+all:	work numa laplacian descent descent3d.jpg cgresults.pdf
 
 work:	work-1.pdf
 
@@ -37,3 +37,9 @@ descent3d.png:	descent3d.pov
 
 descent3d.jpg:	descent3d.png
 	convert descent3d.png -scale 50% descent3d.jpg
+
+cgresults.csv:	cgexample.m
+	octave < cgexample.m
+
+cgresults.pdf:	cgexample.R cgresults.csv
+	R --vanilla --quiet < cgexample.R

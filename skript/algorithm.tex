@@ -1278,7 +1278,9 @@ Richtung im vorangegangenen Beispiel erkannt haben.
 Das Skalarprodukt $\langle\cdot,\cdot\rangle_A$ kann also dazu verwendet
 werden, aus der Folge der Gradienten $v_i'=\operatorname{grad}J(x_i)$
 durch Orthogonalisieren eine Folge von Abstiegsrichtungen zu 
-konstruieren. Dabei gilt
+konstruieren.
+Das Orthogonalsierungsverfahren nach Gram-Schmidt liefert die
+orthogonalisierten Vektoren
 \[
 v_i=v_i' - \sum_{j=1}^{i-1}\frac{\langle v_i,v_j\rangle_A}{\langle v_j,v_j\rangle_A}v_j
 \]
@@ -1290,10 +1292,73 @@ Die L"ange eines Vektors in diesem Skalarprodukt ist
 |v|_A=\sqrt{\langle v,v\rangle_A}.
 \]
 Wir definieren die Folge der Vektoren $v_i$ daher wie folgt:
-\begin{align*}
-v_{i+1}'&=\operatorname{grad}J(x_i)=Ax_i-b\\
-v_{i+1}''&=v_{i+1}'-\sum_{j=1}^{i}\langle v_j,v_{i+1}'\rangle_A v_j\\
+\begin{align}
+v_{i+1}'&=\operatorname{grad}J(x_i)=Ax_i-b
+\notag\\
+v_{i+1}''&=v_{i+1}'-\sum_{j=1}^{i}\langle v_j,v_{i+1}'\rangle_A v_j
+\label{cg:ortho}
+\\
 v_{i+1}&=\frac1{|v_{i+1}''|_A}v_{i+1}''
-\end{align*}
+\notag
+\end{align}
 Mit dieser Richtung f"uhrt man dann den Abstiegsschritt durch.
+
+Damit haben wir jetzt ein Iterationsverfahren konstruiert, welches nicht
+nur immer bessere Werte liefert, sondern in $n$ Schritten sogar die exakte
+L"osung.
+Es hat aber immer noch einige Nachteile. Einerseits m"ussen alle bisherigen
+Abstiegsrichtungen gespeichert werden, und die Formel (\ref{cg:ortho}) wird
+mit jedem neu berechneten Vektor $v_j$ umfangreicher auszuwerten.
+Die sp"ateren Schritte des Verfahrens sind also langsamer.
+Das es auch bei der Konvergenzgeschwindigkeit noch Verbesserungspotential
+gibt, zeigen die folgenden Beispiele.
+
+\begin{beispiel}
+Man l"ose des Gleichungssystem mit 
+\begin{align*}
+A&=\begin{pmatrix}
+     1&\alpha&     0&      &      \\
+\alpha&     1&\alpha&      &      \\
+     0&\alpha&     1&\smash{\ddots}&      \\
+      &      &\ddots&\ddots&      \\
+      &      &      &      &     1
+\end{pmatrix}
+&
+b&=\begin{pmatrix}1\\1\\1\\\vdots\\1\end{pmatrix},
+&
+x_1&=\begin{pmatrix}1\\0\\0\\\vdots\\0\end{pmatrix}.
+\end{align*}
+Mit dem CG-Verfahren, und bestimme die Konvergenzgeschwindigkeit.
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=\hsize]{graphics/cgresults.pdf}
+\end{center}
+\caption{Fehler des CG-Verfahrens in Abh"angigkeit von der Anzahl
+Iterationsschritte f"ur verschiedene Werte von $\alpha$.
+Zum Vergleich jeweils die Gerade mit Steigung
+$q=(\sqrt{\kappa_2(A)}-1)/(\sqrt{\kappa_2(A)}+1)$.
+\label{cg:example}}
+\end{figure}
+Die Abbildung \ref{cg:example} zeigt die Restfehler f"ur $n=20$
+in Abh"angigkeit von der Anzahl Iterationsschritte.
+Es ist klar, dass nach 20 Schritten die exakte L"osung gefunden wird, also
+kein Fehler mehr "ubrig bleibt.
+Wie zu erwarten nehmen die Fehler ungef"ahr in geometrischer Folge ab,
+doch nur f"ur vergleichsweise kleine Werte von $\alpha$ ist die Konvergenz
+einigermassen schnell.
+F"ur $\alpha = 0.5$ hat das Resultat auch nach 19 Schritten nur vier
+korrekte signifikante Stellen.
+\end{beispiel}
+
+Der CG-Algorithmus garantiert zwar, dass die exakte L"osung gefunden
+wird, aber er ist nicht notwendigerweise viel schneller als die bisher
+gefundenen Algorithmen.
+Im Folgenden muss auch daf"ur die Ursache gefunden werden, und es m"ussen
+Methoden entwickelt werden, mit denen die schnelle Konverenz sichergestellt
+werden kann.
+
+\subsubsection{Orthogonalit"at der Fehler}
+
+\subsubsection{Pr"akonditionierung}
 

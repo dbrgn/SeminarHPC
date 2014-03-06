@@ -20,7 +20,9 @@ TEXFILES = vorwort.tex einleitung.tex maschinen.tex sprachen.tex \
 
 BLXFILES = skript1-blx.bbl skript2-blx.bbl
 
-skript.pdf:	skript.tex $(TEXFILES) skript.ind $(BLXFILES)
+IMAGES = graphics/cgresults.pdf
+
+skript.pdf:	skript.tex $(TEXFILES) skript.ind $(BLXFILES) $(IMAGES)
 	pdflatex skript.tex
 	bibtex skript
 
