@@ -1,0 +1,16 @@
+load("vect");
+
+A: matrix([a, 0], [0, b]);
+x1: matrix([x], [y]);
+r1: A . x1;
+x2: x1 - r1 * (transpose(r1) . A . x1) / (transpose(r1) . A . r1);
+r2: matrix(r1[2], -r1[1]);
+x3: x2 - r2 * (transpose(r2) . A . x2) / (transpose(r2) . A . r2);
+q1: x3[1] / x, a = e * b;
+q2: x3[2] / y, a = e * b;
+rat(q1);
+q: rat(q2), y = t * x;
+d: diff(q, t);
+solve([d[1] = 0], [t]);
+ratsimp(q, t = e);
+l: ratsimp(q), t = -e;

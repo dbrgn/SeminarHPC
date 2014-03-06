@@ -1052,6 +1052,59 @@ In diesem zweidimensionalen Fall ist sofort erkennbar, wie dass der
 Pfad selbst"ahnlich ist, die Genauigkeit wird also in jedem Iterationsschritt
 um den gleichen Faktor kleiner.
 
+\subsection{Steilster Abstieg: Worst case}
+Die steilste Abstieg funktioniert deshalb bereits in zwei Dimensionen
+nicht besonders gut, weil die Folge $x_i$ in dem von $J(x)$ beschriebenen
+``Tal'' hin- un heroszilliert (Abbildung~\ref{descent:path}).
+W"aren die Niveaulinien von $J(x)$ Kreise, w"urde der Abstieg direkt
+zum Kreismittelpunkt, also zur L"osung f"uhren.
+
+In $n$ Dimensionen ist der schlimmste Fall, dass sich der Abstieg in
+der Ebene abspielt, die von den Eigenvektoren zum kleinsten und gr"ossten
+Eigenwert aufgespannt wird. Es gen"ugt daher, sich diesen Fall genauer
+zu "uberlegen. Aus Abbildung~\ref{descent:path} kann man ablesen,
+dass in zwei Dimensionen die Richtungen der aufeinanderfolgenden 
+Abstiegsschritte immer senkrecht aufeinander stehen.
+Insbesondere ist die Richtung des Gradienten beim dritten Schritt wieder
+die gleiche wie beim zweiten Schritt.
+Dies ist nur m"oglich, wenn der Pfad ausgehend von $x_3$ durch
+zentrische Streckung aus dem Pfad $x_1$ hervorgeht.
+Sei $q$ der zugeh"orige Streckfaktor.
+In jeweils zwei Abstiegsschritten nimmt der Fehler daher ebenfalls um
+den Faktor $q$ ab. Man kann also die Konvergenzgeschwindigkeit im
+schlimmsten Fall absch"atzen, wenn man $q$ kennt.
+
+Sei $a$ der gr"osste Eigenwert von $A$ , und $b$ der kleinste Eigenwert,
+dann ist die Matrix $A$ in einem geeigneten Koordinatensystem
+\[
+A=\begin{pmatrix}a&0\\0&b\end{pmatrix}.
+\]
+Ausgehend von einem Punkt $(x,y)$ kann man jetzt zwei Abstiegsschritte
+durchf"uhren, und damit den Streckfaktor $q$ bestimmen.
+Die Durchf"uhrung der Rechnung ist ziemlich m"uhselig, das
+File \verb+descent.maxima+ zeigt, wie diese Berechnung mit dem
+Computeralgebrasystem Maxima durchgef"uhrt werden kan. Man findet,
+dass 
+\[
+q\le \biggl(\frac{\frac{a}{b}-1}{\frac{a}{b}+1}\biggr)^2.
+\]
+Man nennt den Quotienten $\kappa_2(A)=\frac{a}{b}$ auch die
+Konditionszahl der Matrix $A$.
+F"ur den Fehler $e_n$ nach $n$ Iterationen gilt also
+\[
+|e_n| \le C\biggl(\frac{\kappa_2(A)-1}{\kappa_2(A)+1}\biggr)^n.
+\]
+Schnelle Konvergenz kann man also nur erwarten, wenn die Konditionszahl
+nahe bei $1$ liegt. F"ur die Beispielmatrix ist 
+\[
+\kappa_2
+\begin{pmatrix}1&\frac12\\\frac12&1\end{pmatrix}
+=
+3\qquad\Rightarrow\qquad
+|e_n|\le C\biggl(\frac{3-1}{3+1}\biggr)=C\frac1{2^n},
+\]
+was die Beobachtung best"atigt, dass der Fehler in jedem Schritt halbiert
+wird.
 
 \subsection{Konjugierte Gradienten}
 Besonders schnell zur L"osung kommt man, wenn der Startpunkt auf einer
