@@ -1654,15 +1654,67 @@ Der neue Vektor $r_{k+1}$ ist
 \[
 r_{k+1}=Ax_{k+1} = A(x_k-\alpha v_k)=Ax_k -\alpha Av_k=r_k-\alpha Av_k.
 \]
+Der genaue Wert f"ur $\alpha$ kann aus der Abstiegsformel ermittel werden,
+f"ur die "Uberlegungen hier ist er nicht erforderlich.
 Der erste Summand ist sicher in $\langle r_1,\dots,r_k\rangle$, also
 nach Induktionsvoraussetzung in ${\cal K}_k(A,r_1)$.
 Der Vektor $v_k$ ist nach Induktionsvoraussetzung in ${\cal K}_k(A,r_1)$,
 also ist $Av_k$ in ${\cal K}_{k+1}(A,r_1)$.
 Daraus folgt, dass auch $r_{k+1}$ in ${\cal K}_{k+1}(A,r_1)$ liegen muss.
 Damit ist die erste Inklusion in (\ref{cg:inclusions}) gezeigt.
+
+Jetzt m"ussen wir nachweisen, dass
+\[
+\langle r_1,\dots,r_{k+1}\rangle
+\supset 
+\langle v_1,\dots,v_{k+1}\rangle.
+\]
+Dazu nur zu zeigen, dass $v_{k+1}$
+aus den $r_j,j\le k+1$ linear kombiniert werden kann, dann f"ur
+die Vaktoren $v_j,j\le k$ ist dies nach Induktionsvoraussetzung
+bereits bekannt. $v_{k+1}$ entsteht aus $r_{k+1}$ durch 
+Orthogonalisieren bez"uglich der Abstiegsrichtungen $v_j,j\le k$,
+also
+\[
+v_{k+1}=r_{k+1} + \sum_{j=1}^k c_{k+1,j}v_j.
+\]
+$v_{k+1}$ wird also linear kombiniert aus Vektoren in
+$\langle r_1,\dots,r_{r+1}$, damit ist die zweite Inklusion in
+(\ref{cg:inclusions}) bewiesen.
+
+Jetzt m"ussen wir nur noch zeigen, dass beiden Enden der Inklusionskette
+(\ref{cg:inclusions}) die gleiche Dimension haben.
+Die Vektoren $v_i$ sind nach Konstruktion orthogonal und von $0$ verschieden,
+sie sind daher auch linear unabh"angig. Damit ist 
+\[
+\dim\langle v_1,\dots,v_{k+1}\rangle=k+1=\dim{\cal K}_{k+1}(A,r_1),
+\]
+damit ist der Induktionsschritt vollzogen.
 \end{proof}
 
+\begin{satz}
+\label{cg:orthogonality}
+Es gilt
+\[
+\langle r_{i+1}, v_j \rangle_A = 0
+\]
+f"ur alle $j<i$, insbesondere reduziert sich die Abstiegsformel (\ref{cg:ortho})
+auf
+\[
+v_i'' = r_i - \langle r_i, v_{i-1}\rangle_A v_{i-1}.
+\]
+\end{satz}
+
+\begin{proof}[Beweis]
+Der Vektor $v_{i+1}$ entsteht aus $r_{i+}$ durch Orthogonalisierung.
+\end{proof}
 }
+
+Satz~\ref{cg:orthogonality}
+bedeutet insbesondere, dass immer nur die letzte Abstiegsrichtung
+gespeichert werden muss, und dass f"ur die Berechnung der n"achsten
+Abstiegsrichtung immer nur ein einziges Skalarprodukt berechnet werden
+muss.
 
 \subsubsection{Formulierung des CG-Algorithmus}
 
