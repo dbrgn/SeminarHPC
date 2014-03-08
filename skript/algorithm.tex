@@ -1537,7 +1537,7 @@ Im Folgenden muss auch daf"ur die Ursache gefunden werden, und es m"ussen
 Methoden entwickelt werden, mit denen die schnelle Konverenz sichergestellt
 werden kann.
 
-\subsubsection{Geometrische Beschreibung des CG-Algorithmus}
+\subsubsection{Geometrische Eigenschaften des CG-Algorithmus}
 Im vorangegangenen Abschnitt haben wir die Bestimmung der Abstiegsrichtung
 formal beschrieben. Es ist n"utzlich, die geometrische Bedeutung nochmals
 vor Augen zu f"uhren. 
@@ -1568,6 +1568,51 @@ $\langle\cdot,\cdot\rangle_A$. Es gilt also
 v_i&\perp_A v_j\qquad\forall j< i.
 \label{descent:vorthogonalA}
 \end{align}
+
+Aus dem Fehler $f_i$ der N"aherungsl"osung $x_i$ nach eine Abstiegsschritt
+mit Abstiegsrichtung $v_{i-1}$ kann der Gradient ebenfalls berechnet werden
+mit Hilfe von $Af_i=r_i$.
+Da der Gradient auf der Abstiegsrichtung orthogonal ist, folgt
+\begin{align}
+Af_i&\perp v_{i-1}
+&&\Rightarrow&
+\langle Af_i,v_{i-1}\rangle&=0
+&&\Rightarrow&
+\langle f_i,v_{i-1}\rangle_A&=0.
+\end{align}
+Die Fehler $f_i$ werden in sp"ateren Schritten durch weiter Abstiege
+mit Abstiegsrichtungen $v_j, j\ge i$ verkleinert.
+Diese Abstiegsrichtungen sind alle orthogonal, also ist
+\begin{align*}
+\langle f_i,v_j\rangle&=0,\quad j\ge i-1
+&&\Rightarrow&
+f_i&\perp v_j,\quad j\ge i-1.
+\end{align*}
+
+Abstieg bedeutet aber auch, dass der Fehler auf allen bisherigen
+Abstiegsrichtungen bez"uglich des Skalarproduktes
+$\langle\cdot,\cdot\rangle_A$ senkrecht steht.
+F"ur $j<i$ gilt daher
+\begin{align}
+\langle f_i,v_j\rangle_A&=0
+&&\Rightarrow&
+f_i&\perp_A v_j
+\notag
+\\
+\langle r_i,v_j\rangle
+&=\langle Af_i,v_j\rangle
+=\langle f_i,v_j\rangle_A=0
+&&\Rightarrow&
+r_i&\perp v_j
+\label{cg:rvperp}
+\end{align}
+Da sich $v_{i+1}$ von $r_{i+1}$ nur durch eine Linearkombination von Vektoren
+$v_j,\;j < i$ unterscheidet, die alle auf $r_{i+1}$ senkrecht stehen, folgt
+\[
+\langle v_{i+1},r_{i+1}\rangle
+=
+\langle r_{i+1},r_{i+1}\rangle.
+\]
 
 \subsubsection{Orthogonalit"at der Residuen}
 Wir haben schon darauf hingewiesen, dass die Orthogonalisierung in
@@ -1611,6 +1656,7 @@ das f"ur die im CG-Algorithmus auftretenden Vektoren nicht passiert.
 Die Vektorr"aume ${\cal K}_j(A,v)$ heissen {\em Krylov-Unterr"aume}.
 
 \begin{satz}
+\label{cg:krylovsatz}
 Wenn der CG-Algorithmus in $j$ Schritten die L"osung noch nicht gefunden
 hat, dann gilt
 \begin{equation}
@@ -1679,7 +1725,7 @@ also
 v_{k+1}=r_{k+1} + \sum_{j=1}^k c_{k+1,j}v_j.
 \]
 $v_{k+1}$ wird also linear kombiniert aus Vektoren in
-$\langle r_1,\dots,r_{r+1}$, damit ist die zweite Inklusion in
+$\{ r_1,\dots,r_{r+1}\}$, damit ist die zweite Inklusion in
 (\ref{cg:inclusions}) bewiesen.
 
 Jetzt m"ussen wir nur noch zeigen, dass beiden Enden der Inklusionskette
@@ -1706,7 +1752,27 @@ v_i'' = r_i - \langle r_i, v_{i-1}\rangle_A v_{i-1}.
 \end{satz}
 
 \begin{proof}[Beweis]
-Der Vektor $v_{i+1}$ entsteht aus $r_{i+}$ durch Orthogonalisierung.
+Aus
+$r_{i+1}=Af_{i+1}$
+bekommt man
+\begin{equation}
+\langle r_{i+1},v_j\rangle_A
+=
+\langle r_{i+1},Av_j\rangle.
+\label{xyz}
+\end{equation}
+Die Vektoren $Av_j$ liegen in
+$A\langle v_1,\dots,v_{i-1}\rangle$.
+Nach Satz~\ref{cg:krylovsatz} gilt
+\[
+A\langle v_1,\dots,v_{i-1}\rangle = A{\cal K}_{i-1}(A,r_1)
+\subset {\cal K}_i(A,r_1)
+=\langle v_1,\dots,v_i\rangle.
+\]
+Nach (\ref{cg:rvperp}) steht $r_{i+1}$ auf allen Vektoren $v_j,\; j \le i$
+senkrecht. Insbesondere muss das Skalarprodukt (\ref{xyz}) verschwinden,
+also 
+$\langle r_{i+1},v_j\rangle_A=0$.
 \end{proof}
 }
 
@@ -1717,6 +1783,111 @@ Abstiegsrichtung immer nur ein einziges Skalarprodukt berechnet werden
 muss.
 
 \subsubsection{Formulierung des CG-Algorithmus}
+Aus einer initialen Sch"atzung $x$ f"ur die L"osung des Gleichungssystems
+m"ussen zun"achst die Abstiegsrichtung f"ur den ersten Abstiegsschritt
+bestimmt werden:
+\begin{align*}
+\text{Initialisierung:}&&&\\
+r&\leftarrow Ax - b&&\text{Gradient}\\
+v&\leftarrow r     &&\text{erste Abstiegsrichtung}\\
+l&\leftarrow r^tr  &&\text{L"ange von $r$}
+\end{align*}
+Um die Abstiegsschritte effizient durchf"uhren zu k"onnen, muss man
+vermeiden, viele Multiplikationen mit $A$ durchzuf"uhren.
+So kann man die Berechnung von $r_{i+1}$ wie folgt optimieren. 
+Zun"achst braucht man $q_i=Av_i$ zur Berechung des Skalarproduktes
+$\alpha_i = \langle v_i,v_i\rangle_A=v_i^tAv_i=v_i^tq_i$. 
+\begin{align*}
+           x_{i+1}&=x_i-\alpha_i v_i\\
+r_{i+1}=Ax_{i+1}-b&=Ax_i-b-\alpha_i Av_i=r_i-\alpha_i Av_i = r_i-\alpha_i q_i.
+\end{align*}
+Damit k"onnen jetzt wiederholt Abstiegsschritte durchgef"uhrt werden:
+\begin{align*}
+1.&&     q&\leftarrow Av            &&\\
+2.&&   \mu&\leftarrow v^t q         &&\text{Skalarprodukt
+                                            $\mu=\langle v,v\rangle_A$}\\
+3.&&\alpha&\leftarrow l/\mu         &&\text{Koeffizient f"ur Abstiegsschritt}\\
+4.&&     x&\leftarrow x-\alpha v    &&\text{Update N"aherungsl"osung}\\
+5.&&     r&\leftarrow r-\alpha q    &&\text{Update Gradient}\\
+6.&&   l_2&\leftarrow r^tr          &&\text{L"ange von $r$}\\
+7.&&     v&\leftarrow r - (l_2/l) v &&\text{Orthogonalisierung von $r$ ergibt
+                                            Abstiegsrichtung}\\
+8.&&     l&\leftarrow l_2           &&
+\end{align*}
 
 \subsubsection{Pr"akonditionierung}
+Der CG-Algorithmus ist umso effizienter, je n"aher die Konditionszahl
+$\kappa_2(A)$ bei $1$ liegt.
+Pr"akonditionierung soll dazu dienen, die Konditionszahl zu verbessern.
+Ist $M$ eine Approximation von $A$, die aber leicht zu berechnen
+sein muss, dann kann man den Algorithmus statt auf $Ax=b$ auf
+$M^{-1}Ax=M^{-1}b$ anwenden.
+Massgebend f"ur die Konvergenz ist die Konditionszahl
+$\kappa_2(M^{-1}A)$. 
+Da $M^{-1}A$ eine Approximation der Einheitsmatrix sein wird, darf
+man erwarten, dass die Konditionszahl $\kappa_2(M^{-1}A)$ n"aher bei
+$1$ liegen wird.
 
+\begin{beispiel}
+In der zum Gauss-Seidel-Algorithmus geh"orende Matrixzerlegung
+\[
+A=\begin{pmatrix}1&\frac12\\\frac12&1\end{pmatrix}
+=M+N
+=\begin{pmatrix}1&0\\\frac12&1\end{pmatrix}
++\begin{pmatrix}0&\frac12\\0&0\end{pmatrix}
+\]
+kann $M$ also Approximation von $A$ betrachtet werden.
+Die Konditionszahl einer Matrix kann mit der Funktio {\tt cond} in
+Octave berechnet werden. F"ur die Matrix
+\[
+M^{-1}A=\begin{pmatrix}
+1&\frac12\\0&\frac34
+\end{pmatrix}
+\]
+findet man die Konditionszahl $1.8866$, also tats"achlich eine Verbesserung
+gegen"uber $\kappa_2(A)=3$.
+\end{beispiel}
+
+Dieser einfache Versuch, die Konditionszahl zu verbessern, reicht
+allerdings nicht aus, denn $M^{-1}A$ ist nicht mehr symmetrisch, der
+CG-Algorithmus ist also gar nicht mehr einsetzbar.
+Damit die Symmetrie erhalten bleibt, muss $A$ durch $\tilde A=M^{-1}A(M^{-1})^t$
+ersetzt werden, wobei $M$ so gew"ahlt werden muss, dass $\tilde A$ 
+eine Approximation der Einheitsmatrix wird.
+
+\begin{beispiel}
+F"ur das Standardbeispiel ist
+\[
+\tilde A=
+M^{-1}A(M^{-1})^t
+=
+\begin{pmatrix}
+1&0\\
+0&\frac34
+\end{pmatrix},
+\qquad
+\kappa_2(\tilde A)=\frac43.
+\]
+Der CG-Algorithmus f"ur die Matrix
+$\tilde A$ konvergiert jetzt wesentlich schneller, nach
+(\ref{descent:error})
+nimmt der Fehler in jeder Iteration um den Faktor
+\[
+\frac{\kappa_2(\tilde A) - 1}{\kappa_2(\tilde A) + 1}=\frac17.
+\]
+ab.
+\end{beispiel}
+
+Der CG-Algorithmus ist f"ur grosse Gleichungssysteme nur dann durchf"uhrbar,
+wenn die Matrix $A$ d"unn besetzt ist.
+Andernfalls ist die wiederholte Berechnung von Produktion $Av$ zu aufwendig.
+Diese Eigenschaft muss bei der Pr"akonditionierung erhalten bleiben,
+die Matrix $M^{-1}$ muss auch d"unn besetzt sein.
+
+Es ist nicht effizient, das Produkt $M^{-1}A(M^{-1})^t$ zu berechnen.
+Der CG-Algorithmus sollte daher so umformuliert werden, dass die Inverse
+von $M$ gar nicht n"otig ist.
+Wie das Beispiel der Matrix $M$ beim Gauss-Seidel-Algorithmus zeigt,
+gen"ugt es, effizient eine L"osung von $Mx=b$ berechnen zu k"onnen.
+Eine solche Formulierung ist tats"achlich m"oglich,
+Details dazu in \cite{skript:watkins}.
