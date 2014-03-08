@@ -912,7 +912,7 @@ es mittels Iteration alle Eigenwerte und Eigenvektoren einer beliebigen
 Matrix bestimmen kann, selbst wenn die Eigenvektoren komplex sind.
 Dieses erweiterte Potenzverfahren heisst Francis Verfahren, es
 wurde von John Francis 1961 entwickelt.
-Eine gute Beschreibung findet man auch im Buch von Watkins \cite{watkins}.
+Eine gute Beschreibung findet man auch im Buch von Watkins \cite{skript:watkins}.
 
 \section{Iterative Methoden f"ur symmetrische Matrizen}
 Das Motivationsbeispiel hat eine Eigenschaft, welche bis jetzt noch
@@ -1007,32 +1007,32 @@ auch versuchen, das zugeh"orige Minimalproblem zu l"osen.
 Ausgehend von einer ersten N"aherung $x_1$ der L"osung suchen wir nach einer 
 verbesserten L"osung $x_2$.
 F"ur die Suche nach $x_2$ 
-schr"anken wir uns auf eine einzige Gerade mit Richtungsvektor $r$
+schr"anken wir uns auf eine einzige Gerade mit Richtungsvektor $p$
 ein, dadurch wird das Problem eindimensional und damit einfacher l"osbar.
 
-Wir suchen also denjenigen Wert von $s$, f"ur den $J(x_1+sr)$ minimal
+Wir suchen also denjenigen Wert von $s$, f"ur den $J(x_1+sp)$ minimal
 wird. Dazu berechnen wir
 \begin{align*}
-J(x_1+sr)
+J(x_1+sp)
 &=
-\frac12(x_1+sr)^tA(x_1+sr)-(x_1+sr)^tb\\
+\frac12(x_1+sp)^tA(x_1+sp)-(x_1+sp)^tb\\
 &=
-\frac12 x_1^tAx_1 +s\cdot x_1^tAr +s^2\cdot \frac12 r^tAr-x_1^tb - s\cdot r^t b
+\frac12 x_1^tAx_1 +s\cdot x_1^tAp +s^2\cdot \frac12 p^tAp-x_1^tb - s\cdot p^t b
 \\
-&=s^2\cdot \underbrace{\frac12 r^tAr}_{\text{``$a$''}} + s\cdot \underbrace{(r^tAx_1-r^tb)}_{\text{``$b$''}} +\underbrace{\frac12 x_1^tAx_1 -x_1^tb}_{\text{``$c$''}}
+&=s^2\cdot \underbrace{\frac12 p^tAp}_{\text{``$a$''}} + s\cdot \underbrace{(p^tAx_1-p^tb)}_{\text{``$b$''}} +\underbrace{\frac12 x_1^tAx_1 -x_1^tb}_{\text{``$c$''}}
 \end{align*}
 Eine quadratische Funktion der Form $ax^2+bx+c$ mit $a>0$ erreicht ihr
 Minimum bei $-b/2a$. Somit ist die beste Wahl von $s$
 \[
-s=-\frac{r^t(Ax_1-b)}{r^tAr}.
+s=-\frac{p^t(Ax_1-b)}{p^tAp}.
 \]
 Damit bekommen wir jetzt als neue Sch"atzung der L"osung 
 der Abstiegsformel
 \begin{equation}
-x_{i+1}=x_i-\frac{r^t(Ax_i-b)}{r^tAr} r.
+x_{i+1}=x_i-\frac{p^t(Ax_i-b)}{p^tAp} p.
 \label{descent:main}
 \end{equation}
-Bis jetzt wurde $r$ nicht weiter festgelegt, die Wahl von $r$ wird uns
+Bis jetzt wurde $p$ nicht weiter festgelegt, die Wahl von $p$ wird uns
 in den folgenden Abschnitten ausf"uhrlich besch"aftigen.
 
 \begin{beispiel}
@@ -1160,7 +1160,7 @@ Pfad selbst"ahnlich ist, die Genauigkeit wird also in jedem Iterationsschritt
 um den gleichen Faktor kleiner.
 
 \subsection{Steilster Abstieg: Worst case}
-Die steilste Abstieg funktioniert deshalb bereits in zwei Dimensionen
+Der steilste Abstieg funktioniert deshalb bereits in zwei Dimensionen
 nicht besonders gut, weil die Folge $x_i$ in dem von $J(x)$ beschriebenen
 ``Tal'' hin- un heroszilliert (Abbildung~\ref{descent:path}).
 W"aren die Niveaulinien von $J(x)$ Kreise, w"urde der Abstieg direkt
@@ -1168,8 +1168,10 @@ zum Kreismittelpunkt, also zur L"osung f"uhren.
 
 In $n$ Dimensionen ist der schlimmste Fall, dass sich der Abstieg in
 der Ebene abspielt, die von den Eigenvektoren zum kleinsten und gr"ossten
-Eigenwert aufgespannt wird. Es gen"ugt daher, sich den zweidimensionalen
-Fall genauer zu "uberlegen.
+Eigenwert aufgespannt wird.
+In dieser Ebene sind die Niveaulinien besonders ``langgezogene'' 
+Ellipsen.
+Es gen"ugt daher, sich den zweidimensionalen Fall genauer zu "uberlegen.
 
 Aus Abbildung~\ref{descent:path} kann man ablesen,
 dass in zwei Dimensionen die Richtungen der aufeinanderfolgenden 
@@ -1188,12 +1190,14 @@ In jeweils zwei Abstiegsschritten nimmt der Fehler daher ebenfalls um
 den Faktor $q$ ab. Man kann also die Konvergenzgeschwindigkeit im
 schlimmsten Fall absch"atzen, wenn man $q$ kennt.
 
-Sei $a$ der gr"osste Eigenwert von $A$ , und $b$ der kleinste Eigenwert,
-dann ist die Matrix $A$ in einem geeigneten Koordinatensystem
+Sei $a$ der gr"osste Eigenwert von $A$, und $b$ der kleinste Eigenwert,
+dann kann man ein Koordinatensystem w"ahlen, in welchem die Matrix $A$
+die Form
 \[
-A=\begin{pmatrix}a&0\\0&b\end{pmatrix}.
+A=\begin{pmatrix}a&0\\0&b\end{pmatrix}
 \]
-Ausgehend von einem Punkt $(x,y)$ kann man jetzt zwei Abstiegsschritte
+hat.
+Ausgehend von einem Punkt $x_1=(x,y)$ kann man jetzt zwei Abstiegsschritte
 durchf"uhren, und damit den Streckfaktor $q$ bestimmen.
 Die Durchf"uhrung der Rechnung ist ziemlich m"uhselig, das
 File \verb+descent.maxima+ zeigt, wie diese Berechnung mit dem
@@ -1205,11 +1209,18 @@ q\le \biggl(\frac{\frac{a}{b}-1}{\frac{a}{b}+1}\biggr)^2.
 Man nennt den Quotienten $\kappa_2(A)=\frac{a}{b}$ auch die
 Konditionszahl der Matrix $A$.
 F"ur den Fehler $e_n$ nach $n$ Iterationen gilt also
-\[
+\begin{equation}
 |e_n| \le C\biggl(\frac{\kappa_2(A)-1}{\kappa_2(A)+1}\biggr)^n.
-\]
+\label{descent:error}
+\end{equation}
 Schnelle Konvergenz kann man also nur erwarten, wenn die Konditionszahl
-nahe bei $1$ liegt. F"ur die Beispielmatrix ist 
+nahe bei $1$ liegt.
+
+\begin{beispiel}
+Die Beispielmatrix hat Eigenwerte $\frac12$ und $\frac32$, ihre
+Konditionszahl ist also 3.
+Daraus kann man jetzt die Abnahme der Fehler gem"ass (\ref{descent:error})
+absch"atzen:
 \[
 \kappa_2
 \begin{pmatrix}1&\frac12\\\frac12&1\end{pmatrix}
@@ -1219,6 +1230,7 @@ nahe bei $1$ liegt. F"ur die Beispielmatrix ist
 \]
 was die Beobachtung best"atigt, dass der Fehler in jedem Schritt halbiert
 wird.
+\end{beispiel}
 
 \subsection{Konjugierte Gradienten}
 Besonders schnell zur L"osung kommt man, wenn der Startpunkt auf einer
@@ -1525,7 +1537,134 @@ Im Folgenden muss auch daf"ur die Ursache gefunden werden, und es m"ussen
 Methoden entwickelt werden, mit denen die schnelle Konverenz sichergestellt
 werden kann.
 
-\subsubsection{Orthogonalit"at der Fehler}
+\subsubsection{Geometrische Beschreibung des CG-Algorithmus}
+Im vorangegangenen Abschnitt haben wir die Bestimmung der Abstiegsrichtung
+formal beschrieben. Es ist n"utzlich, die geometrische Bedeutung nochmals
+vor Augen zu f"uhren. 
+
+Die Bestimmung der n"achsten Abstiegsrichtung beginnt damit den Gradienten
+$\operatorname{grad}J(x_i)=Ax_i-b=r_i$
+von $J$ an der Stelle $x_i$ zu berechnen. Dieser Vektor steht
+senkrecht auf der Niveaufl"ache von $J$, also auch senkrecht auf die
+letzte Abstiegsrichtung:
+\begin{align}
+\langle r_i,v_{i-1}\rangle &= 0
+&\Leftrightarrow&&
+r_i&\perp v_{i-1}.
+\label{descent:rorthogonal}
+\end{align}
+Der Ausdruck $r_i=Ax_i-b$ spielt hier eine Doppelrolle: neben der eben
+vewendeten Rolle als Gradient ist er auch das sogenannte {\em Residuum},
+der Vektor, um den die Gleichung von der N"aherungsl"osung $x_i$
+noch nicht vollst"andig erf"ullt wird.
+
+Der Gradient ist nicht die n"achste Abstiegsrichtung, diese muss erst
+mit Hilfe der bisherigen Abstiegsrichtungen orthogonalisiert werden,
+diesmal aber bez"uglich des verallgemeinerten Skalarproduktes
+$\langle\cdot,\cdot\rangle_A$. Es gilt also
+\begin{align}
+\langle v_i,v_j\rangle_A&=0\qquad\forall j < i
+&&\Leftrightarrow&
+v_i&\perp_A v_j\qquad\forall j< i.
+\label{descent:vorthogonalA}
+\end{align}
+
+\subsubsection{Orthogonalit"at der Residuen}
+Wir haben schon darauf hingewiesen, dass die Orthogonalisierung in
+(\ref{cg:ortho}) eine sehr aufwendige Operation ist, da alle bisherigen
+Abstiegsrichtungen gespeichert und in der Orthogonalisierung verwendet
+werden m"ussen.
+Ziel dieses Abschnitts ist zu zeigen, dass der Gradient
+$v_{i+1}=r_i$ automatisch auf allen bisherigen Richtungen
+ausser der letzten $A$-senkrecht steht,
+das also in (\ref{cg:ortho}) nur der letzte Term eine Rolle spielt.
+
+Dieser Abschnitt ist etwas technischer und anspruchsvoller als die 
+bisherige Beschreibung des CG-Algorithmus, und kann beim ersten Lesen
+"ubersprungen werden.
+\medskip
+
+{\small
+
+Im folgenden geht es um Orthogonalit"at der verschiedenen Vektoren, die
+im CG-Algorithmus eine Rolle spielen.
+Eine Verschiebung um einen konstanten Vektor hat darauf keinen Einfluss.
+Daher nehmen wir in diesem Abschnitt $b=0$ an, dann wird $r_i=Ax_i$,
+und wir untersuchen einen Abstieg zum Nullpunkt.
+
+In den einzelnen Abstiegsschritten wird jeweils mit der Matrix $A$
+multipliziert und dann orthogonalisiert.
+Wir m"ussen also dar"uber Buch f"uhren, wie die neuen Richtungsvektoren
+aus den alten entstehen.
+Zum Beispiel wird die zweite Absteigsrichtung durch Orthogonalisierung, also
+Linearkombination, aus 
+$r_2 = Ax_1$ und $v_1$ hervorgehen.
+Wir betrachten daher die Vektorr"aume
+\[
+{\cal K}_j(A,v)=\langle v,Av,A^2v,\dots A^{j-1}v\rangle.
+\]
+Der Vektorraum ${\cal K}_j(A,v)$ wird von $j$ Vektoren aufgespannt,
+es ist also sicher $\operatorname{dim}{\cal K}_j(A,v)\le j$.
+Es kann aber sein, dass die Dimension echt kleiner ist, wenn einzelne
+der Vektoren $A^kv$ linear abh"angig sind. Wir werden aber sehen, dass
+das f"ur die im CG-Algorithmus auftretenden Vektoren nicht passiert.
+Die Vektorr"aume ${\cal K}_j(A,v)$ heissen {\em Krylov-Unterr"aume}.
+
+\begin{satz}
+Wenn der CG-Algorithmus in $j$ Schritten die L"osung noch nicht gefunden
+hat, dann gilt
+\begin{equation}
+\langle v_1,\dots,v_j\rangle = \langle r_1,\dots,r_j\rangle
+= {\cal K}_j(A,r_1).
+\label{cg:krylov}
+\end{equation}
+\end{satz}
+
+\begin{proof}[Beweis]
+Wir f"uhren den Beweis mit vollst"andiger Induktion nach $j$.
+
+F"ur $j=1$ ist die Aussage klar: im ersten Schritt ist keine
+Orthogonalisierung notwendig, also ist $v_1=r_1$. 
+Ausserdem ist ${\cal K}_1(A,v)=\langle v\rangle$.
+Damit ist die Induktion verankert.
+
+Wir d"urfen jetzt annehmen, dass (\ref{cg:krylov}) bereits erf"ullt ist
+f"ur $j=k$ (Induktionsannahme), und m"ussen zeigen, dass daraus folgt,
+dass (\ref{cg:krylov}) auch f"ur $j=k+1$ gilt. Dabei gehen wir wie folgt
+vor. Zun"achst zeigen wir, dass
+\begin{equation}
+{\cal K}_{k+1}(A,r_1)
+\supset
+\langle r_1,\dots,r_{k+1}\rangle
+\supset 
+\langle v_1,\dots,v_{k+1}\rangle.
+\label{cg:inclusions}
+\end{equation}
+Dann m"ussen wir uns nur noch "uberlegen, dass der Vektorraum ganz rechts
+die gleiche Dimension hat wie ${\cal K}_{k+1}(A,r_1)$, dann folgt, dass
+alle Vektorr"aume gleich sein m"ussen.
+
+Als erstes m"ussen wir jetzt also zeigen, dass
+\[
+{\cal K}_{k+1}(A,r_1)
+\supset
+\langle r_1,\dots,r_{k+1}\rangle.
+\]
+Der neue Vektor $r_{k+1}$ ist 
+\[
+r_{k+1}=Ax_{k+1} = A(x_k-\alpha v_k)=Ax_k -\alpha Av_k=r_k-\alpha Av_k.
+\]
+Der erste Summand ist sicher in $\langle r_1,\dots,r_k\rangle$, also
+nach Induktionsvoraussetzung in ${\cal K}_k(A,r_1)$.
+Der Vektor $v_k$ ist nach Induktionsvoraussetzung in ${\cal K}_k(A,r_1)$,
+also ist $Av_k$ in ${\cal K}_{k+1}(A,r_1)$.
+Daraus folgt, dass auch $r_{k+1}$ in ${\cal K}_{k+1}(A,r_1)$ liegen muss.
+Damit ist die erste Inklusion in (\ref{cg:inclusions}) gezeigt.
+\end{proof}
+
+}
+
+\subsubsection{Formulierung des CG-Algorithmus}
 
 \subsubsection{Pr"akonditionierung}
 
