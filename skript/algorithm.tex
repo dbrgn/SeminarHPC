@@ -248,7 +248,8 @@ b=\begin{pmatrix}1\\-1\end{pmatrix}.
 \label{jacobi-beispiel}
 \end{equation}
 Nat"urlich kann man dieses Gleichungssystem mit dem Gauss-Algorithmus
-l"osen, und die L"osung
+l"osen (\cite[Kapitel 1]{skript:linalg} oder \cite[Chapter 1]{skript:watkins},
+und die L"osung
 \[
 v=\begin{pmatrix}2\\-2\end{pmatrix}\qquad\Rightarrow\qquad
 Av=
@@ -912,7 +913,8 @@ es mittels Iteration alle Eigenwerte und Eigenvektoren einer beliebigen
 Matrix bestimmen kann, selbst wenn die Eigenvektoren komplex sind.
 Dieses erweiterte Potenzverfahren heisst Francis Verfahren, es
 wurde von John Francis 1961 entwickelt.
-Eine gute Beschreibung findet man auch im Buch von Watkins \cite{skript:watkins}.
+Eine gute Beschreibung findet man auch im Buch von Watkins
+\cite[Chapter 5]{skript:watkins}.
 
 \section{Iterative Methoden f"ur symmetrische Matrizen}
 Das Motivationsbeispiel hat eine Eigenschaft, welche bis jetzt noch
@@ -1208,9 +1210,9 @@ q\le \biggl(\frac{\frac{a}{b}-1}{\frac{a}{b}+1}\biggr)^2.
 \]
 Man nennt den Quotienten $\kappa_2(A)=\frac{a}{b}$ auch die
 Konditionszahl der Matrix $A$.
-F"ur den Fehler $e_n$ nach $n$ Iterationen gilt also
+F"ur den Fehler $f_n$ nach $n$ Iterationen gilt also
 \begin{equation}
-|e_n| \le C\biggl(\frac{\kappa_2(A)-1}{\kappa_2(A)+1}\biggr)^n.
+|f_n| \le C\biggl(\frac{\kappa_2(A)-1}{\kappa_2(A)+1}\biggr)^n.
 \label{descent:error}
 \end{equation}
 Schnelle Konvergenz kann man also nur erwarten, wenn die Konditionszahl
@@ -1226,7 +1228,7 @@ absch"atzen:
 \begin{pmatrix}1&\frac12\\\frac12&1\end{pmatrix}
 =
 3\qquad\Rightarrow\qquad
-|e_n|\le C\biggl(\frac{3-1}{3+1}\biggr)=C\frac1{2^n},
+|f_n|\le C\biggl(\frac{3-1}{3+1}\biggr)=C\frac1{2^n},
 \]
 was die Beobachtung best"atigt, dass der Fehler in jedem Schritt halbiert
 wird.
@@ -1376,32 +1378,60 @@ v_1^tAv_2
 =\frac17\biggl(5\cdot 2-4\cdot\frac52\biggr)=0.
 \label{descent:ortho}
 \end{align}
-Man nennt zwei Richtungen $v_1$ und $v_2$ mit dieser Eigenschaft
-konjugierte Richtungen zur Matrix $A$.
+\begin{definition}
+Man nennt zwei Richtungen $v_1$ und $v_2$ mit der Eigenschaft
+$v_1^tAv_2=0$ konjugierte Richtungen zur Matrix $A$.
+\end{definition}
+Im Fall $n=2$ ist man also genau dann erfolgreich, wenn man f"ur
+die Abstiegsrichtungen konjugierte Richtungen w"ahlt.
 
 \subsubsection{Das Skalarprodukt zu $A$}
-Der allgemeine Fall ist nur deshalb schwierig, weil wir Ellipsen
-erhalten, wenn wir die Niveau-Linien von $J(x)$ aufzeichen.
-Und auch nur, weil wir darauf bestehen, als L"ange eines Vektors den
-Wert $v^tv$ zu verwenden.
-W"urden wir stattdessen als L"angenmass die ebenfalls positive
-Gr"osse $v^tAv$ verwenden, dann w"aren alle Punkte mit gleichem $J(x)$
-gleich weit von der L"osung entfernt.
-Wenn $v^tAv$ das L"angenmass sein soll, dann muss nat"urlich auch das
-Skalarprodukt ersetzt werden, statt des gew"ohnlichen Skalarproduktes
-$\langle x,y\rangle =x^ty$ muss man also das verallgemeinerte
-Skalarprodukt $\langle x, y\rangle_A=x^tAy$ verwenden.
+Wie sollen wir im allgemeinen Fall vorgehen?
+Die Niveau-Fl"achen von $J(x)$ sind Ellipsoide wie in Abbildung~\ref{descent3d}.
+Der steilste Abstiet konvergiert deshalb nicht optimal, weil er 
+im allgemeinen nicht in eine Koordinatenebene f"uhrt.
 
-Die zweite Abstiegsrichtung k"onnen wir also wieder den Gradienten
-verwenden, aber in Richtung $v_1$ ist ja schon der optimale Abstiegsschritt
-durchgef"uhrt worden, wir m"ussen also die Komponenten des Gradienten
-in Richtung von $v_1$ abziehen:
+Die Niveau-Fl"achen von $J(x)$ sind nur deshalb Ellipsoide, weil
+wir als L"angenmass f"ur die Vektoren das gew"ohnliche Skalarprodukt
+$\langle x,y\rangle = x^ty$ verwenden. 
+Wir k"onnten stattdessen als L"angenmass die ebenfalls positive
+Gr"osse $v^tAv$ verwenden.
+Entsprechend m"ussten wir dann auch $x^tAy=\langle x,y\rangle_A$ als
+Skalarprodukt verwenden. 
+
+\begin{definition}
+Ist $A$ eine symmetrische, positiv definite Matrix, dann heisst
+\[
+\langle x,y\rangle_A=x^tAy
+\]
+das (verallgemeinerte) Skalarprodukt zu $A$.
+Zudem kann die L"ange eines Vektors bez"uglich der Matrix $A$ definiert
+werden:
+\[
+|x|_A^2=\langle x,x\rangle_A=x^tAx,\qquad |x|_A=\sqrt{\langle x,x\rangle_A}.
+\]
+Zwei Vektoren $x$ und $y$ heissen konjugiert bez"uglich $A$,
+wenn sie bez"uglich $A$, geschrieben $x\perp_A y$, wenn sie
+bez"uglich des Skalarproduktes $\langle\cdot,\cdot\rangle_A$
+orthogonal sind, also $\langle x,y\rangle_A=0$.
+\end{definition}
+
+Orthogonale Richtungen bez"uglich des Skalarproduktes
+$\langle\cdot,\cdot\rangle_A$ sind also genau die konjugierten Richtungen,
+die im Fall $n=2$ zum Erfolg gef"uhrt haben.
+Um die zweite Abstiegsrichtung  zu finden, kann man von irgend einer Richtung
+ausgehen, zum Beispiel den Gradienten wie beim steilsten Abstieg, dann
+aber daf"ur sorgen, dass sie orthogonal auf der ersten Abstiegsrichtung
+steht.
+Dazu muss man die Komponenten parallel zu $v_1$ abziehen:
 \begin{align*}
 v_2'&=\operatorname{grad}J(x_2)=Ax_2-b
 &\Rightarrow&
 &
 v_2&=v_2'-\frac{\langle v_1,v_2'\rangle_A}{\langle v_1,v_1\rangle_A}v_1.
 \end{align*}
+Der so konstruierte Vektor $v_2$ ist orthogonal zu $v_1$ im Sinne
+des Skalarproduktes $\langle\cdot,\cdot\rangle_A$.
 
 \begin{beispiel}
 Im altbekannten Beispiel bekommen wir
@@ -1466,10 +1496,6 @@ v_i=v_i' - \sum_{j=1}^{i-1}\frac{\langle v_i,v_j\rangle_A}{\langle v_j,v_j\rangl
 Diese Formel kann sogar noch etwas vereinfacht werden, wenn man die
 Vektoren $v_j$ normiert bez"uglich der L"angenmessung mit dem Skalarprodukt
 $\langle\cdot,\cdot\rangle_A$.
-Die L"ange eines Vektors in diesem Skalarprodukt ist
-\[
-|v|_A=\sqrt{\langle v,v\rangle_A}.
-\]
 Wir definieren die Folge der Vektoren $v_i$ daher wie folgt:
 \begin{align}
 v_{i+1}'&=\operatorname{grad}J(x_i)=Ax_i-b
@@ -1485,9 +1511,12 @@ Mit dieser Richtung f"uhrt man dann den Abstiegsschritt durch.
 Damit haben wir jetzt ein Iterationsverfahren konstruiert, welches nicht
 nur immer bessere Werte liefert, sondern in $n$ Schritten sogar die exakte
 L"osung.
-Es hat aber immer noch einige Nachteile. Einerseits m"ussen alle bisherigen
+Dies ist das Verfahren der konjugierten Gradienten, kurz der CG-Algorithmus.
+
+Auch der CG-Algorithmus hat aber immer noch einige Nachteile.
+Einerseits m"ussen alle bisherigen
 Abstiegsrichtungen gespeichert werden, und die Formel (\ref{cg:ortho}) wird
-mit jedem neu berechneten Vektor $v_j$ umfangreicher auszuwerten.
+mit jedem neu berechneten Vektor $v_j$ aufwendiger auszuwerten.
 Die sp"ateren Schritte des Verfahrens sind also langsamer.
 Das es auch bei der Konvergenzgeschwindigkeit noch Verbesserungspotential
 gibt, zeigen die folgenden Beispiele.
@@ -1613,6 +1642,58 @@ $v_j,\;j < i$ unterscheidet, die alle auf $r_{i+1}$ senkrecht stehen, folgt
 =
 \langle r_{i+1},r_{i+1}\rangle.
 \]
+
+\subsubsection{Konvergenz}
+Der CG-Algorithmus konvergiert nicht langsamer als steilster Abstieg, aber
+wie die Beispiele zeigen auch nicht unbedingt schneller.
+Genauere Resultate "uber die Abstiegsgeschwindigkeit sind bekannt,
+zum Beispiel der folgende Satz \cite[Theorem 8.9.9]{skript:watkins},
+der einen Zusammenhang herstellt zwischen den Eigenwerten und der
+Konvergenz-Geschwdingikeit:
+
+\begin{satz}
+\label{cg:konvergenz}
+Die Fehler $f_n$ nach $j$ Schritten des CG-Algorithmus f"ur die
+$n\times n$-Matrix $A$
+mit Eigenwerten $\lambda_1,\dots,\lambda_n$ ist nicht gr"osser
+als
+\[
+| f_j|_A
+\le
+\biggl(
+\min_{{p\in{\cal P}_j}\atop{p(0)=1}}
+\max_{1\le k\le n} |p(\lambda_k)|
+\biggr)\,|f_0|_A
+\]
+wobei ${\cal P}_j$ die Menge aller Polynome vom Grade $\le j$ ist.
+\end{satz}
+
+Dieser Satz ist ziemlich schwierig anzuwenden, da die Menge der Polynome
+etwas un"ubersichtlich ist.
+In Spezialf"allen kann man allerdings zu einer Aussage kommen.
+
+Wenn $A$ nur einen Eigenwert $\lambda$ hat, dann ist $A$ eine Diagonalmatrix,
+und der CG-Algorithmus konvergiert in nur einem Schritt.
+Satz~\ref{cg:konvergenz} besagt, dass wir alle Polynome $p$ vom Grad
+$\le 1$ untersuchen m"ussen, die $p(0)=1$ erf"ullen.
+Polynome vom Grad 1 sind von der Form $p(x)=1+ax$.
+Da nur ein Eigenwert $\lambda$ existiert, ist 
+\[
+\max_{1\le k\le n}|p(\lambda_k)|=|1+a\lambda|
+\]
+Der Fehler nach einem Schritt ist als
+\[
+|f_1|_A=\bigl(\min_{a\in\mathbb R}|1+a\lambda|\bigr)\,|f_0|_A
+\]
+Mit der Wahl $a=-1/\lambda$ wird $|1+a\lambda|=0$, und es folgt, dass
+$|f_1|_A=0$.
+Ganz "ahnlich kann man folgenden Satz beweisen
+\cite[Theorem 8.9.12]{skript:watkins}.
+
+\begin{satz}
+Wenn die symmetrische Matrix $A$ nur $j$ verschiedene Eigenwerte hat,
+dann findet der CG-Algorithmus die exakte L"osung in $j$ Schritten.
+\end{satz}
 
 \subsubsection{Orthogonalit"at der Residuen}
 Wir haben schon darauf hingewiesen, dass die Orthogonalisierung in
@@ -1790,7 +1871,6 @@ bestimmt werden:
 \text{Initialisierung:}&&&\\
 r&\leftarrow Ax - b&&\text{Gradient}\\
 v&\leftarrow r     &&\text{erste Abstiegsrichtung}\\
-l&\leftarrow r^tr  &&\text{L"ange von $r$}
 \end{align*}
 Um die Abstiegsschritte effizient durchf"uhren zu k"onnen, muss man
 vermeiden, viele Multiplikationen mit $A$ durchzuf"uhren.
@@ -1806,14 +1886,21 @@ Damit k"onnen jetzt wiederholt Abstiegsschritte durchgef"uhrt werden:
 1.&&     q&\leftarrow Av            &&\\
 2.&&   \mu&\leftarrow v^t q         &&\text{Skalarprodukt
                                             $\mu=\langle v,v\rangle_A$}\\
-3.&&\alpha&\leftarrow l/\mu         &&\text{Koeffizient f"ur Abstiegsschritt}\\
+3.&&\alpha&\leftarrow v^t r/\mu     &&\text{Koeffizient f"ur Abstiegsschritt}\\
 4.&&     x&\leftarrow x-\alpha v    &&\text{Update N"aherungsl"osung}\\
 5.&&     r&\leftarrow r-\alpha q    &&\text{Update Gradient}\\
-6.&&   l_2&\leftarrow r^tr          &&\text{L"ange von $r$}\\
-7.&&     v&\leftarrow r - (l_2/l) v &&\text{Orthogonalisierung von $r$ ergibt
+6.&&     l&\leftarrow q^tr/\mu      &&\text{Koeffizient f"ur
+                                            Orthogonalisierung}\\
+7.&&     v&\leftarrow r - l v       &&\text{Orthogonalisierung von $r$ ergibt
                                             Abstiegsrichtung}\\
-8.&&     l&\leftarrow l_2           &&
 \end{align*}
+In Schritt 2, 3 und 6 wird jeweils ein Skalarprodukt berechnet.
+Dies ist eine aufwendige und schlecht parallelisierbare Operation,
+und sollte daher m"oglichst sparsam verwendet werden.
+Unter Verwendung der geometrischen Eigenschaften der Vektoren $v_i$ und
+$r_i$, die im vorletzten Abschnitt diskutiert wurden, kann man den
+Algorithmus noch etwas sparsamer formulieren \cite[Chapter 8.7]{skript:watkins}.
+
 
 \subsubsection{Pr"akonditionierung}
 Der CG-Algorithmus ist umso effizienter, je n"aher die Konditionszahl
@@ -1890,4 +1977,4 @@ von $M$ gar nicht n"otig ist.
 Wie das Beispiel der Matrix $M$ beim Gauss-Seidel-Algorithmus zeigt,
 gen"ugt es, effizient eine L"osung von $Mx=b$ berechnen zu k"onnen.
 Eine solche Formulierung ist tats"achlich m"oglich,
-Details dazu in \cite{skript:watkins}.
+Details dazu in \cite[Chapter 8.6]{skript:watkins}.
