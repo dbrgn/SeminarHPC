@@ -43,3 +43,6 @@ cgresults.csv:	cgexample.m
 
 cgresults.pdf:	cgexample.R cgresults.csv
 	R --vanilla --quiet < cgexample.R
+
+cg3d.png:	cg3d.pov
+	povray -W960 -H540 cg3d.pov
