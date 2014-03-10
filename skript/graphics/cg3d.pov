@@ -11,8 +11,8 @@ light_source {
         <5, 8, -7> color White
         area_light <0, 2,-1.4>, <-1.4, 2, 0>, 10, 10
 }
-light_source { <-5, 1.5, -3> color <0.5,0.5,0.5> }
-light_source { <1.2, 1.2,-4.5> color <0.5,0.5,0.5> }
+light_source { <-5, 1.5, -3> color White }
+light_source { <1.2, 1.2,-4.5> color White }
 
 sky_sphere {
 	pigment {
@@ -22,11 +22,11 @@ sky_sphere {
 
 /* coordinate axes */
 #macro axis(from, dir)
-	cylinder { from, from + dir, 0.004
-		pigment { color <0, 0, 1> }
+	cylinder { from, from + dir, 0.004 * linethickness
+		pigment { color Blue }
 	}
-	cone { from + dir, 0.01, from + dir + vnormalize(dir) * 0.05, 0
-		pigment { color <0, 0, 1> }
+	cone { from + dir, 0.01 * linethickness, from + dir + vnormalize(dir) * 0.05, 0
+		pigment { color Blue }
 	}
 #end
 
@@ -45,19 +45,19 @@ axis(<0,0,0>, <0, 0, -0.57>)
 #declare x1 = <0.3, 0.08, -0.3>;
 
 #macro redpoint(where)
-	sphere { <where.x, where.y, where.z>, 0.01
-		pigment { color <1, 0, 0> }
+	sphere { <where.x, where.y, where.z>, 0.01 * linethickness
+		pigment { color Red }
 	}
 #end
 
 #macro gradvec(where)
 #local start = <where.x, where.y, where.z>;
 #local dir = 0.1 * vnormalize(grad(where));
-	cylinder { start, start + dir, 0.005
-		pigment { color <0, 1, 0> }
+	cylinder { start, start + dir, 0.005 * linethickness
+		pigment { color Green }
 	}
-	cone { start + dir, 0.007, start + 1.2 * dir, 0
-		pigment { color <0, 1, 0> }
+	cone { start + dir, 0.007 * linethickness, start + 1.2 * dir, 0
+		pigment { color Green }
 	}
 #end
 
@@ -86,8 +86,8 @@ gradvec(x1)
 #declare x4 = x3 - sA(v3, x3) * v3;
 
 #macro draw(U, V)
-	cylinder { <U.x, U.y, U.z>, <V.x, V.y, V.z>, 0.007
-		pigment { color <1, 0, 0> }
+	cylinder { <U.x, U.y, U.z>, <V.x, V.y, V.z>, 0.007 * linethickness
+		pigment { color Red }
 	}
 #end
 
@@ -122,7 +122,7 @@ redpoint(x4)
 		<0, 0, 0>, r
 		scale <a, b, c>
 		clipped_by { cutout }
-		pigment { color rgbf<1, 1, 1, 0.0> }
+		pigment { color White }
 	}
 #end
 
@@ -155,7 +155,7 @@ planedisk(x3, m3)
 #local endpoint = normA(x1) * dir / normA(dir);
 	cylinder {
 		<0, 0, 0>, endpoint, 0.001
-		pigment { color <1, 1, 0> }
+		pigment { color Yellow }
 	}
 #end
 
