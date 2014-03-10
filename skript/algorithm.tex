@@ -79,9 +79,9 @@ u(x,y)=g(x,y)\qquad x\in\partial \Omega,
 wobei $\partial\Omega$ der Rand des Gebietes $\Omega$ ist. Die allgemeine
 Theorie der partiellen Differentialgleichungen beweist, dass dieses
 Problem eine eindeutige L"osung hat.
-Im konkreten Fall eines rechteckingen Gebietes liefert die Theorie sogar
+Im konkreten Fall eines rechteckigen Gebietes liefert die Theorie sogar
 ein L"osungsverfahren, welches mindestens f"ur nicht zu komplizierte
-Funktion $f$ und $g$ von Hand durchgef"uhrt werden kann.
+Funktionen $f$ und $g$ von Hand durchgef"uhrt werden kann.
 F"ur beliebig geformte Gebiete $\Omega$ gibt es jedoch kein analytisches
 L"osungsverfahren.
 
@@ -109,7 +109,7 @@ Die erste Ableitung in $x$-Richtung kann angen"ahert werden durch
 &
 \frac{\partial u}{\partial y}(ih,jh)&\simeq \frac{u_{i,j+1}-u_{ij}}h.
 \end{align*}
-Daraus kann dann auch eine Approximation von der zweiten Ableitung
+Daraus kann dann auch eine Approximation der zweiten Ableitung
 gefunden werden (siehe auch Abbildung~\ref{algorithm:laplacian}):
 \begin{align*}
 \frac{\partial^2 u}{\partial x^2}(ih,jh)&=\frac1h\biggl(
@@ -137,7 +137,8 @@ Statt der Differentialgleichung (\ref{motivation-pdgl}) mit den Randbedingungen
 (\ref{motivation-randbedingung}) ist jetzt also das lineare Gleichungssystem
 f"ur die $u_{ij}$ bestehend aus den Gleichungen (\ref{motivation-lingl}) und
 (\ref{motivation-randwerte}) zu l"osen.
-Die Randwertgleichungen legen einen Teil der $u_{ij}$ bereits fest,
+Die Randwertgleichungen (\ref{motivation-randbedingungen})
+legen einen Teil der $u_{ij}$ bereits fest,
 man kann sie zur rechten Seite der Gleichungen schlagen,
 so dass nur noch die Werte $u_{ij}$ an inneren Knotenstellen $0<i,j<n$
 zu bestimmen.
@@ -194,7 +195,7 @@ T=\begin{pmatrix}
      0&     1&    -4& \dots&     0\\
 \vdots&\vdots&\vdots&\ddots&\vdots\\
      0&     0&     0& \dots&    -4\\
-\end{pmatrix}
+\end{pmatrix}.
 \]
 Mit Hilfe von $T$ kann $A$ in Blockform geschrieben werden:
 \begin{equation}
@@ -347,7 +348,7 @@ Um die Genauigkeit $\delta$ zu erreichen, sind so viele Iterationen notwendig,
 dass $q^k < \delta$ gilt, oder $k>\log \delta/\log q$.
 Der Rechenaufwand ist also $2nl\log\delta/\log q$.
 Der Jacobi-Algorithmus hat also bedeutend schneller als die $n^3$ 
-$n$-Operationen, die f"ur den Gauss-Algorithmus erforderlich sind.
+Operationen, die f"ur den Gauss-Algorithmus erforderlich sind.
 Ausserdem sind die Rechenoperationen des Jacobi-Algorithmus hochgradig
 parallelisierbar.
 
@@ -370,7 +371,7 @@ x_i^{(k)}=\frac1{a_{ii}}\biggl(b_i
 Da in jeder Berechnung die aktuellsten verf"ugbaren Approximationen der
 L"osung verwendet werden, kann man erwarten, dass dieses Verfahren
 noch etwas schneller konvergiert als das Jacobi-Verfahren.
-Es heisst das Gauss-Seidel-Verfahren.
+Es heisst das {\em Gauss-Seidel-Verfahren}.
 
 Allerdings ist dieses Verfahren nicht mehr im gleichen Mass parallelisierbar.
 Die Variable $x_i^{(k)}$ kann erst berechnet werden, wenn $x_{i-1}^{(k)}$
@@ -427,12 +428,12 @@ bedeutet Gauss Seidel, dass die Variablen $x'$ mit folgenden Gleichungen
 bestimmt werden:
 \begin{equation}
 \begin{linsys}{8}
-a_{11}x_1'   &+&             & &     &          &=&b_1    &-&a_{12}x_2&-&a_{13}x_3&-&\dots&-&a_{1n}x_n\\
-a_{21}x_1'   &+&a_{22}x_2'   & &     &          &=&b_2    & &         &-&a_{23}x_3&-&\dots&-&a_{2n}x_n\\
-a_{31}x_1'   &+&a_{32}x_2'   & &     &          &=&b_3    & &         & &         & &\dots&-&a_{3n}x_n\\
+a_{11}x_1'   & &             & &     &          &=&    b_1&-&a_{12}x_2&-&a_{13}x_3&-&\dots&-&a_{1n}x_n\\
+a_{21}x_1'   &+&a_{22}x_2'   & &     &          &=&    b_2& &         &-&a_{23}x_3&-&\dots&-&a_{2n}x_n\\
+a_{31}x_1'   &+&a_{32}x_2'   &+&     &          &=&    b_3& &         & &         & &\dots&-&a_{3n}x_n\\
    \vdots    & &\vdots       & &     &          & &       & &         & &         & &     & &         \\
 a_{n-1,1}x_1'&+&a_{n-1,2}x_2'&+&     &          &=&b_{n-1}& &         & &         & &     &-&a_{3,n-1}x_{n-1}\\
-a_{n1}x_1'   &+&a_{n2}x_2'   &+&\dots&a_{nn}x_n'&=&b_n    & &         & &         & &     & &
+a_{n1}x_1'   &+&a_{n2}x_2'   &+&\dots&a_{nn}x_n'&=&    b_n& &         & &         & &     & &
 \end{linsys}
 \label{gauss-seidel:herleitung}
 \end{equation}
@@ -613,10 +614,10 @@ konvergiert, wenn $\varrho(M^{-1}N)<1$ gilt.
 Mit dem Spektralradius kann man nun auch berechnen, wieviele Iterationsschritte
 f"ur eine bestimmte Genauigkeit notwendig sind.
 Dazu nehmen wir an, dass $\lambda_1$ der betragsm"assig gr"osste
-Eigenwert ist, mit $|\lambda_1=\varrho(M^{-1}N)=\varrho$.
+Eigenwert ist, mit $|\lambda_1|=\varrho(M^{-1}N)=\varrho$.
 Dann ist der Fehler nach $k$ Iterationsschritten
 \[
-|C^k\delta_0|\le \varrho^k|\delta_0|
+|C^k\delta_0|\le \varrho^k|\delta_0|.
 \]
 F"ur die Konvergenzgeschwindigkeit ist ausschlaggebend, wieviel kleiner
 als $1$ der Spektralradius von $M^{-1}N$ ist.
@@ -684,10 +685,10 @@ daf"ur aber besser parallelisierbar ist, so dass sich insgesamt trotzdem
 eine effiziente L"osung ergibt.
 
 \subsection{Potenzmethode}
-Sei $A$ eine $n\times n$-Matrix und sei $\lambda_1$ der betragsm"assig
-gr"osste Eigenwert von $A$, und $v_1$ der zugeh"orige Eigenvektor.
+Sei $A$ eine $n\times n$-Matrix, $\lambda_1$ der betragsm"assig
+gr"osste Eigenwert von $A$ und $v_1$ der zugeh"orige Eigenvektor.
 Wir nehmen weiter an, dass alle anderen Eigenwerte $\lambda_i$ zugeh"orige
-Eigenvektoren $v_i$ haben sollen. Ein beliebiger $n$-dimensionaler Vektor $u$
+Eigenvektoren $v_i$ haben. Ein beliebiger $n$-dimensionaler Vektor $u$
 kann jetzt in der Eigenvektorbasis mit Koeffizienten $a_i$ als
 \[
 u=
@@ -884,7 +885,7 @@ auf den von den Eigenvektoren $u_2,\dots,u_n$ aufgespannten Raum
 beschr"anken.
 Das Problem ist allerdings, dass man diesen Raum gar nicht kennt,
 man hat die Eigenvektoren ja noch gar nicht bestimmt.
-Wenn allerdings die Matrix $A$ symmtreisch ist, dann weiss man,
+Wenn allerdings die Matrix $A$ symmetrisch ist, dann weiss man,
 dass die Eigenvektoren $u_2,\dots,u_n$ senkrecht stehen auf dem
 bereits gefunden Vektor $u_1$.
 Man muss also nur eine Basis von Vektoren senkrecht auf $u_1$ finden,
@@ -904,7 +905,7 @@ A=
 \right)
 \]
 Die Matrix $A_1$ ist wieder eine symmetrische $(n-1)\times(n-1)$-Matrix,
-die die Eigenwerte $\lambda_2,\dots,\lambda_n$.
+die die Eigenwerte $\lambda_2,\dots,\lambda_n$ hat.
 
 Dieses Verfahren ist offenbar etwas umst"andlich, und nicht unbedingt
 in dieser Form durchf"uhrbar.
@@ -917,6 +918,7 @@ Eine gute Beschreibung findet man auch im Buch von Watkins
 \cite[Chapter 5]{skript:watkins}.
 
 \section{Iterative Methoden f"ur symmetrische Matrizen}
+\rhead{Symmetrische Matrizen}
 Das Motivationsbeispiel hat eine Eigenschaft, welche bis jetzt noch
 nicht verwendet werden ist:
 Die zugeh"orige Matrix ist symmetrisch und positiv definit.
@@ -1098,8 +1100,9 @@ korrigiere gem"ass der Abstiegsformel (\ref{descent:main})
 \item Wiederhole \ref{descent:loop0} so lange,
 bis $|x_{i+1}-x_i|<\varepsilon$.
 \end{enumerate}
-Man kann nicht allzuviel von ihm erwarten, denn er sucht ja nur immer
-entlang einer Geraden.
+Man kann nicht allzuviel von diesem Algorithmus erwarten,
+denn er sucht ja nur immer entlang einer einzigen Geraden
+nach einer besseren Approximation f"ur die L"osung.
 
 \begin{beispiel}
 Wir wenden den Abstiegsalgorithmus auf das Gleichungssystem
@@ -1209,7 +1212,7 @@ dass
 q\le \biggl(\frac{\frac{a}{b}-1}{\frac{a}{b}+1}\biggr)^2.
 \]
 Man nennt den Quotienten $\kappa_2(A)=\frac{a}{b}$ auch die
-Konditionszahl der Matrix $A$.
+{\em Konditionszahl} der Matrix $A$.
 F"ur den Fehler $f_n$ nach $n$ Iterationen gilt also
 \begin{equation}
 |f_n| \le C\biggl(\frac{\kappa_2(A)-1}{\kappa_2(A)+1}\biggr)^n.
@@ -1247,6 +1250,9 @@ n"achsten Koordinaten-Hyperebene absteigen.
 Im Hauptachsensystem w"urde man so in jedem Schritt eine weitere Komponente
 der L"osung exakt finden, insbesondere w"are die L"osung nach $n$
 Schritten exakt gefunden.
+
+Ziel dieses Abschnittes ist, eine Strategie f"ur die Wahl der 
+Abstiegsrichtung zu entwickeln, welcher dieser Idee m"oglichst nahe kommt.
 
 \subsubsection{Abstieg f"ur eine Diagonalmatrix}
 \begin{figure}
@@ -1294,7 +1300,7 @@ produziert dann eine Folge $x_i$ von Vektoren, deren Projektionen auf die
 Richtungen $v_i$ abnehmen (\ref{descent:exact}).
 
 Aus diesen beiden Beispielen k"onnen wir ablesen, dass der Abstieg in
-maximal $n$-Schritten mit achsparallelen Abstiegsrichtungen
+maximal $n$ Schritten mit achsparallelen Abstiegsrichtungen
 m"oglich w"are, wenn die Niveaufl"achen der Funktion $J(x)$ bereits
 achsparallele Ellipsoide w"aren.
 
@@ -1388,7 +1394,7 @@ die Abstiegsrichtungen konjugierte Richtungen w"ahlt.
 \subsubsection{Das Skalarprodukt zu $A$}
 Wie sollen wir im allgemeinen Fall vorgehen?
 Die Niveau-Fl"achen von $J(x)$ sind Ellipsoide wie in Abbildung~\ref{descent3d}.
-Der steilste Abstiet konvergiert deshalb nicht optimal, weil er 
+Der steilste Abstieg konvergiert deshalb nicht optimal, weil er 
 im allgemeinen nicht in eine Koordinatenebene f"uhrt.
 
 Die Niveau-Fl"achen von $J(x)$ sind nur deshalb Ellipsoide, weil
@@ -1411,7 +1417,7 @@ werden:
 |x|_A^2=\langle x,x\rangle_A=x^tAx,\qquad |x|_A=\sqrt{\langle x,x\rangle_A}.
 \]
 Zwei Vektoren $x$ und $y$ heissen konjugiert bez"uglich $A$,
-wenn sie bez"uglich $A$, geschrieben $x\perp_A y$, wenn sie
+geschrieben $x\perp_A y$, wenn sie
 bez"uglich des Skalarproduktes $\langle\cdot,\cdot\rangle_A$
 orthogonal sind, also $\langle x,y\rangle_A=0$.
 \end{definition}
@@ -1491,7 +1497,7 @@ konstruieren.
 Das Orthogonalsierungsverfahren nach Gram-Schmidt liefert die
 orthogonalisierten Vektoren
 \[
-v_i=v_i' - \sum_{j=1}^{i-1}\frac{\langle v_i,v_j\rangle_A}{\langle v_j,v_j\rangle_A}v_j
+v_i=v_i' - \sum_{j=1}^{i-1}\frac{\langle v_i,v_j\rangle_A}{\langle v_j,v_j\rangle_A}v_j.
 \]
 Diese Formel kann sogar noch etwas vereinfacht werden, wenn man die
 Vektoren $v_j$ normiert bez"uglich der L"angenmessung mit dem Skalarprodukt
@@ -1512,6 +1518,38 @@ Damit haben wir jetzt ein Iterationsverfahren konstruiert, welches nicht
 nur immer bessere Werte liefert, sondern in $n$ Schritten sogar die exakte
 L"osung.
 Dies ist das Verfahren der konjugierten Gradienten, kurz der CG-Algorithmus.
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=\hsize]{graphics/cg3d-large.jpg}
+\end{center}
+\caption{Abstiegsfolge in drei Dimensionen. Der CG-Algorithmus findet
+die exakte L"osung in drei Schritten. In jedem Schritt liegen die
+letzte Abstiegsrichtung (rot), der Gradient (gr"un), und die neue, zur letzten
+Abstiegsrichtung konjugierte Abstiegsrichtung in einer Ebene (gelb).
+\label{cg3d-large}}
+\end{figure}
+\begin{figure}
+\begin{center}
+\includegraphics[width=\hsize]{graphics/cg3d-center.jpg}
+\end{center}
+\caption{Letzter Abstiegsschritt f"ur die Abstiegsfolge aus Abbildung
+\ref{cg3d-large}.
+\label{cg3d-center}}
+\end{figure}
+
+Die Abbildungen \ref{cg3d-large} und \ref{cg3d-center} zeigen die Folge
+der Abstiegsschritte im Falle $n=3$.
+Die einzelnen Punkte $x_i$ der Abstiegsfolge sind durch rote Kugeln
+symbolisiert.
+Die Abstiegsrichtungen sind rot eingezeichnet, der Abstieg f"uhrt 
+jeweils bis zu einem Ber"uhrpunkt der Abstiegsgerade an die
+Niveaufl"ache.
+Im ersten Schritt ist der Gradient (gr"un) die Abstiegsrichtung,
+danach wird der Gradient jeweils bez"uglich der bisherigen Abstiegsrichtung
+orthogonalisiert.
+Der Gradient und die neue und alte Abstiegsrichtung liegen daher immer
+in einer Ebene (gelb)
 
 Auch der CG-Algorithmus hat aber immer noch einige Nachteile.
 Einerseits m"ussen alle bisherigen
@@ -1552,7 +1590,7 @@ Die Abbildung \ref{cg:example} zeigt die Restfehler f"ur $n=20$
 in Abh"angigkeit von der Anzahl Iterationsschritte.
 Es ist klar, dass nach 20 Schritten die exakte L"osung gefunden wird, also
 kein Fehler mehr "ubrig bleibt.
-Wie zu erwarten nehmen die Fehler ungef"ahr in geometrischer Folge ab,
+Wie zu erwarten war, nehmen die Fehler ungef"ahr in geometrischer Folge ab,
 doch nur f"ur vergleichsweise kleine Werte von $\alpha$ ist die Konvergenz
 einigermassen schnell.
 F"ur $\alpha = 0.5$ hat das Resultat auch nach 19 Schritten nur vier
@@ -1571,7 +1609,7 @@ Im vorangegangenen Abschnitt haben wir die Bestimmung der Abstiegsrichtung
 formal beschrieben. Es ist n"utzlich, die geometrische Bedeutung nochmals
 vor Augen zu f"uhren. 
 
-Die Bestimmung der n"achsten Abstiegsrichtung beginnt damit den Gradienten
+Die Bestimmung der n"achsten Abstiegsrichtung beginnt damit, den Gradienten
 $\operatorname{grad}J(x_i)=Ax_i-b=r_i$
 von $J$ an der Stelle $x_i$ zu berechnen. Dieser Vektor steht
 senkrecht auf der Niveaufl"ache von $J$, also auch senkrecht auf die
@@ -1649,11 +1687,11 @@ wie die Beispiele zeigen auch nicht unbedingt schneller.
 Genauere Resultate "uber die Abstiegsgeschwindigkeit sind bekannt,
 zum Beispiel der folgende Satz \cite[Theorem 8.9.9]{skript:watkins},
 der einen Zusammenhang herstellt zwischen den Eigenwerten und der
-Konvergenz-Geschwdingikeit:
+Konvergenz-Geschwindigkeit:
 
 \begin{satz}
 \label{cg:konvergenz}
-Die Fehler $f_n$ nach $j$ Schritten des CG-Algorithmus f"ur die
+Die Fehler $f_j$ nach $j$ Schritten des CG-Algorithmus f"ur die
 $n\times n$-Matrix $A$
 mit Eigenwerten $\lambda_1,\dots,\lambda_n$ ist nicht gr"osser
 als
@@ -1870,7 +1908,7 @@ bestimmt werden:
 \begin{align*}
 \text{Initialisierung:}&&&\\
 r&\leftarrow Ax - b&&\text{Gradient}\\
-v&\leftarrow r     &&\text{erste Abstiegsrichtung}\\
+v&\leftarrow r     &&\text{erste Abstiegsrichtung}
 \end{align*}
 Um die Abstiegsschritte effizient durchf"uhren zu k"onnen, muss man
 vermeiden, viele Multiplikationen mit $A$ durchzuf"uhren.
@@ -1892,7 +1930,7 @@ Damit k"onnen jetzt wiederholt Abstiegsschritte durchgef"uhrt werden:
 6.&&     l&\leftarrow q^tr/\mu      &&\text{Koeffizient f"ur
                                             Orthogonalisierung}\\
 7.&&     v&\leftarrow r - l v       &&\text{Orthogonalisierung von $r$ ergibt
-                                            Abstiegsrichtung}\\
+                                            Abstiegsrichtung}
 \end{align*}
 In Schritt 2, 3 und 6 wird jeweils ein Skalarprodukt berechnet.
 Dies ist eine aufwendige und schlecht parallelisierbare Operation,
