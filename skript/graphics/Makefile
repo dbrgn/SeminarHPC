@@ -32,11 +32,8 @@ descent-1.pdf descent-2.pdf descent-3.pdf:	descent.mp
 	mptopdf descent.2
 	mptopdf descent.3
 
-descent3d.png:	descent3d.pov
-	povray -W1920 -H1080 descent3d.pov
-
-descent3d.jpg:	descent3d.png
-	convert descent3d.png -scale 50% descent3d.jpg
+descent3d.jpg:	descent3d.pov
+	povray -Odescent3d.jpg -A -W1920 -H1080 descent3d.pov
 
 cgresults.csv:	cgexample.m
 	octave < cgexample.m
@@ -44,5 +41,8 @@ cgresults.csv:	cgexample.m
 cgresults.pdf:	cgexample.R cgresults.csv
 	R --vanilla --quiet < cgexample.R
 
-cg3d.png:	cg3d.pov
-	povray -W960 -H540 cg3d.pov
+cg3d-large.jpg:	cg3d.pov cg3d-large.pov
+	povray -Ocg3d-large.jpg -W960 -H540 +A cg3d-large.pov
+
+cg3d-center.jpg:	cg3d.pov cg3d-center.pov
+	povray -Ocg3d-center.jpg -W960 -H540 +A cg3d-center.pov
