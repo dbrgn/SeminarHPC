@@ -67,22 +67,22 @@ gradvec(x1)
 #macro sA(U, V)
 	((U.x * V.x) / (a * a) + (U.y * V.y) / (b * b) + (U.z * V.z) / (c * c))
 #end
-#macro normA(U, V)
-	sqrt(sA(U, V))
+#macro normA(U)
+	sqrt(sA(U, U))
 #end
 
 #declare r1 = grad(x1);
-#declare v1 = r1 / normA(r1, r1);
+#declare v1 = r1 / normA(r1);
 #declare x2 = x1 - sA(v1, x1) * v1;
 
 #declare r2 = grad(x2);
 #declare v2 = r2 - sA(r2, v1) * v1;
-#declare v2 = v2 / normA(v2, v2);
+#declare v2 = v2 / normA(v2);
 #declare x3 = x2 - sA(v2, x2) * v2;
 
 #declare r3 = grad(x3);
 #declare v3 = r3 - sA(r3, v2) * v2;
-#declare v3 = v3 / normA(v3, v3);
+#declare v3 = v3 / normA(v3);
 #declare x4 = x3 - sA(v3, x3) * v3;
 
 #macro draw(U, V)
@@ -117,7 +117,7 @@ redpoint(x4)
 
 #macro ellipsoid(where)
 #local w = <where.x, where.y, where.z>;
-#local r = normA(w, w);
+#local r = normA(w);
 	sphere {
 		<0, 0, 0>, r
 		scale <a, b, c>
@@ -152,7 +152,7 @@ planedisk(x2, m2)
 planedisk(x3, m3)
 
 #macro thinline(dir)
-#local endpoint = normA(x1, x1) * dir / normA(dir, dir);
+#local endpoint = normA(x1) * dir / normA(dir);
 	cylinder {
 		<0, 0, 0>, endpoint, 0.001
 		pigment { color <1, 1, 0> }

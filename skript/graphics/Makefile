@@ -33,7 +33,7 @@ descent-1.pdf descent-2.pdf descent-3.pdf:	descent.mp
 	mptopdf descent.3
 
 descent3d.jpg:	descent3d.pov
-	povray -Odescent3d.jpg -A -W1920 -H1080 descent3d.pov
+	povray -Odescent3d.jpg +A -W960 -H540 descent3d.pov
 
 cgresults.csv:	cgexample.m
 	octave < cgexample.m
