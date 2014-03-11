@@ -4,7 +4,7 @@
 #
 # (c) 2014 Prof Dr Andreas Mueller, Hochschule Rapperswil
 #
-all:	heat heat_mpi
+all:	heat heat_mpi fits2pov
 
 CFLAGS = -Wall -g -O2 -std=c99 -I../gauss/common -I/usr/include/cfitsio
 LDFLAGS = -L../gauss/common -lgauss -lnetcdf 
@@ -31,6 +31,13 @@ testmpi:	heat_mpi
 	rm -f images/*.fits
 	time mpirun -n 4 ./heat_mpi -b images -t 4 -s 2 -h 0.1 -x 2 -y 2 \
 		testimage.fits 2>&1 | tee test.log
+
+# convert fits files to povray structure
+fits2pov:	fits2pov.c
+	$(CC) $(CFLAGS) -o fits2pov fits2pov.c -lcfitsio
+
+povtest:	fits2pov
+	./fits2pov -d -s 0.00392156862745098039 testimage.fits
 
 # measurements
 results:	results-heat.pdf results-heat-mpi.pdf results-heat-threads.pdf
