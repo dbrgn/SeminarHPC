@@ -38,9 +38,10 @@ W"armeleitungsgleichung numerisch l"ost.
 Eine interessante und unphysikalische Eigenschaft der W"armeleitungsgleichung
 ist die Existenz von L"osungen mit unendlich schneller Wirkungsausbreitung.
 Die Funktion
-\[
+\begin{equation}
 u(t,x)=\frac1{\sqrt{2t}}e^{-\frac{x^2}{4t}}
-\]
+\label{heat:solution}
+\end{equation}
 hat die folgenden Ableitungen:
 \begin{align*}
 \frac{\partial u}{\partial x}&=
@@ -605,4 +606,63 @@ Overhead verursachte Streuung dominiert die Laufzeit.
 \label{heat:threadzahl}}
 \end{figure}
 
+\subsection{Visualisierung der Resultate}
+Die Funktion $u(x,y)$ kann als Bild visualisiert werden.
+Das Beispielprogramm hat daher Kommandozeilen-Optionen, mit welchen man
+verlangen kann, dass $u(x,y)$ f"ur jeden Zeitpunkt als FITS-Bild
+gespeichert werden. Diese Bilder kann man dann in JPEG-Bilder konvertierung
+und in MPEG-Video codieren.
+\begin{figure}
+\begin{center}
+\includegraphics[width=\hsize]{heat/heat-i00000.png}
+\end{center}
+\caption{Darstellung der L"osung der W"armeleitungsgleichung
+f"ur $t=0$ und $t=25$.
+\label{heat:t0}}
+\end{figure}
+%
+\begin{figure}
+\begin{center}
+\includegraphics[width=\hsize]{heat/heat-i00025.png}
+\end{center}
+\caption{Darstellung der L"osung der W"armeleitungsgleichung
+f"ur $t=25$.
+\label{heat:t25}}
+\end{figure}
+%
+\begin{figure}
+\begin{center}
+\includegraphics[width=\hsize]{heat/heat-i00100.png}
+\end{center}
+\caption{Darstellung der L"osung der W"armeleitungsgleichung
+f"ur $t=100$.
+\label{heat:t100}}
+\end{figure}
+%
+\begin{figure}
+\begin{center}
+\includegraphics[width=\hsize]{heat/heat-i00500.png}
+\end{center}
+\caption{Darstellung der L"osung der W"armeleitungsgleichung
+f"ur $t=500$.
+\label{heat:t500}}
+\end{figure}
 
+Gew"ohnlich werden Funktionen von zwei Variablen auch als Fl"achen "uber
+dem Definitionsbereich dargestellt.
+Als Beispiel f"ur eine solche Darstellung wurde das Programm {\tt fits2pov} 
+hinzugef"ugt, welches ein FITS-Bild in eine Fl"achenbeschreibung f"ur
+das Ray-Tracing-Programm Povray umwandelt. Povray kann dann verwendet
+werden, die Fl"ache ebenso wie das urspr"ungliche Bild als 3D-Bild
+darzustellen, und die JPEG-Bilder wieder als MPEG-Video zu kodieren.
+In den Abbildungen \ref{heat:t0} bis \ref{heat:t500} sind einzelne Bilder
+aus diesem Video.
+Abbildung~\ref{heat:t0} zeigt die Anfangsbedingung zur Zeit $t=0$.
+Als Zeitskala wird die Anzahl Zeitschritte verwendet, in einer Simulation
+aus einem Gitter mit $640\times 360$ Gitterpunkten.
+Bereits nach 25 Schritten sind alle scharfen Kanten in der Anfangsbedingung
+verschwunden.
+In Abbildung~\ref{heat:t100} kann man gut sehen, wie die scharfen
+Peaks der Anfangsbedingung bei den Sternen zu zweidimensionalen
+Gauss-Verteilungen geworden sind, wie die elementare L"osung
+(\ref{heat:solution}) erwarten l"asst.
