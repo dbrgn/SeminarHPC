@@ -1,0 +1,116 @@
+#
+# video -- compute all images for a video about the heat equation
+#
+# (c) 2014 Prof Dr Andreas Mueller, Hochschule Rapperswil
+#
+if false
+then
+	rm -f images/*.fits
+	mpirun -n 4 ./heat_mpi -b images -t 4 -s 2 -h 0.1 -x 2 -y 2 \
+		testimage2.fits 2>&1 | tee test.log
+fi
+
+echo "all::" > images/Makefile
+
+for f in images/*.fits
+do
+
+	fitsname=`basename $f`
+
+	povname=`basename $f .fits`.pov
+	incname=`basename $f .fits`.inc
+	echo ${incname}: ${fitsname} >> images/Makefile
+	printf "\t../fits2pov -a -d -s 0.00098039215686274509 %s\n" ${fitsname} >> images/Makefile
+
+	pngname=`basename $f .fits`.png
+
+	echo ${pngname}: ${fitsname} >> images/Makefile
+	printf "\tconvert %s %s\n" ${fitsname} ${pngname} >>images/Makefile
+
+	jpgname=`basename $f .fits`.jpg
+	echo i${jpgname}: i${pngname} >> images/Makefile
+	printf "\tconvert i%s i%s\n" ${pngname} ${jpgname} >> images/Makefile
+
+echo i${pngname}: ${povname} ${incname} ${basename} >> images/Makefile
+printf "\tpovray +A -W1280 -H720 +Oi%s %s\n" ${pngname} ${povname} >> images/Makefile
+
+echo "all:: i${jpgname}" >> images/Makefile
+
+	cat > images/${povname} <<EOF
+#include "colors.inc"
+camera {
+	location <2.5, 2.5, -3>
+	look_at <0.5, -0.2, 0.3>
+	right 16/9 * x * 0.25
+	up y * 0.25
+}
+light_source { <5, 8, -15> color White }
+
+light_source {
+	<0.01, -0.005, 0.01> color White
+	spotlight radius 30 point_at <0, -1, 0>
+}
+light_source {
+	<0.01, -0.005, 360/640 - 0.01> color White
+	spotlight radius 30 point_at <0, -1, 360/640>
+}
+light_source {
+	<0.99, -0.005, 0.01> color White
+	spotlight radius 30 point_at <1, -1, 0>
+}
+light_source {
+	<0.99, -0.005, 360/640 - 0.01> color White
+	spotlight radius 30 point_at <1, -1, 360/640>
+}
+light_source {
+	<0.5, -0.005, 180/640> color White
+	spotlight radius 30 point_at <0.5, -1, 180/640>
+}
+
+/*
+object {
+	polygon {
+		4, <0, 0>, <0, 0.5>, <360/640, 0.5>, <360/640, 0>
+		pigment { color rgb<1, 0.7, 0.7> }
+	}
+	rotate <0, -90, 0>
+	translate <0, -0.5, 0>
+}
+
+object {
+	polygon {
+		4, <0, 0>, <1, 0>, <1, 0.5>, <0, 0.5>
+		pigment { color rgb<1, 0.7, 0.7> }
+	}
+	translate <0, -0.5, 360/640>
+}
+*/
+
+sky_sphere {
+	pigment { color White }
+}
+
+object {
+#include "${incname}"
+	finish {
+		specular 0.9
+		irid { 0.25 }
+		metallic 
+	}
+}
+
+object {
+	polygon {
+		4, <0, 0>, <0, 1>, <1, 1>, <1, 0>
+		texture {
+			pigment { image_map { png "${pngname}" } }
+		}
+	}
+	rotate <90, 0, 0>
+	scale <1, 1, 360 / 640>
+	translate <0, -0.5, 0>
+}
+
+EOF
+
+done

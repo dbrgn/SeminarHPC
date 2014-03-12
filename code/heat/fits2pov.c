@@ -6,7 +6,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <getopt.h>
+#include <errno.h>
 #include <string.h>
+#include <math.h>
 #include <fitsio.h>
 
 int	debug = 0;
@@ -21,24 +23,29 @@ void	usage(const char *progname) {
 }
 
 void	point(FILE *outfile, const double *p) {
-	fprintf(outfile, "<%.4f, %.4f, %.4f>", p[0], p[1] p[2]);
+	fprintf(outfile, "<%.4f, %.4f, %.4f>", p[0], p[2], p[1]);
 }
 
 void	triangle(FILE *outfile, const double *t) {
 	fprintf(outfile, "triangle { ");
 	point(outfile, &t[0]);
 	fprintf(outfile, ", ");
-	point(outfile, &t[1]);
+	point(outfile, &t[3]);
 	fprintf(outfile, ", ");
-	point(outfile, &t[2]);
+	point(outfile, &t[6]);
 	fprintf(outfile, " }\n");
 }
 
 int	main(int argc, char *argv[]) {
+	FILE	*outfile = NULL;
 	int	rc = EXIT_FAILURE;
 	int	c;
-	while (EOF != (c = getopt(argc, argv, "dh?s:x:y:")))
+	int	preserve_aspect = 0;
+	while (EOF != (c = getopt(argc, argv, "adh?s:x:y:")))
 		switch (c) {
+		case 'a':
+			preserve_aspect = 1;
+			break;
 		case 'd':
 			debug++;
 			break;
@@ -107,9 +114,18 @@ int	main(int argc, char *argv[]) {
 
 	long	width = naxes[0];
 	long	height = naxes[1];
+	if (debug) {
+		fprintf(stderr, "%s:%d: got %ld x %ld image\n",
+			__FILE__, __LINE__,  width, height);
+	}
+
 	long	firstpixel[3] = { 1, 1, 1 };
 	long	npixels = width * height;
 	data = (double *)malloc(npixels * sizeof(double));
+	if (debug) {
+		fprintf(stderr, "%s:%d: allocated %ld doubles\n",
+			__FILE__, __LINE__, npixels);
+	}
 	if (fits_read_pix(fits, TDOUBLE, firstpixel, npixels, NULL, data,
 		NULL, &status)) {
 		fits_get_errstatus(status, fitserrmsg);
@@ -130,42 +146,70 @@ int	main(int argc, char *argv[]) {
 	if (hy < 0) {
 		hy = 1. / height;
 	}
+	if (preserve_aspect) {
+		if (hx > hy) {
+			hx = hy;
+		} else {
+			hy = hx;
+		}
+	}
+	if (debug) {
+		fprintf(stderr, "%s:%d: hx = %f, hy = %f\n", __FILE__, __LINE__,
+			hx, hy);
+	}
 
 	// open the output file
-	FILE	*outfile = NULL;
+	outfile = fopen(povname, "w");
+	if (NULL == outfile) {
+		fprintf(stderr, "cannot open file %s: %s\n", povname,
+			strerror(errno));
+		goto cleanup;
+	}
+
+	// open the file
+	fprintf(outfile, "mesh {\n");
 
 	// write the data as a povray structure
-	for (int x = 0; x < width; x++) {
-		for (int y = 0; y < height; y++) {
+	for (int x = 0; x < width - 1; x++) {
+		for (int y = 0; y < height - 1; y++) {
 			double	t[9];
 			t[0] = x * hx;
-			t[0] = y * hy;
-			t[0] = scale * data[x + width * y];
-			t[1] = x * hx;
 			t[1] = y * hy;
-			t[1] = scale * data[x + 1 + width * y];
-			t[2] = x * hx;
-			t[2] = y * hy;
-			t[2] = scale * data[x + width * (y + 1)];
+			t[2] = scale * data[x + width * y];
+			t[3] = (x + 1) * hx;
+			t[4] = y * hy;
+			t[5] = scale * data[x + 1 + width * y];
+			t[6] = x * hx;
+			t[7] = (y + 1) * hy;
+			t[8] = scale * data[x + width * (y + 1)];
 			triangle(outfile, t);
-			t[0] = x * hx;
-			t[0] = y * hy;
-			t[0] = scale * data[x + 1 + width * (y + 1)];
+			t[0] = (x + 1) * hx;
+			t[1] = (y + 1) * hy;
+			t[2] = scale * data[x + 1 + width * (y + 1)];
 			triangle(outfile, t);
+#if 0
 			double	v = scale * data[x + width * y];
 			if (debug) {
 				fprintf(stderr, "data[%.4f,%.4f] = %16.12f\n",
 					x * hx, y * hy, v);
 			}
+#endif
 		}
 	}
 
-	// close the output file
-	fclose(outfile);
+	fprintf(outfile, "pigment { color White }\n");
+	fprintf(outfile, "}\n");
 
 	// cleanup
 	rc = EXIT_SUCCESS;
+	
 cleanup:
+	// close the output file
+	if (outfile) {
+		fclose(outfile);
+		outfile = NULL;
+	}
+
 	if (data) {
 		free(data);
 		data = NULL;

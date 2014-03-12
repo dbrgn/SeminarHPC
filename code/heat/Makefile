@@ -34,10 +34,13 @@ testmpi:	heat_mpi
 
 # convert fits files to povray structure
 fits2pov:	fits2pov.c
-	$(CC) $(CFLAGS) -o fits2pov fits2pov.c -lcfitsio
+	$(CC) $(CFLAGS) -o fits2pov fits2pov.c -lcfitsio -lm
 
-povtest:	fits2pov
-	./fits2pov -d -s 0.00392156862745098039 testimage.fits
+testimage2.fits:	testimage.fits
+	convert testimage.fits -scale 25% testimage2.fits
+
+povtest:	fits2pov testimage2.fits
+	./fits2pov -d -s 0.00392156862745098039 testimage2.fits
 
 # measurements
 results:	results-heat.pdf results-heat-mpi.pdf results-heat-threads.pdf
