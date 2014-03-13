@@ -4,8 +4,8 @@
 # (c) 2013 Prof Dr Andreas Mueller, Hochschule Rapperswil
 #
 CXXFLAGS = -g -Wall -O2
-CPPFLAGS = -I/usr/local/include/opencv2
-LDFLAGS = -L/usr/local/lib -lopencv_core -lopencv_highgui -lopencv_imgproc -llapack -lfftw3 -lm
+CPPFLAGS = -I/usr/include/opencv2
+LDFLAGS = -L/usr/lib -lopencv_core -lopencv_highgui -lopencv_imgproc -llapack -lfftw3 -lm
 
 all:	radontransform 
 
