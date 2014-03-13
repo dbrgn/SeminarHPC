@@ -13,6 +13,7 @@
 #include <unistd.h>
 #include <alloca.h>
 #include <getopt.h>
+#include <common.h>
 
 int	debug = 0;
 
@@ -68,17 +69,18 @@ int	main(int argc, char *argv[]) {
 	int	c;
 	int	platform = 0;	// platform number
 	int	Debug = 0;
-	int	height = 128;
-	int	width = 128;
+	int	height = 2048;
+	int	width = 2048;
 	double	originx = -1;
 	double	originy = -1;
 	double	sizex = 2;
 	double	sizey = 2;
-	int	sx = 128;
-	int	sy = 128;
+	int	sx = 32;
+	int	sy = 32;
 	double	cx = 0;
 	double	cy = 0;
-	while (EOF != (c = getopt(argc, argv, "gdP:Dv:w:h:x:y:W:H:s:t:u:v:")))
+	int	iterations = 1000;
+	while (EOF != (c = getopt(argc, argv, "gdP:Dv:w:h:x:y:W:H:s:t:u:v:n:")))
 		switch (c) {
 		case 'd':
 			debug = 1;
@@ -122,10 +124,16 @@ int	main(int argc, char *argv[]) {
 		case 'v':
 			cy = atof(optarg);
 			break;
+		case 'n':
+			iterations = atoi(optarg);
+			break;
 		}
 
 	// start OpenCL initialization
 	int	err;
+
+	// initialize time measurement
+	init_gettime();
 
 	// first get the platform info
 	cl_uint	num_platforms;
@@ -387,7 +395,7 @@ int	main(int argc, char *argv[]) {
 
 	// we want to have to cluster points
 	int	npoints = 2;
-	int	psize = 7 + 2 * npoints;
+	int	psize = 8 + 2 * npoints;
 
 	// create parameter buffer
 	double	*p = (double *)malloc(sizeof(double) * psize);
@@ -404,11 +412,12 @@ int	main(int argc, char *argv[]) {
 	p[3] = sizey / height;
 	p[4] = cx;
 	p[5] = cy;
-	p[6] = 2;
-	p[7] = 0;
+	p[6] = iterations;
+	p[7] = 2;
 	p[8] = 0;
-	p[9] = 1291;
-	p[10] = 4711;
+	p[9] = 0;
+	p[10] = 1291;
+	p[11] = 4711;
 
 	// create output buffer
 	output = clCreateBuffer(context, CL_MEM_WRITE_ONLY,
@@ -454,6 +463,7 @@ int	main(int argc, char *argv[]) {
 	size_t	local[2] = { sx, sy };
 
 	// enqueue the kernel
+	double	start = gettime();
 	err = clEnqueueNDRangeKernel(commands, kernel, 2, NULL, global, local,
 		0, NULL, NULL);
 	if (err) {
@@ -475,6 +485,8 @@ int	main(int argc, char *argv[]) {
 			__FILE__, __LINE__, err);
 		return EXIT_FAILURE;
 	}
+	double	end = gettime();
+	printf("time: %f\n", end - start);
 
 	// perform cleanup
 	if (parameters) {
