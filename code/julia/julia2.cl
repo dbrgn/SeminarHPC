@@ -1,5 +1,5 @@
 /*
- * julia2.cl -- opencl kernel implementing gauss algorithm
+ * julia2.cl -- opencl kernel for the computation of julia sets
  *
  * (c) 2014 Prof Dr Andreas Mueller, Hochschule Rapperswil
  */
