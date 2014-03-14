@@ -78,8 +78,8 @@ int	main(int argc, char *argv[]) {
 	double	sizey = 4;
 	int	sx = 32;
 	int	sy = 32;
-	double	cx = 0;
-	double	cy = 0;
+	double	cx = -0.52;
+	double	cy = 0.57;
 	double	boundary = 1000;
 	while (EOF != (c = getopt(argc, argv, "b:dgP:Dv:w:h:x:y:W:H:s:t:u:v:")))
 		switch (c) {
@@ -421,8 +421,9 @@ int	main(int argc, char *argv[]) {
 	p[6] = boundary;
 
 	// create output buffer
-	output = clCreateBuffer(context, CL_MEM_WRITE_ONLY,
-		sizeof(int) * width * height, NULL, NULL);
+	int	imagesize = sizeof(unsigned short) * width * height;
+	output = clCreateBuffer(context, CL_MEM_WRITE_ONLY, imagesize,
+		NULL, NULL);
 	if (!output) {
 		fprintf(stderr, "%s:%d: cannot allocate output buffer\n",
 			__FILE__, __LINE__);
@@ -478,7 +479,6 @@ int	main(int argc, char *argv[]) {
 
 	// read the result data from the queue. This method waits until the
 	// the kernel has finished
-	int	imagesize = sizeof(unsigned short) * width * height;
 	unsigned short	*o = (unsigned short *)malloc(imagesize);
 	err = clEnqueueReadBuffer(commands, output, CL_TRUE, 0, imagesize, o,
 		0, NULL, NULL);

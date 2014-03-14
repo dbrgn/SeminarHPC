@@ -47,20 +47,26 @@ __kernel void	iterate(__global double *parameters,
 	__private double	escape_distance = parameters[6];
 
 	__private double2	z;
-	z.x = get_global_id(0) * hx;
-	z.y = get_global_id(1) * hy;
+	z.x = originx + get_global_id(0) * hx;
+	z.y = originy + get_global_id(1) * hy;
 
 	// now perform forward iteration for <iterations> steps
 	__private int	i;
 	double	l = length(z);
 	i = 0;
-	while ((l < escape_distance) || (i < LIMIT)) {
+	while ((l < escape_distance) && (i < LIMIT)) {
 		__private double	x = z.x * z.x - z.y * z.y + c.x;
 		z.y = 2 * z.x * z.y + c.y;
 		z.x = x;
 		l = length(z);
+		i++;
 	}
 
-	output[get_global_id(0) + get_global_id(1) * get_global_size(0)] = i;
+	int	idx = get_global_id(0) + get_global_id(1) * get_global_size(0);
+	if (i == LIMIT) {
+		output[idx] = 0;
+	} else {
+		output[idx] = i;
+	}
 }
 
