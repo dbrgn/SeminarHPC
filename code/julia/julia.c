@@ -494,21 +494,39 @@ int	main(int argc, char *argv[]) {
 	if (filename) {
 		fitsfile	*fits = NULL;
 		int	status = 0;
+		char	errmsg[80];
 		unlink(filename);
 		if (fits_create_file(&fits, filename, &status)) {
+			fits_get_errstatus(status, errmsg);
+			fprintf(stderr, "cannot create FITS file %s: %s\n",
+				filename, errmsg);
+			goto cleanup;
 		}
 
 		int	naxis = 2;
 		long	naxes[2] = { width, height };
 		if (fits_create_img(fits, SHORT_IMG, naxis,  naxes, &status)) {
+			fits_get_errstatus(status, errmsg);
+			fprintf(stderr, "cannot create image: %s\n", errmsg);
+			goto cleanup;
 		}
 
 		long	npixels = width * height;
 		long	firstpixel[2] = { 1, 1 };
 		if (fits_write_pix(fits, TUSHORT, firstpixel, npixels, o, &status)) {
+			fits_get_errstatus(status, errmsg);
+			fprintf(stderr, "write pixel data: %s\n", errmsg);
+			goto cleanup;
 		}
 
-		if (fits_close_file(fits, &status)) {
+	cleanup:
+		if (fits) {
+			status = 0;
+			if (fits_close_file(fits, &status)) {
+				fits_get_errstatus(status, errmsg);
+				fprintf(stderr, "cannot close file: %s\n",
+					errmsg);
+			}
 		}
 	}
 

@@ -65,7 +65,7 @@ __kernel void	iterate(__global double *parameters,
 	// backward iteration variable
 	__private double2	z = 0;
 
-	// park miller implementation
+	// park-miller implementation
 	double const	a = 16807;
 	double const	m = 2147483647;
 	double const	reciprocal_m = 1.0 / m;
