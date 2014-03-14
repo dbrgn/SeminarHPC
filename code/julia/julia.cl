@@ -1,5 +1,5 @@
 /*
- * gauss.cl -- opencl kernel implementing gauss algorithm
+ * julia.cl -- opencl kernel for julia set computation
  *
  * (c) 2014 Prof Dr Andreas Mueller, Hochschule Rapperswil
  */
@@ -13,6 +13,10 @@
 #pragma OPENCL EXTENSION cl_intel_printf : enable
 #endif
 
+#ifndef LIMIT
+#define LIMIT 65535
+#endif
+
 /**
  * \brief Kernel for Julia set computation
  *
@@ -24,16 +28,14 @@
  *                      [3]: grid constant in y direction
  *                      [4]: Julia parameter real part
  *                      [5]: Julia parameter imaginary part
- *			[6]: number of iterations
- *                      [7]: number of attracting points
- *                      [8]: attracting point[0] real part
- *                      [9]: attricting point[1] imaginary part
+ *			[6]: escape distance
  *                      additional attricting points follow 
  * \param output	output array width x height
  *                      width = get_global_size(0)
  *                      height = get_global_size(1)
  */
-__kernel void	iterate(__global double *parameters, __global int *output) {
+__kernel void	iterate(__global double *parameters,
+	__global unsigned short *output) {
 	// compute the initial value for the iteration
 	__private double	originx = parameters[0];
 	__private double	originy = parameters[1];
@@ -42,7 +44,7 @@ __kernel void	iterate(__global double *parameters, __global int *output) {
 	__private double2	c;
 	c.x = parameters[4];
 	c.y = parameters[5];
-	__private int	iterations = parameters[6];
+	__private double	escape_distance = parameters[6];
 
 	__private double2	z;
 	z.x = get_global_id(0) * hx;
@@ -50,29 +52,15 @@ __kernel void	iterate(__global double *parameters, __global int *output) {
 
 	// now perform forward iteration for <iterations> steps
 	__private int	i;
-	for (i = 0; i < iterations; i++) {
+	double	l = length(z);
+	i = 0;
+	while ((l < escape_distance) || (i < LIMIT)) {
 		__private double	x = z.x * z.x - z.y * z.y + c.x;
 		z.y = 2 * z.x * z.y + c.y;
 		z.x = x;
+		l = length(z);
 	}
 
-	// find out the nearest point from the list
-	__private int	npoints = parameters[7];
-	__private int	closest_index = 0;
-	__private double	dmin = 100000;
-	for (i = 0; i < npoints; i++) {
-		__private double2	p;
-		p.x = parameters[8 + 2 * i];
-		p.y = parameters[8 + 2 * i + 1];
-		__private double	d = distance(p, z);
-		if (d < dmin) {
-			closest_index = i;
-			dmin = d;
-		}
-	}
-
-	// we have now found the index of the closest point, so lets return it
-	output[get_global_id(0) + get_global_id(1) * get_global_size(0)]
-		= closest_index;
+	output[get_global_id(0) + get_global_id(1) * get_global_size(0)] = i;
 }
 

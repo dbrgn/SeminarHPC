@@ -76,16 +76,13 @@ int	main(int argc, char *argv[]) {
 	double	originy = -2;
 	double	sizex = 4;
 	double	sizey = 4;
-	int	sx = 32;
-	int	sy = 32;
-	double	cx = 0;
-	double	cy = 0;
-	double	boundary = 1000;
-	while (EOF != (c = getopt(argc, argv, "b:dgP:Dv:w:h:x:y:W:H:s:t:u:v:")))
+	double	cx = -0.52;
+	double	cy = 0.57;
+	int	initial_iterations = 1000;
+	int	iterations = 1000;
+	int	N = 1;
+	while (EOF != (c = getopt(argc, argv, "gdP:Dv:w:h:x:y:W:H:u:v:n:i:N:")))
 		switch (c) {
-		case 'b':
-			boundary = atof(optarg);
-			break;
 		case 'd':
 			debug = 1;
 			break;
@@ -116,23 +113,26 @@ int	main(int argc, char *argv[]) {
 		case 'H':
 			sizey = atof(optarg);
 			break;
-		case 's':
-			sx = atoi(optarg);
-			break;
-		case 't':
-			sy = atoi(optarg);
-			break;
 		case 'u':
 			cx = atof(optarg);
 			break;
 		case 'v':
 			cy = atof(optarg);
 			break;
+		case 'i':
+			initial_iterations = atoi(optarg);
+			break;
+		case 'n':
+			iterations = atoi(optarg);
+			break;
+		case 'N':
+			N = atoi(optarg);
+			break;
 		}
 
-	// next parameter is the fits filename
+	// next argument is the output filename
 	const char	*filename = NULL;
-	if (optind < argc) {
+	if (argc > optind) {
 		filename = argv[optind++];
 	}
 
@@ -309,7 +309,7 @@ int	main(int argc, char *argv[]) {
 	// to read a program from a file, so we supply a uitility function
 	// for this purpose.
 	cl_program	program = cluCreateProgramWithFile(context,
-				"julia.cl", &err);
+				"julia2.cl", &err);
 	if (!program) {
 		fprintf(stderr, "%s:%d: cannot create program: %d\n",
 			__FILE__, __LINE__, err);
@@ -401,7 +401,7 @@ int	main(int argc, char *argv[]) {
 	cl_mem	parameters = NULL, output = NULL;
 
 	// we want to have to cluster points
-	int	psize = 7;
+	int	psize = 10;
 
 	// create parameter buffer
 	double	*p = (double *)malloc(sizeof(double) * psize);
@@ -412,17 +412,20 @@ int	main(int argc, char *argv[]) {
 			__FILE__, __LINE__);
 		return EXIT_FAILURE;
 	}
-	p[0] = originx;
-	p[1] = originy;
-	p[2] = sizex / width;
-	p[3] = sizey / height;
-	p[4] = cx;
-	p[5] = cy;
-	p[6] = boundary;
+	p[0] = width;
+	p[1] = height;
+	p[2] = originx;
+	p[3] = originy;
+	p[4] = sizex / width;
+	p[5] = sizey / height;
+	p[6] = cx;
+	p[7] = cy;
+	p[8] = initial_iterations;
+	p[9] = iterations;
 
 	// create output buffer
 	output = clCreateBuffer(context, CL_MEM_WRITE_ONLY,
-		sizeof(int) * width * height, NULL, NULL);
+		sizeof(unsigned char) * width * height, NULL, NULL);
 	if (!output) {
 		fprintf(stderr, "%s:%d: cannot allocate output buffer\n",
 			__FILE__, __LINE__);
@@ -460,12 +463,12 @@ int	main(int argc, char *argv[]) {
 	}
 
 	// compute a suitable work group size
-	size_t	global[2] = { width, height };
-	size_t	local[2] = { sx, sy };
+	size_t	local = workgroupsize;
+	size_t	global = N * workgroupsize;
 
 	// enqueue the kernel
 	double	start = gettime();
-	err = clEnqueueNDRangeKernel(commands, kernel, 2, NULL, global, local,
+	err = clEnqueueNDRangeKernel(commands, kernel, 1, NULL, &global, &local,
 		0, NULL, NULL);
 	if (err) {
 		fprintf(stderr, "%s:%d: cannot enqueue the kernel: %d\n",
@@ -478,8 +481,8 @@ int	main(int argc, char *argv[]) {
 
 	// read the result data from the queue. This method waits until the
 	// the kernel has finished
-	int	imagesize = sizeof(unsigned short) * width * height;
-	unsigned short	*o = (unsigned short *)malloc(imagesize);
+	int	imagesize = sizeof(cl_uchar) * width * height;
+	cl_uchar	*o = (cl_uchar *)malloc(imagesize);
 	err = clEnqueueReadBuffer(commands, output, CL_TRUE, 0, imagesize, o,
 		0, NULL, NULL);
 	if (err != CL_SUCCESS) {
@@ -490,7 +493,7 @@ int	main(int argc, char *argv[]) {
 	double	end = gettime();
 	printf("time: %f\n", end - start);
 
-	// write result matrix to a fits file
+	// write the result array as an image
 	if (filename) {
 		fitsfile	*fits = NULL;
 		int	status = 0;
@@ -500,16 +503,27 @@ int	main(int argc, char *argv[]) {
 
 		int	naxis = 2;
 		long	naxes[2] = { width, height };
-		if (fits_create_img(fits, SHORT_IMG, naxis,  naxes, &status)) {
+		if (fits_create_img(fits, BYTE_IMG, naxis, naxes, &status)) {
 		}
 
 		long	npixels = width * height;
 		long	firstpixel[2] = { 1, 1 };
-		if (fits_write_pix(fits, TUSHORT, firstpixel, npixels, o, &status)) {
+		if (fits_write_pix(fits, TBYTE, firstpixel, npixels, o, &status)) {
 		}
 
 		if (fits_close_file(fits, &status)) {
 		}
+	}
+
+	// compute histogramm of values
+	unsigned long	histogramm[256];
+	for (int i = 0; i < 256; i++) { histogramm[i] = 0; }
+	for (int i = 0; i < width * height; i++) {
+		histogramm[o[i]]++;
+	}
+	printf("v,count\n");
+	for (int i = 0; i < 256; i++) {
+		printf("%d,%ld\n", i, histogramm[i]);
 	}
 
 	// perform cleanup
