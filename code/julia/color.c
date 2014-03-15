@@ -53,7 +53,7 @@ static void	make_color(unsigned char *color, const double value) {
 }
 
 int	write_color(const char *filename, const int width, const int height,
-			const unsigned short *pixels) {
+			const unsigned short *pixels, const double gamma) {
 	int	rc = 0;
 	if (debug) {
 		fprintf(stderr, "%s:%d: writing %d x %d color image to %s (%p)\n",
@@ -89,9 +89,12 @@ int	write_color(const char *filename, const int width, const int height,
 
 	// convert the pixel values to RGB
 	for (int i = 0; i < fieldsize; i++) {
-		double	value = (pixels[i] - min) / (double)(max - min + 1);
 		unsigned char	color[3] = { 0, 0, 0 };
-		make_color(color, value);
+		if (pixels[i]) {
+			double	value = (pixels[i] - min) / (double)(max - min + 1);
+			value = pow(value, gamma);
+			make_color(color, value);
+		}
 		data[i                ] = color[0];
 		data[i +     fieldsize] = color[1];
 		data[i + 2 * fieldsize] = color[2];

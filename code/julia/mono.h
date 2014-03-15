@@ -7,6 +7,7 @@
 #define _mono_h
 
 extern int	write_mono(const char *filename, const int width,
-			const int height, const unsigned short *pixels);
+			const int height, const unsigned short *pixels,
+			const double gamma);
 
 #endif /* _mono_h */

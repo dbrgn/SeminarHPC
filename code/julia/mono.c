@@ -6,9 +6,18 @@
 #include "mono.h"
 #include <fitsio.h>
 #include <unistd.h>
+#include <math.h>
 
 int	write_mono(const char *filename, const int width,
-			const int height, const unsigned short *pixels) {
+			const int height, const unsigned short *pixels,
+			const double gamma) {
+	long	npixels = width * height;
+	unsigned short	*data = (unsigned short *)malloc(
+					sizeof(unsigned short) * npixels);
+	for (int i = 0; i < npixels; i++) {
+		data[i] = 65535 * pow(pixels[i] / (double)65535, gamma);
+	}
+
 	int	rc = 0;
 	fitsfile	*fits = NULL;
 	int	status = 0;
@@ -31,14 +40,15 @@ int	write_mono(const char *filename, const int width,
 		goto cleanup;
 	}
 
-	long	npixels = width * height;
 	long	firstpixel[2] = { 1, 1 };
-	if (fits_write_pix(fits, TUSHORT, firstpixel, npixels, pixels, &status)) {
+	if (fits_write_pix(fits, TUSHORT, firstpixel, npixels, data, &status)) {
 		fits_get_errstatus(status, errmsg);
 		fprintf(stderr, "write pixel data: %s\n", errmsg);
 		rc = -1;
 		goto cleanup;
 	}
+
+	free(data);
 
 cleanup:
 	if (fits) {

@@ -7,6 +7,7 @@
 #define _color_h
 
 extern int	write_color(const char *filename, const int width,
-			const int height, const unsigned short *pixels);
+			const int height, const unsigned short *pixels,
+			const double gamma);
 
 #endif /* _color_h */

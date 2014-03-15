@@ -19,7 +19,7 @@ julia2:	julia2.c point.c point.h
 test:	test1 test2
 
 test1:	julia1
-	time ./julia1 -P 0 -d -e -c '(0,0.66)' out1.fits
+	time ./julia1 -P 0 -d -e -g 0.5 -c '(0,0.66)' out1.fits
 
 test2:	julia2
 	time ./julia2 -P 0 -d -s -i 1000 -n 10000 out2.fits

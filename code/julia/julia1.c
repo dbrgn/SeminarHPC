@@ -82,8 +82,9 @@ int	main(int argc, char *argv[]) {
 	double	origin[2] = { -2, -2 };
 	double	size[2] = { 4, 4 };
 	double	boundary = 1000;
+	double	gamma = 1.0;
 	int	expand = 0;
-	while (EOF != (C = getopt(argc, argv, "b:Cc:dgP:Dv:w:h:o:S:s:t:e")))
+	while (EOF != (C = getopt(argc, argv, "b:Cc:dg:GP:Dv:w:h:o:S:s:t:e")))
 		switch (C) {
 		case 'b':
 			boundary = atof(optarg);
@@ -97,8 +98,11 @@ int	main(int argc, char *argv[]) {
 		case 'e':
 			expand = 1;
 			break;
-		case 'g':
+		case 'G':
 			gpu = 1;
+			break;
+		case 'g':
+			gamma = atof(optarg);
 			break;
 		case 'P':
 			platform = atoi(optarg);
@@ -519,9 +523,9 @@ int	main(int argc, char *argv[]) {
 	// write result matrix to a fits file
 	if (filename) {
 		if (color) {
-			write_color(filename, width, height, o);
+			write_color(filename, width, height, o, gamma);
 		} else {
-			write_mono(filename, width, height, o);
+			write_mono(filename, width, height, o, gamma);
 		}
 	}
 
