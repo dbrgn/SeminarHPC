@@ -34,11 +34,17 @@ do
 			case ${v} in
 				0)	time ./julia1 ${commonparams} -e ${outfile}
 					;;
-				1)	time ./julia1 ${commonparams} -c ${outfile}
+				1)	time ./julia1 ${commonparams} -C ${outfile}
 					;;
 				2)	time ./julia2 ${commonparams} -s -H ${histofile} ${outfile}
 					;;
 			esac
 		done
 	done
+done
+
+for x in a b c d e f g h
+do
+	convert out0-P0-${x}.fits -gamma 1.5 ${x}.png
+	convert out2-P0-${x}.fits -negate j-${x}.png
 done
