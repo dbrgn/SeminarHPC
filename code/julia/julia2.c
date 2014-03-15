@@ -15,6 +15,7 @@
 #include <getopt.h>
 #include <common.h>
 #include <fitsio.h>
+#include "point.h"
 
 int	debug = 0;
 
@@ -67,22 +68,21 @@ cl_program	cluCreateProgramWithFile(cl_context context,
 int	main(int argc, char *argv[]) {
 	// parse command line arguments
 	int	gpu = 0;	// whether to use the GPU or the CPU
-	int	c;
 	int	platform = 0;	// platform number
 	int	Debug = 0;
 	int	height = 2048;
 	int	width = 2048;
-	double	originx = -2;
-	double	originy = -2;
-	double	sizex = 4;
-	double	sizey = 4;
-	double	cx = -0.52;
-	double	cy = 0.57;
+	double	origin[2] = { -2, -2 };
+	double	size[2] = { 4, 4 };
+	double	c[2] = { -0.52, 0.57 };
 	int	initial_iterations = 1000;
-	int	iterations = 1000;
-	int	N = 1;
-	while (EOF != (c = getopt(argc, argv, "gdP:Dw:h:x:y:W:H:u:v:n:i:N:")))
-		switch (c) {
+	int	iterations = 100000;
+	int	N = 65535; // number of work items
+	int	C;
+	int	saturate = 0;
+	const char	*histogramfile = NULL;
+	while (EOF != (C = getopt(argc, argv, "gdP:Dw:h:H:o:sS:c:n:i:N:")))
+		switch (C) {
 		case 'd':
 			debug = 1;
 			break;
@@ -101,23 +101,29 @@ int	main(int argc, char *argv[]) {
 		case 'h':
 			height = atoi(optarg);
 			break;
-		case 'x':
-			originx = atof(optarg);
-			break;
-		case 'y':
-			originy = atof(optarg);
-			break;
-		case 'W':
-			sizex = atof(optarg);
-			break;
 		case 'H':
-			sizey = atof(optarg);
+			histogramfile = optarg;
 			break;
-		case 'u':
-			cx = atof(optarg);
+		case 'o':
+			if (parse_point(optarg, origin) < 0) {
+				fprintf(stderr, "invalid origin: %s\n", optarg);
+				return EXIT_FAILURE;
+			}
 			break;
-		case 'v':
-			cy = atof(optarg);
+		case 's':
+			saturate = 1;
+			break;
+		case 'S':
+			if (parse_point(optarg, size) < 0) {
+				fprintf(stderr, "invalid size: %s\n", optarg);
+				return EXIT_FAILURE;
+			}
+			break;
+		case 'c':
+			if (parse_point(optarg, c) < 0) {
+				fprintf(stderr, "invalid c paramter: %s\n", optarg);
+				return EXIT_FAILURE;
+			}
 			break;
 		case 'i':
 			initial_iterations = atoi(optarg);
@@ -414,12 +420,12 @@ int	main(int argc, char *argv[]) {
 	}
 	p[0] = width;
 	p[1] = height;
-	p[2] = originx;
-	p[3] = originy;
-	p[4] = sizex / width;
-	p[5] = sizey / height;
-	p[6] = cx;
-	p[7] = cy;
+	p[2] = origin[0];
+	p[3] = origin[1];
+	p[4] = size[0] / width;
+	p[5] = size[1] / height;
+	p[6] = c[0];
+	p[7] = c[1];
 	p[8] = initial_iterations;
 	p[9] = iterations;
 
@@ -464,7 +470,15 @@ int	main(int argc, char *argv[]) {
 
 	// compute a suitable work group size
 	size_t	local = workgroupsize;
-	size_t	global = N * workgroupsize;
+
+	// find the smallest multiple of the workgroupsize that is larger
+	// than N
+	size_t	global = workgroupsize * ((N / workgroupsize) + ((N % workgroupsize) ? 1 : 0));
+	if (debug) {
+		fprintf(stderr, "%s:%d: using local size = %ld, "
+			"global size = %ld\n", __FILE__, __LINE__,
+			local, global);
+	}
 
 	// enqueue the kernel
 	double	start = gettime();
@@ -492,6 +506,39 @@ int	main(int argc, char *argv[]) {
 	}
 	double	end = gettime();
 	printf("time: %f\n", end - start);
+
+	// compute histogramm of values
+	if (histogramfile) {
+		unsigned long	histogramm[256];
+		for (int i = 0; i < 256; i++) { histogramm[i] = 0; }
+		for (int i = 0; i < width * height; i++) {
+			histogramm[o[i]]++;
+		}
+		FILE	*histogram = fopen(histogramfile, "w");
+		if (NULL == histogram) {
+			fprintf(stderr, "cannot write histogram to %s: %s\n",
+				histogramfile, strerror(errno));
+		} else {
+			fprintf(histogram, "v,count\n");
+			for (int i = 0; i < 256; i++) {
+				fprintf(histogram, "%d,%ld\n", i, histogramm[i]);
+			}
+			fclose(histogram);
+		}
+	}
+
+	// saturate the image if requested
+	if (saturate) {
+		if (debug) {
+			fprintf(stderr, "%s:%d: saturating image\n",
+				__FILE__, __LINE__);
+		}
+		for (int i = 0; i < width * height; i++) {
+			if (o[i] > 0) {
+				o[i] = 255;
+			}
+		}
+	}
 
 	// write the result array as an image
 	if (filename) {
@@ -532,16 +579,6 @@ int	main(int argc, char *argv[]) {
 		}
 	}
 
-	// compute histogramm of values
-	unsigned long	histogramm[256];
-	for (int i = 0; i < 256; i++) { histogramm[i] = 0; }
-	for (int i = 0; i < width * height; i++) {
-		histogramm[o[i]]++;
-	}
-	printf("v,count\n");
-	for (int i = 0; i < 256; i++) {
-		printf("%d,%ld\n", i, histogramm[i]);
-	}
 
 	// perform cleanup
 	if (parameters) {

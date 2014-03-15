@@ -11,9 +11,16 @@
 #include <errno.h>
 #include <string.h>
 
+extern int	debug;
+
 int	parse_point(const char *arg, double *values) {
 	int	rc = -1;
-	const char	*r = "\\(([-+]?[0-9]+(\\.[0-9]*)?),([-+]?[0-9]+(\\.[0-9]*)?)\\)";
+	const char	*r
+		= "(\\([+-]\\?[0-9]*\\(\\.[0-9]*\\)\\?\\),\\([+-]\\?[0-9]*\\(\\.[0-9]*\\)\\?\\))";
+	if (debug) {
+		fprintf(stderr, "%s:%d: regular expression: %s\n",
+			__FILE__, __LINE__, r);
+	}
 	/* compile regular expression */
 	regex_t	regex;
 	if (regcomp(&regex, r, 0)) {
@@ -23,19 +30,27 @@ int	parse_point(const char *arg, double *values) {
 	}
 
 	/* try to match */
-	regmatch_t	pmatch[3];
-	if (0 == regexec(&regex, arg, 3, pmatch, 0)) {
+#define	nmatches 5
+	regmatch_t	pmatch[nmatches];
+	if (0 == regexec(&regex, arg, 5, pmatch, 0)) {
 		rc = 0;
-		char	*s = (char *)strndup(arg + pmatch[0].rm_so, 
-				pmatch[0].rm_eo - pmatch[0].rm_so);
-		printf("first match: '%s'\n", s);
-		values[0] = atof(s);
-		free(s);
-		s = (char *)strndup(arg + pmatch[1].rm_so, 
-				pmatch[1].rm_eo - pmatch[1].rm_so);
-		printf("second match: '%s'\n", s);
-		values[1] = atof(s);
-		free(s);
+		for (int i = 0; i < nmatches; i++) {
+			char	*s = strndup(arg + pmatch[i].rm_so, 
+					pmatch[i].rm_eo - pmatch[i].rm_so);
+			if (debug) {
+				fprintf(stderr, "%s:%d: match[%d]: '%s'\n",
+					__FILE__, __LINE__, i, s);
+			}
+			switch (i) {
+			case 1:	values[0] = atof(s);
+				break;
+			case 3:	values[1] = atof(s);
+				break;
+			default:
+				break;
+			}
+			free(s);
+		}
 	} else {
 		fprintf(stderr, "no match with \"%s\"\n", arg);
 	}
@@ -43,6 +58,10 @@ int	parse_point(const char *arg, double *values) {
 	/* cleanup */
 	regfree(&regex);
 end:
+	if ((debug) && (rc == 0)) {
+		fprintf(stderr, "%s:%d: point: %.6f + %.6fi\n",
+			__FILE__, __LINE__, values[0], values[1]);
+	}
 	return rc;
 }
 

@@ -13,6 +13,12 @@
 #pragma OPENCL EXTENSION cl_intel_printf : enable
 #endif
 
+/*
+ * Perform Julia inverse function computation
+ * \param c	parameter f_c(z)=z^2+c
+ * \param z	argument 
+ * \param side	selects one of complex roots
+ */
 double2	juliaroot(double2 c, double2 z, bool side) {
 	double2	zz = z - c;
 	double	l = sqrt(length(zz));
@@ -22,6 +28,38 @@ double2	juliaroot(double2 c, double2 z, bool side) {
 	zz.x = cc;
 	zz = l * zz;
 	return zz;
+}
+
+/*
+ * register a point in the output image
+ */
+void	registerpoint(double2 z, double2 origin, double2 h, int2 size,
+	__global unsigned char *output) {
+//printf("register %f + %fi\n", z.x, z.y);
+	double2	p = floor((z - origin) / h);
+	int2	point;
+	point.x = p.x;
+	point.y = p.y;
+	int2	zero = 0;
+	if (all(zero <= point) && all(point < size)) {
+		int	idx = point.x + size.x * point.y;
+		unsigned char	v = output[idx];
+		if (v < 255) {
+			output[idx] = v + 1;
+		}
+	}
+}
+
+/*
+ * Park-Miller random number generator
+ */
+__constant double a = 16807;
+__constant double m = 2147483647;
+__constant double reciprocal_m = 1.0 / 2147473647;
+
+int	random(int seed) {
+	__private double	temp = seed * a;
+	return (int)(temp - m * floor(temp * reciprocal_m));
 }
 
 /**
@@ -50,15 +88,19 @@ __kernel void	iterate(__global double *parameters,
 	int2	size;
 	size.x = parameters[0];
 	size.y = parameters[1];
+
 	__private double2	origin;
 	origin.x = parameters[2];
 	origin.y = parameters[3];
+
 	__private double2	h;
 	h.x = parameters[4];
 	h.y = parameters[5];
+
 	__private double2	c;
 	c.x = parameters[6];
 	c.y = parameters[7];
+
 	__private int	initial_iterations = parameters[8];
 	__private int	iterations = parameters[9];
 
@@ -66,43 +108,40 @@ __kernel void	iterate(__global double *parameters,
 	__private double2	z = 0;
 
 	// park-miller implementation
-	double const	a = 16807;
-	double const	m = 2147483647;
-	double const	reciprocal_m = 1.0 / m;
 	__private int	seed = get_global_id(0);
+	__private unsigned short	bits = seed % 0x10000;
 	__private double	temp;
 
 	// perform a few random iterations
 	__private int	i;
 	for (i = 0; i < 10; i++) {
-		temp = seed * a;
-		seed = (int)(temp - m * floor(temp * reciprocal_m));
+		seed = random(seed);
 	}
 
 	// perform a number of backward iterations
-	for (i = 0; i < iterations; i++) {
+	for (i = 0; i < initial_iterations; i++) {
 		z = juliaroot(c, z, (0x1 & seed));
-		temp = seed * a;
-		seed = (int)(temp - m * floor(temp * reciprocal_m));
+		seed = random(seed);
 	}
 
 	// perform a number of backward iterations, but register the points
 	// you find during these iterations
-	int2	zero = 0;
 	for (i = 0; i < iterations; i++) {
-		z = juliaroot(c, z, (0x1 & seed));
-		double2	p = floor((z - origin) / h);
-		int2	point;
-		point.x = p.x;
-		point.y = p.y;
-		if (all(zero <= point) && all(point < size)) {
-			int	idx = point.x + size.x * point.y;
-			unsigned char	v = output[idx];
-			if (v < 255) {
-				output[idx] = v + 1;
-			}
+		// go through the bits of the work id
+		__private unsigned short	b = bits;
+		__private unsigned char	j = 16;
+		while (j) {
+			z = juliaroot(c, z, (0x1 & b));
+			registerpoint(z, origin, h, size, output);
+			j--;
+			b >>= 1;
 		}
-		temp = seed * a;
-		seed = (int)(temp - m * floor(temp * reciprocal_m));
+
+		// use the last bit of the random number
+		z = juliaroot(c, z, (0x1 & seed));
+		registerpoint(z, origin, h, size, output);
+		
+		// get the next random number
+		seed = random(seed);
 	}
 }

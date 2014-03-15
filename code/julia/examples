@@ -4,26 +4,41 @@
 #
 # (c) 2014 Prof Dr Andreas Mueller, Hochschule Rapperswil
 #
-for platform in 0
+for platform in 0 1 2
 do
-	sizeparams="-w 2560 -h 1440 -x -2 -y -1.125 -W 4 -H 2.25"
-	for v in 2 ""
+	for v in 0 1 2
 	do
-		time ./julia${v} ${sizeparams} -P ${plattform} \
-				-u -0.1  -v 0.1  out${v}-${platform}-a.fits
-		time ./julia${v} ${sizeparams} -P ${plattform} \
-				-u -0.5  -v 0.5  out${v}-${platform}-b.fits
-		time ./julia${v} ${sizeparams} -P ${plattform} \
-				-u -1    -v 0.05 out${v}-${platform}-c.fits
-		time ./julia${v} ${sizeparams} -P ${plattform} \
-				-u -0.1  -v 0.75 out${v}-${platform}-d.fits
-		time ./julia${v} ${sizeparams} -P ${plattform} \
-				-u  0.25 -v 0.52 out${v}-${platform}-e.fits
-		time ./julia${v} ${sizeparams} -P ${plattform} \
-				-u -0.5  -v 0.55 out${v}-${platform}-f.fits
-		time ./julia${v} ${sizeparams} -P ${plattform} \
-				-u  0    -v 0.66 out${v}-${platform}-g.fits
-		time ./julia${v} ${sizeparams} -P ${plattform} \
-				-u  0    -v 1    out${v}-${platform}-h.fits
+		for example in a b c d e f g h
+		do
+			case ${example} in
+				a)	point="'(-0.1,0.1)'"
+					;;
+				b)	point="'(-0.5,0.5)'"
+					;;
+				c)	point="'(-1,0.05)'"
+					;;
+				d)	point="'(-0.1,0.75)'"
+					;;
+				e)	point="'(0.25,0.52)'"
+					;;
+				f)	point="'(-0.5,0.55)'"
+					;;
+				g)	point="'(0,0.66)'"
+					;;
+				h)	point="'(0,1)'"
+					;;
+			esac
+			commonparams="-d -w 2560 -h 1440 -o '(-2.1,-1.18125)' -S '(4.1,2.3625)' -c ${point}"
+			outfile=out${v}-P${platform}-${example}.fits
+			histofile=histo${v}-P${platform}-${example}.csv
+			case ${v} in
+				0)	time ./julia1 ${commonparams} -e ${outfile}
+					;;
+				1)	time ./julia1 ${commonparams} -c ${outfile}
+					;;
+				2)	time ./julia2 ${commonparams} -s -H ${histofile} ${outfile}
+					;;
+			esac
+		done
 	done
 done

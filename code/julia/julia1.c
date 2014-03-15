@@ -16,6 +16,8 @@
 #include <common.h>
 #include <fitsio.h>
 #include "point.h"
+#include "color.h"
+#include "mono.h"
 
 int	debug = 0;
 
@@ -70,18 +72,18 @@ int	main(int argc, char *argv[]) {
 	int	gpu = 0;	// whether to use the GPU or the CPU
 	int	C;
 	int	platform = 0;	// platform number
+	int	color = 0;
 	int	Debug = 0;
 	int	height = 2048;
 	int	width = 2048;
-	double	originx = -2;
-	double	originy = -2;
-	double	sizex = 4;
-	double	sizey = 4;
 	int	sx = 32;
 	int	sy = 32;
 	double	c[2] = { -0.52, 0.57 };
+	double	origin[2] = { -2, -2 };
+	double	size[2] = { 4, 4 };
 	double	boundary = 1000;
-	while (EOF != (C = getopt(argc, argv, "b:dgP:Dv:w:h:x:y:W:H:s:t:c:")))
+	int	expand = 0;
+	while (EOF != (C = getopt(argc, argv, "b:Cc:dgP:Dv:w:h:o:S:s:t:e")))
 		switch (C) {
 		case 'b':
 			boundary = atof(optarg);
@@ -91,6 +93,9 @@ int	main(int argc, char *argv[]) {
 			break;
 		case 'D':
 			Debug = 1;
+			break;
+		case 'e':
+			expand = 1;
 			break;
 		case 'g':
 			gpu = 1;
@@ -104,17 +109,17 @@ int	main(int argc, char *argv[]) {
 		case 'h':
 			height = atoi(optarg);
 			break;
-		case 'x':
-			originx = atof(optarg);
+		case 'o':
+			if (parse_point(optarg, origin) < 0) {
+				fprintf(stderr, "bad origin argument: %s\n", optarg);
+				return EXIT_FAILURE;
+			}
 			break;
-		case 'y':
-			originy = atof(optarg);
-			break;
-		case 'W':
-			sizex = atof(optarg);
-			break;
-		case 'H':
-			sizey = atof(optarg);
+		case 'S':
+			if (parse_point(optarg, size) < 0) {
+				fprintf(stderr, "bad size argument: %s\n", optarg);
+				return EXIT_FAILURE;
+			}
 			break;
 		case 's':
 			sx = atoi(optarg);
@@ -127,6 +132,9 @@ int	main(int argc, char *argv[]) {
 				fprintf(stderr, "argument format: %s\n", optarg);
 				return EXIT_FAILURE;
 			}
+			break;
+		case 'C':
+			color = 1;
 			break;
 		}
 
@@ -309,7 +317,7 @@ int	main(int argc, char *argv[]) {
 	// to read a program from a file, so we supply a uitility function
 	// for this purpose.
 	cl_program	program = cluCreateProgramWithFile(context,
-				"julia.cl", &err);
+				"julia1.cl", &err);
 	if (!program) {
 		fprintf(stderr, "%s:%d: cannot create program: %d\n",
 			__FILE__, __LINE__, err);
@@ -412,10 +420,10 @@ int	main(int argc, char *argv[]) {
 			__FILE__, __LINE__);
 		return EXIT_FAILURE;
 	}
-	p[0] = originx;
-	p[1] = originy;
-	p[2] = sizex / width;
-	p[3] = sizey / height;
+	p[0] = origin[0];
+	p[1] = origin[1];
+	p[2] = size[0] / width;
+	p[3] = size[1] / height;
 	p[4] = c[0];
 	p[5] = c[1];
 	p[6] = boundary;
@@ -490,43 +498,30 @@ int	main(int argc, char *argv[]) {
 	double	end = gettime();
 	printf("time: %f\n", end - start);
 
+	// expand if requested
+	if (expand) {
+		double	min = 65536;
+		double	max = 0;
+		for (int i = 0; i < width * height; i++) {
+			unsigned short	value = o[i];
+			if (value > max) {
+				max = value;
+			}
+			if (value < min) {
+				min = value;
+			}
+		}
+		for (int i = 0; i < width *  height; i++) {
+			o[i] = 65535. * (o[i] - min) / (double)(max - min + 1);
+		}
+	}
+
 	// write result matrix to a fits file
 	if (filename) {
-		fitsfile	*fits = NULL;
-		int	status = 0;
-		char	errmsg[80];
-		unlink(filename);
-		if (fits_create_file(&fits, filename, &status)) {
-			fits_get_errstatus(status, errmsg);
-			fprintf(stderr, "cannot create FITS file %s: %s\n",
-				filename, errmsg);
-			goto cleanup;
-		}
-
-		int	naxis = 2;
-		long	naxes[2] = { width, height };
-		if (fits_create_img(fits, SHORT_IMG, naxis,  naxes, &status)) {
-			fits_get_errstatus(status, errmsg);
-			fprintf(stderr, "cannot create image: %s\n", errmsg);
-			goto cleanup;
-		}
-
-		long	npixels = width * height;
-		long	firstpixel[2] = { 1, 1 };
-		if (fits_write_pix(fits, TUSHORT, firstpixel, npixels, o, &status)) {
-			fits_get_errstatus(status, errmsg);
-			fprintf(stderr, "write pixel data: %s\n", errmsg);
-			goto cleanup;
-		}
-
-	cleanup:
-		if (fits) {
-			status = 0;
-			if (fits_close_file(fits, &status)) {
-				fits_get_errstatus(status, errmsg);
-				fprintf(stderr, "cannot close file: %s\n",
-					errmsg);
-			}
+		if (color) {
+			write_color(filename, width, height, o);
+		} else {
+			write_mono(filename, width, height, o);
 		}
 	}
 
