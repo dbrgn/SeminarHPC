@@ -81,7 +81,7 @@ int	main(int argc, char *argv[]) {
 	int	initial_iterations = 1000;
 	int	iterations = 1000;
 	int	N = 1;
-	while (EOF != (c = getopt(argc, argv, "gdP:Dv:w:h:x:y:W:H:u:v:n:i:N:")))
+	while (EOF != (c = getopt(argc, argv, "gdP:Dw:h:x:y:W:H:u:v:n:i:N:")))
 		switch (c) {
 		case 'd':
 			debug = 1;

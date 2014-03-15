@@ -9,15 +9,15 @@ LDFLAGS = -L../gauss/common -lgauss -L/opt/AMDAPP/lib/x86_64 -lOpenCL -lcfitsio
 
 all:	julia
 
-julia:	julia.c
-	$(CC) $(CFLAGS) -o julia julia.c $(LDFLAGS)
+julia:	julia.c point.c
+	$(CC) $(CFLAGS) -o julia julia.c point.c $(LDFLAGS)
 		
 
-julia2:	julia2.c
-	$(CC) $(CFLAGS) -o julia2 julia2.c $(LDFLAGS)
+julia2:	julia2.c point.c
+	$(CC) $(CFLAGS) -o julia2 julia2.c point.c $(LDFLAGS)
 
 test:	julia
-	./julia -P 0 -d out.fits
+	./julia -P 0 -d -c '(0,-1)' out.fits
 
 test2:	julia2
 	./julia2 -P 0 -d -N 100 -i 1000 -n 1000000 out2.fits

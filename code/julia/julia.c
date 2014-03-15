@@ -15,6 +15,7 @@
 #include <getopt.h>
 #include <common.h>
 #include <fitsio.h>
+#include "point.h"
 
 int	debug = 0;
 
@@ -67,7 +68,7 @@ cl_program	cluCreateProgramWithFile(cl_context context,
 int	main(int argc, char *argv[]) {
 	// parse command line arguments
 	int	gpu = 0;	// whether to use the GPU or the CPU
-	int	c;
+	int	C;
 	int	platform = 0;	// platform number
 	int	Debug = 0;
 	int	height = 2048;
@@ -78,11 +79,10 @@ int	main(int argc, char *argv[]) {
 	double	sizey = 4;
 	int	sx = 32;
 	int	sy = 32;
-	double	cx = -0.52;
-	double	cy = 0.57;
+	double	c[2] = { -0.52, 0.57 };
 	double	boundary = 1000;
-	while (EOF != (c = getopt(argc, argv, "b:dgP:Dv:w:h:x:y:W:H:s:t:u:v:")))
-		switch (c) {
+	while (EOF != (C = getopt(argc, argv, "b:dgP:Dv:w:h:x:y:W:H:s:t:c:")))
+		switch (C) {
 		case 'b':
 			boundary = atof(optarg);
 			break;
@@ -122,11 +122,11 @@ int	main(int argc, char *argv[]) {
 		case 't':
 			sy = atoi(optarg);
 			break;
-		case 'u':
-			cx = atof(optarg);
-			break;
-		case 'v':
-			cy = atof(optarg);
+		case 'c':
+			if (parse_point(optarg, c) < 0) {
+				fprintf(stderr, "argument format: %s\n", optarg);
+				return EXIT_FAILURE;
+			}
 			break;
 		}
 
@@ -416,8 +416,8 @@ int	main(int argc, char *argv[]) {
 	p[1] = originy;
 	p[2] = sizex / width;
 	p[3] = sizey / height;
-	p[4] = cx;
-	p[5] = cy;
+	p[4] = c[0];
+	p[5] = c[1];
 	p[6] = boundary;
 
 	// create output buffer
