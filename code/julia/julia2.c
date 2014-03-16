@@ -68,6 +68,9 @@ cl_program	cluCreateProgramWithFile(cl_context context,
  */
 double complex	find_initial(const double complex c) {
 	double complex	z = 0.5 + csqrt(0.25 - c);
+	for (int i = 0; i < 1000; i++) {
+		z = csqrt(z - c);
+	}
 	return z;
 }
 
