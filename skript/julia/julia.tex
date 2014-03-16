@@ -22,7 +22,8 @@ F"ur $|z|\ge |c|$ und $|z|\ge 3$ folgt
 Die Iterierten von $z_n$ wachsen exponentiell schnell "uber alle Grenzen.
 
 Es ist aber auch m"oglich, dass f"ur einzelne Punkte die Folge $z_n$ 
-gegen $\hat z$ konvergiert.
+beschr"ankt bleiben. Im besten Fall werden sie gegen einen Punkt
+$\hat z$ konvergieren.
 Der Punkt $\hat z$ ist ein Fixpunkt von $f_c$, denn
 \[
 \hat z = \lim_{n\to \infty}f_c^{n}(z)\quad\Rightarrow\quad
@@ -37,12 +38,11 @@ z_{kn+2}\to \hat z_2,\quad
 z_{kn+3}\to \hat z_3,\quad\dots,\quad
 z_{kn+k}\to \hat z_k.
 \]
+
 Die komplexe Ebene besteht also aus h"ochstens zwei Regionen: dem Bereich
 von komplexen Zahlen, die bei Iteration "uber alle Grenzen wachsen, und
 einem Bereich von Punkten, die bei Iteration gegen einen Zyklus konvergieren.
-Die Grenze zwischen den beiden Bereichen besteht aus Punkten, die weder gegen
-$\infty$ noch gegen $\hat z$ konvergieren. Diese Grenze heisst die Julia-Menge
-von $f_c$.
+Diese Grenze heisst die Julia-Menge von $f_c$.
 
 \begin{beispiel}
 Im Fall $c=0$ ist $f_0(z)=z^2$. Da jede komplexe Zahl geschrieben werden
@@ -117,7 +117,7 @@ Die Berechnung der Iterationsfolge ist f"ur jeden Pixel vollkommen
 unabh"angig von jedem anderen Pixel, dieses Beispiel ist als pr"adestiniert
 f"ur die Berechnung mit OpenCL.
 Jeder Pixel stellt ein eigenes Work-Item dar.
-Das Programm {\tt julia.c} im Repository implementiert diese Strategie.
+Das Programm {\tt julia1.c} im Repository implementiert diese Strategie.
 
 
 \subsection{Julia-Mengen durch Inverse Iteration}
