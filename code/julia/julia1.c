@@ -540,7 +540,8 @@ int	main(int argc, char *argv[]) {
 		return EXIT_FAILURE;
 	}
 	double	end = gettime();
-	printf("time: %f\n", end - start);
+	printf("time: %d,%d,%f,%f,%f\n", width, height, creal(c), cimag(c),
+		end - start);
 
 	// expand if requested
 	if (expand) {
