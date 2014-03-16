@@ -67,7 +67,8 @@ cl_program	cluCreateProgramWithFile(cl_context context,
  * \brief Compute the initial point
  */
 double complex	find_initial(const double complex c) {
-	return 0.5 - csqrt(0.5 - c);
+	double complex	z = 0.5 + csqrt(0.25 - c);
+	return z;
 }
 
 /**
@@ -437,16 +438,16 @@ int	main(int argc, char *argv[]) {
 			__FILE__, __LINE__);
 		return EXIT_FAILURE;
 	}
-	p[0] = width;
-	p[1] = height;
-	p[2] = creal(origin);
-	p[3] = cimag(origin);
-	p[4] = creal(size) / width;
-	p[5] = cimag(size) / height;
-	p[6] = creal(c);
-	p[7] = cimag(c);
-	p[8] = initial_iterations;
-	p[9] = iterations;
+	p[ 0] = width;
+	p[ 1] = height;
+	p[ 2] = creal(origin);
+	p[ 3] = cimag(origin);
+	p[ 4] = creal(size) / width;
+	p[ 5] = cimag(size) / height;
+	p[ 6] = creal(c);
+	p[ 7] = cimag(c);
+	p[ 8] = initial_iterations;
+	p[ 9] = iterations;
 	p[10] = creal(z);
 	p[11] = cimag(z);
 
