@@ -15,6 +15,7 @@
 #include <getopt.h>
 #include <common.h>
 #include <fitsio.h>
+#include <complex.h>
 #include "point.h"
 #include "color.h"
 #include "mono.h"
@@ -65,6 +66,52 @@ cl_program	cluCreateProgramWithFile(cl_context context,
 }
 
 /**
+ * \brief Compute an optimal work group dimensions
+ *
+ * \param maxworkgroupsize	maximum number of workgroup items
+ * \param imagesize
+ * \param workgroupsize		dimensions sx and sy of the workgroup
+ */
+void	compute_workgroupsize(const int maxworkgroupsize,
+		const size_t *imagesize, size_t *workgroupsize) {
+	size_t	width = imagesize[0];
+	size_t	height = imagesize[1];
+	workgroupsize[0] = 1;
+	workgroupsize[1] = 1;
+	int	size = 1;
+	for (int sx = 1; sx < maxworkgroupsize; sx++) {
+		if ((width % sx) != 0) {
+			continue;
+		}
+		if (debug > 1) {
+			fprintf(stderr, "%s:%d: trying sx = %d\n",
+				__FILE__, __LINE__, sx);
+		}
+		int	maxsy = maxworkgroupsize / sx;
+		for (int sy = 1; sy <= maxsy; sy++) {
+			if ((height % sy) != 0) {
+				continue;
+			}
+			if (debug > 1) {
+				fprintf(stderr, "%s:%d: trying sy = %d\n",
+					__FILE__, __LINE__, sy);
+			}
+			if ((sx * sy) > size) {
+				workgroupsize[0] = sx;
+				workgroupsize[1] = sy;
+				size = sx * sy;
+			}
+		}
+	}
+	if (debug) {
+		fprintf(stderr, "%s:%d: found workgroup size %ldx%ld, "
+			"size reached: %d <= %d\n", __FILE__, __LINE__,
+			workgroupsize[0], workgroupsize[1],
+			size, maxworkgroupsize);
+	}
+}
+
+/**
  * \brief Main function
  */
 int	main(int argc, char *argv[]) {
@@ -74,17 +121,15 @@ int	main(int argc, char *argv[]) {
 	int	platform = 0;	// platform number
 	int	color = 0;
 	int	Debug = 0;
-	int	height = 2048;
-	int	width = 2048;
-	int	sx = 32;
-	int	sy = 32;
-	double	c[2] = { -0.52, 0.57 };
-	double	origin[2] = { -2, -2 };
-	double	size[2] = { 4, 4 };
+	int	height = 2560;
+	int	width = 1440;
+	double complex c = -0.52 + 0.57 * I;
+	double complex origin = -2.1 - 1.18125 * I;
+	double complex size = 4.1 + 2.3625 * I;
 	double	boundary = 1000;
 	double	gamma = 1.0;
 	int	expand = 0;
-	while (EOF != (C = getopt(argc, argv, "b:Cc:dg:GP:Dv:w:h:o:S:s:t:e")))
+	while (EOF != (C = getopt(argc, argv, "b:Cc:dg:GP:Dv:w:h:o:S:e")))
 		switch (C) {
 		case 'b':
 			boundary = atof(optarg);
@@ -114,25 +159,19 @@ int	main(int argc, char *argv[]) {
 			height = atoi(optarg);
 			break;
 		case 'o':
-			if (parse_point(optarg, origin) < 0) {
+			if (parse_cpoint(optarg, &origin) < 0) {
 				fprintf(stderr, "bad origin argument: %s\n", optarg);
 				return EXIT_FAILURE;
 			}
 			break;
 		case 'S':
-			if (parse_point(optarg, size) < 0) {
+			if (parse_cpoint(optarg, &size) < 0) {
 				fprintf(stderr, "bad size argument: %s\n", optarg);
 				return EXIT_FAILURE;
 			}
 			break;
-		case 's':
-			sx = atoi(optarg);
-			break;
-		case 't':
-			sy = atoi(optarg);
-			break;
 		case 'c':
-			if (parse_point(optarg, c) < 0) {
+			if (parse_cpoint(optarg, &c) < 0) {
 				fprintf(stderr, "argument format: %s\n", optarg);
 				return EXIT_FAILURE;
 			}
@@ -424,12 +463,12 @@ int	main(int argc, char *argv[]) {
 			__FILE__, __LINE__);
 		return EXIT_FAILURE;
 	}
-	p[0] = origin[0];
-	p[1] = origin[1];
-	p[2] = size[0] / width;
-	p[3] = size[1] / height;
-	p[4] = c[0];
-	p[5] = c[1];
+	p[0] = creal(origin);
+	p[1] = cimag(origin);
+	p[2] = creal(size) / width;
+	p[3] = cimag(size) / height;
+	p[4] = creal(c);
+	p[5] = cimag(c);
 	p[6] = boundary;
 
 	// create output buffer
@@ -474,7 +513,8 @@ int	main(int argc, char *argv[]) {
 
 	// compute a suitable work group size
 	size_t	global[2] = { width, height };
-	size_t	local[2] = { sx, sy };
+	size_t	local[2];
+	compute_workgroupsize(workgroupsize, global, local);
 
 	// enqueue the kernel
 	double	start = gettime();

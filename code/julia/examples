@@ -4,56 +4,98 @@
 #
 # (c) 2014 Prof Dr Andreas Mueller, Hochschule Rapperswil
 #
+
+# these dimensions match the default aspect ratio of both julia1 and julia2
+width=2560
+height=1440
+
+do_example () {
+	myexample=${1}
+	myversion=${2}
+	myplatform=${3}
+	case ${example} in
+		a)	point="'(-0.1,0.1)'"
+			gamma=0.7
+			cgamma=0.98
+			;;
+		b)	point="'(-0.5,0.5)'"
+			gamma=0.45
+			cgamma=0.8
+			;;
+		c)	point="'(-1,0.05)'"
+			gamma=0.5
+			cgamma=0.8
+			;;
+		d)	point="'(-0.1,0.75)'"
+			gamma=0.45
+			cgamma=0.8
+			;;
+		e)	point="'(0.25,0.52)'"
+			gamma=0.3
+			cgamma=0.55
+			;;
+		f)	point="'(-0.5,0.55)'"
+			gamma=0.3
+			cgamma=0.5
+			;;
+		g)	point="'(0,0.66)'"
+			gamma=0.6
+			cgamma=0.35
+			;;
+		h)	point="'(0,1)'"
+			gamma=0.8
+			cgamma=0.6
+			;;
+	esac
+	sizeparams="-w ${width} -h ${height}"
+	common="-P ${myplatform} -d ${sizeparams} -c ${point}"
+	outfile=out${myversion}-P${myplatform}-${myexample}.fits
+	histofile=histo${myversion}-P${myplatform}-${myexample}.csv
+	case ${myversion} in
+		0)	time ./julia1 ${common} -g ${gamma} -e ${outfile}
+			;;
+		1)	time ./julia1 ${common} -g ${cgamma} -C ${outfile}
+			;;
+		2)	time ./julia2 ${common} -s -H ${histofile} ${outfile}
+			;;
+	esac
+}
+
+# compute a single example if we have additional arguments
+if [ $# -gt 0 ]
+then
+	platform=0
+	version=0
+	example=${1}
+	shift
+	if [ $# -gt 0 ]
+	then
+		version=${1}
+		shift
+		if [ $# -gt 0 ]
+		then
+			platform=${1}
+		fi
+	fi
+	do_example ${example} ${version} ${platform}
+	exit 0
+fi
+
 for platform in 0
 do
-	for v in 0 1 2
+	for version in 0
 	do
 		for example in a b c d e f g h
 		do
-			case ${example} in
-				a)	point="'(-0.1,0.1)'"
-					gamma=0.7
-					;;
-				b)	point="'(-0.5,0.5)'"
-					gamma=0.45
-					;;
-				c)	point="'(-1,0.05)'"
-					gamma=0.5
-					;;
-				d)	point="'(-0.1,0.75)'"
-					gamma=0.45
-					;;
-				e)	point="'(0.25,0.52)'"
-					gamma=0.3
-					;;
-				f)	point="'(-0.5,0.55)'"
-					gamma=0.3
-					;;
-				g)	point="'(0,0.66)'"
-					gamma=0.6
-					;;
-				h)	point="'(0,1)'"
-					gamma=0.8
-					;;
-			esac
-			commonparams="-P ${platform} -d -w 2560 -h 1440 -o '(-2.1,-1.18125)' -S '(4.1,2.3625)' -c ${point}"
-			outfile=out${v}-P${platform}-${example}.fits
-			histofile=histo${v}-P${platform}-${example}.csv
-			case ${v} in
-				0)	time ./julia1 ${commonparams} -g ${gamma} -e ${outfile}
-					;;
-				1)	time ./julia1 ${commonparams} -g ${gamma} -C ${outfile}
-					;;
-				2)	time ./julia2 ${commonparams} -s -H ${histofile} ${outfile}
-					;;
-			esac
+			do_example ${example} ${version} ${platform}
 		done
 	done
 done
 
+# postprocessing of the examples
 for x in a b c d e f g h
 do
 	convert out0-P0-${x}.fits ${x}.png
-	convert out1-P0-${x}.fits c-${x}.png
+	convert out1-P0-${x}.fits -channel RGB -combine c-${x}.png
 	convert out2-P0-${x}.fits -negate j-${x}.png
 done

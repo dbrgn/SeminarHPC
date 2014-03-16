@@ -65,3 +65,11 @@ end:
 	return rc;
 }
 
+int	parse_cpoint(const char *argc, double complex *v) {
+	double	values[2];
+	if (parse_point(argc, values) < 0) {
+		return -1;
+	}
+	*v = values[0] + values[1] * I;
+	return 0;
+}

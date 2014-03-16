@@ -19,7 +19,7 @@
  * \param z	argument 
  * \param side	selects one of complex roots
  */
-double2	juliaroot(double2 c, double2 z, bool side) {
+double2	juliaroot1(double2 c, double2 z, bool side) {
 	double2	zz = z - c;
 	double	l = sqrt(length(zz));
 	double	phi = (atan2(zz.y, zz.x) / 2.) + ((side) ? M_PI : 0);
@@ -29,6 +29,29 @@ double2	juliaroot(double2 c, double2 z, bool side) {
 	zz = l * zz;
 	return zz;
 }
+
+/*
+ * Alterantive implementation of the root function using Newton's algorithm
+ * to compute the roots. At least on AMD, this is actually slower, which may
+ * be due to the fast atan2 and sin/cos available on the CPU. It could
+ * be entirely different on a GPU
+ */
+double2	juliaroot2(double2 c, double2 z0, bool side) {
+	double2	z = 1;
+	double2	a = c - z0;
+	double	l = dot(z, z);
+	int	i;
+	for (i = 0; i < 20; i++) {
+		double2	v;
+		v.x = a.x * z.x + a.y * z.y;
+		v.y = -a.x * z.y + a.y * z.x;
+		z = (z - v / l) / 2;
+//printf("[%d,%d] %10.6f + %10.6fi\n", get_global_id(0), i, z.x, z.y);
+	}
+	return (side) ? -z : z;
+}
+
+#define juliaroot	juliaroot1
 
 /*
  * register a point in the output image
@@ -62,6 +85,19 @@ int	random(int seed) {
 	return (int)(temp - m * floor(temp * reciprocal_m));
 }
 
+/*
+ * Advance backward iteration for a all bits of a random number
+ */
+double2	advance(double2 z, double2 c, int seed) {
+	int	j = 31;
+	double2	zz = z;
+	while (j--) {
+		zz = juliaroot(c, zz, (0x1 & seed));
+		seed >>= 1;
+	}
+	return zz;
+}
+
 /**
  * \brief Kernel for Julia set computation
  *
@@ -77,6 +113,8 @@ int	random(int seed) {
  *                      [7]: Julia parameter imaginary part
  *			[8]: number of initial iterations
  *			[9]: number of iterations
+ *			[10]: initial point real part
+ *			[11]: initial point imaginary part
  *                      additional attricting points follow 
  * \param output	output array width x height
  *                      width = get_global_size(0)
@@ -105,7 +143,9 @@ __kernel void	iterate(__global double *parameters,
 	__private int	iterations = parameters[9];
 
 	// backward iteration variable
-	__private double2	z = 0;
+	__private double2	z;
+	z.x = parameters[10];
+	z.y = parameters[11];
 
 	// park-miller implementation
 	__private int	seed = get_global_id(0);
@@ -120,7 +160,7 @@ __kernel void	iterate(__global double *parameters,
 
 	// perform a number of backward iterations
 	for (i = 0; i < initial_iterations; i++) {
-		z = juliaroot(c, z, (0x1 & seed));
+		z = advance(z, c, seed);
 		seed = random(seed);
 	}
 

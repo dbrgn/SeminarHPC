@@ -15,6 +15,7 @@
 #include <getopt.h>
 #include <common.h>
 #include <fitsio.h>
+#include <complex.h>
 #include "point.h"
 
 int	debug = 0;
@@ -63,6 +64,13 @@ cl_program	cluCreateProgramWithFile(cl_context context,
 }
 
 /**
+ * \brief Compute the initial point
+ */
+double complex	find_initial(const double complex c) {
+	return 0.5 - csqrt(0.5 - c);
+}
+
+/**
  * \brief Main function
  */
 int	main(int argc, char *argv[]) {
@@ -70,13 +78,13 @@ int	main(int argc, char *argv[]) {
 	int	gpu = 0;	// whether to use the GPU or the CPU
 	int	platform = 0;	// platform number
 	int	Debug = 0;
-	int	height = 2048;
-	int	width = 2048;
-	double	origin[2] = { -2, -2 };
-	double	size[2] = { 4, 4 };
-	double	c[2] = { -0.52, 0.57 };
-	int	initial_iterations = 1000;
-	int	iterations = 100000;
+	int	width = 2560;
+	int	height = 1440;
+	double complex	origin = -2.1 - 1.18125 * I;
+	double complex	size = 4.2 + 2.3625 * I;
+	double complex	c = -0.52 + 0.57 * I; // default example
+	int	initial_iterations = 0;
+	int	iterations = 1000;
 	int	N = 65535; // number of work items
 	int	C;
 	int	saturate = 0;
@@ -105,7 +113,7 @@ int	main(int argc, char *argv[]) {
 			histogramfile = optarg;
 			break;
 		case 'o':
-			if (parse_point(optarg, origin) < 0) {
+			if (parse_cpoint(optarg, &origin) < 0) {
 				fprintf(stderr, "invalid origin: %s\n", optarg);
 				return EXIT_FAILURE;
 			}
@@ -114,15 +122,19 @@ int	main(int argc, char *argv[]) {
 			saturate = 1;
 			break;
 		case 'S':
-			if (parse_point(optarg, size) < 0) {
+			if (parse_cpoint(optarg, &size) < 0) {
 				fprintf(stderr, "invalid size: %s\n", optarg);
 				return EXIT_FAILURE;
 			}
 			break;
 		case 'c':
-			if (parse_point(optarg, c) < 0) {
+			if (parse_cpoint(optarg, &c) < 0) {
 				fprintf(stderr, "invalid c paramter: %s\n", optarg);
 				return EXIT_FAILURE;
+			}
+			if (debug) {
+				fprintf(stderr, "%s:%d: c = %.6f + %.6fi\n",
+					__FILE__, __LINE__, creal(c), cimag(c));
 			}
 			break;
 		case 'i':
@@ -406,8 +418,15 @@ int	main(int argc, char *argv[]) {
 	// allocate the OpenCL memory buffers
 	cl_mem	parameters = NULL, output = NULL;
 
+	// compute the initial value
+	double complex	z = find_initial(c);
+	if (debug) {
+		fprintf(stderr, "%s:%d: initial point found: %.6f + %.6fi\n",
+			__FILE__, __LINE__, creal(z), cimag(z));
+	}
+
 	// we want to have to cluster points
-	int	psize = 10;
+	int	psize = 12;
 
 	// create parameter buffer
 	double	*p = (double *)malloc(sizeof(double) * psize);
@@ -420,14 +439,16 @@ int	main(int argc, char *argv[]) {
 	}
 	p[0] = width;
 	p[1] = height;
-	p[2] = origin[0];
-	p[3] = origin[1];
-	p[4] = size[0] / width;
-	p[5] = size[1] / height;
-	p[6] = c[0];
-	p[7] = c[1];
+	p[2] = creal(origin);
+	p[3] = cimag(origin);
+	p[4] = creal(size) / width;
+	p[5] = cimag(size) / height;
+	p[6] = creal(c);
+	p[7] = cimag(c);
 	p[8] = initial_iterations;
 	p[9] = iterations;
+	p[10] = creal(z);
+	p[11] = cimag(z);
 
 	// create output buffer
 	output = clCreateBuffer(context, CL_MEM_WRITE_ONLY,
