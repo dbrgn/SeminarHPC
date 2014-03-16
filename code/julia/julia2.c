@@ -450,9 +450,17 @@ int	main(int argc, char *argv[]) {
 	p[10] = creal(z);
 	p[11] = cimag(z);
 
-	// create output buffer
-	output = clCreateBuffer(context, CL_MEM_WRITE_ONLY,
-		sizeof(unsigned char) * width * height, NULL, NULL);
+	// create output buffer, we have to also initialize it to zero and
+	// transfer it to the GPU because there is no way to reasonably
+	// initialize the memory in the GPU
+	int	length = width * height;
+	int	imagesize = sizeof(cl_uchar) * length;
+	cl_uchar	*o = (cl_uchar *)malloc(imagesize);
+	for (int i = 0; i < length; i++) {
+		o[i] = 0;
+	}
+	output = clCreateBuffer(context, CL_MEM_READ_WRITE,
+		sizeof(unsigned char) * length, NULL, NULL);
 	if (!output) {
 		fprintf(stderr, "%s:%d: cannot allocate output buffer\n",
 			__FILE__, __LINE__);
@@ -467,7 +475,14 @@ int	main(int argc, char *argv[]) {
 	err = clEnqueueWriteBuffer(commands, parameters, CL_TRUE, 0,
 			sizeof(double) * psize, p, 0, NULL, NULL);
 	if (err != CL_SUCCESS) {
-		fprintf(stderr, "%s:%d: cannot enqueue the matrix: %d\n",
+		fprintf(stderr, "%s:%d: cannot enqueue the parameters: %d\n",
+			__FILE__, __LINE__, err);
+		return EXIT_FAILURE;
+	}
+	err = clEnqueueWriteBuffer(commands, output, CL_TRUE, 0,
+			sizeof(cl_uchar) * length, o, 0, NULL, NULL);
+	if (err != CL_SUCCESS) {
+		fprintf(stderr, "%s:%d: cannot enqueue the image: %d\n",
 			__FILE__, __LINE__, err);
 		return EXIT_FAILURE;
 	}
@@ -516,8 +531,6 @@ int	main(int argc, char *argv[]) {
 
 	// read the result data from the queue. This method waits until the
 	// the kernel has finished
-	int	imagesize = sizeof(cl_uchar) * width * height;
-	cl_uchar	*o = (cl_uchar *)malloc(imagesize);
 	err = clEnqueueReadBuffer(commands, output, CL_TRUE, 0, imagesize, o,
 		0, NULL, NULL);
 	if (err != CL_SUCCESS) {
