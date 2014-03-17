@@ -10,20 +10,23 @@ a&1&1&1\\
 b=\begin{pmatrix}1\\1\\1\\1\end{pmatrix}.
 \]
 Sie kann in Octave/Matlab mit Hilfe der Funktion
-\begin{verbatim}
-function retval = m(n, a)
-    retval = ones(n, n) + (a - 1) * eye(n);
-endfunction
-\end{verbatim}
-als {\tt m(4,2)} erzeugt werden. 
-F"ur $a=1$ ist die Matrix singul"ar, man kann also nicht erwarten, dass
-das Gleichungssystem $Ax=b$ eine L"osung hat. 
+\verbatiminput{m.m}
+als {\tt m(4,$a$)} erzeugt werden. 
+F"ur $a=1$ und $a=-3$ ist die Matrix singul"ar, 
+das Gleichungssystem $A_ax=b$ hat dann im Allgmeinen keine L"osung.
+F"ur alle anderen Werte ist $A_a$ regul"ar, tats"achlich ist 
+\[
+x=\frac1{a+3}\begin{pmatrix}1\\1\\1\\1\end{pmatrix}
+\]
+die L"osung von $A_ax=b$ f"ur $a\ne -3$.
 \begin{teilaufgaben}
 \item Konvergiert das Jacobi-Verfahren f"ur die Matrix $A_{3.1}$?
 \item Konvergiert das Jacobi-Verfahren f"ur die Matrix $A_{2.9}$?
 \item Konvergiert das Jacobi-Verfahren f"ur die Matrix $A_{1.1}$?
 \item Konvergiert das Gauss-Seidel-Verfahren f"ur die Matrix $A_{1.1}$?
 \item Konvergiert das Gauss-Seidel-Verfahren f"ur die Matrix $A_{0.9}$?
+\item Finden Sie die L"osung durch Iteration in einem der F"alle, die sie
+als konvergent erkannt haben.
 \end{teilaufgaben}
 
 \begin{loesung}
@@ -31,35 +34,19 @@ Es muss untersucht werden, die Matrix $M^{-1}N$ einen Spektralradius $<1$
 hat, wobei $M$ und $N$ die Zerlegungen der Matrix f"ur das Jacobi-Verfahren
 bzw.~das Gauss-Seidel-Verfahren sind.
 Der Spektralradius kann mit der Funktion
-\begin{verbatim}
-function retval = spectralradius(A)
-        retval = max(abs(eig(A)));
-endfunction
-\end{verbatim}
+\verbatiminput{spectralradius.m}
 berechnet werden.
 
 F"ur den Jacobi-Algorithmus ist $M$ die Diagonale von $A$, leider gibt es
 in Octave keine Funktion, mit der diese extrahiert werden k"onnte. Man kann
 sich aber mit der Funktion
-\begin{verbatim}
-function retval = diagonal(A)
-        n = length(A);
-        result = zeros(n, n);
-        for i = (1:n)
-                result(i, i) = A(i, i);
-        endfor
-        retval = result;
-endfunction
-\end{verbatim}
+\verbatiminput{diagonal.m}
 behelfen.
 F"ur das Gauss-Seidel-Verfahren ist $M$ die untere Dreiecksmatrix von $A$
 mitsamt der Diagonalen. Daf"ur gibt es in Octave die Funktion {\tt tril}.
 Nach diesen Vorbereitungen kann der Spektralradius von $M^{-1}N$ jeweils
 mit folgenden Befehlen bestimmt werden:
-\begin{verbatim}
-N = A - M;
-spectralradius(M^-1 * N)
-\end{verbatim}
+\verbatiminput{convergence.m}
 \begin{teilaufgaben}
 \item Im Jacobi-Verfahren ist $M$ die Diagonale von $A_{3.1}$, also
 \[
@@ -86,8 +73,6 @@ immer konvergieren.
 \item
 Wiederholung der Rechnung mit $a=0.9$ liefert den Spektralradius $1.2418>1$,
 das Gauss-Seidel-Verfahren wird also im Allgemeinen nicht konvergieren.
-\item Finden Sie die L"osung durch Iteration in einem der F"alle, die sie
-als konvergent erkannt haben.
 \item Wir verwenden das Gauss-Seidel Verfahren im Fall $a=1.1$ mit dem
 initialen Vektor $x=0$. Da gem"ass Teilaufgabe c) der Spektralradius relativ
 nahe bei $1$ ist, kann nicht mit besonders schneller Konvergenz gerechnet
