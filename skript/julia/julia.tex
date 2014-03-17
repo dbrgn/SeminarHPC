@@ -42,7 +42,10 @@ z_{kn+k}\to \hat z_k.
 Die komplexe Ebene besteht also aus h"ochstens zwei Regionen: dem Bereich
 von komplexen Zahlen, die bei Iteration "uber alle Grenzen wachsen, und
 einem Bereich von Punkten, die bei Iteration gegen einen Zyklus konvergieren.
-Diese Grenze heisst die Julia-Menge von $f_c$.
+Dazwischen gibt es eine Menge von Punkten, f"ur den die Iterationen weder
+zum einen noch zum anderen Verhalten f"uhren.
+Auf dieser Menge ist die Iteration chaotisch, sie
+heisst die Julia-Menge von $f_c$.
 
 \begin{beispiel}
 Im Fall $c=0$ ist $f_0(z)=z^2$. Da jede komplexe Zahl geschrieben werden
@@ -69,7 +72,7 @@ allgemeinen nicht.
 Der Einheitskreis ist die Julia-Menge der Abbildung $f_c$ f"ur $c=0$.
 \end{beispiel}
 
-F"ur andere Werte des Parameters kann die Julia-Menge sehr kompliziert
+F"ur Werte $c\ne 0$ des Parameters kann die Julia-Menge sehr kompliziert
 werden, so kompliziert, dass sie nur dank Computer-Berechnungen
 ausreichend detailliert visualisiert werden kann.
 
@@ -89,15 +92,27 @@ selbstverst"andlich, Mengen mit gebrochenzahliger Dimension treten
 aber mindestens n"aherungsweise in der Natur immer wieder auf, sie
 sind auch als Fraktale bekannt \cite{julia:falconer}.
 
+In den Abbildungen~\ref{julia:a} bis \ref{julia:h} sind Julia-Mengen
+f"ur eine Auswahl von Parameterwerten $c$ visualisiert.
+F"ur \ref{julia:a} bis \ref{julia:f} gibt es jeweils einen Zyklus, gegen
+den ein Teil der Iterationsfolgen konvergiert.
+In \ref{julia:g} und \ref{julia:h} ist die Menge der Startpunkte, die zu einem
+Zyklus f"uhren auf die leere Menge zusammengeschrumpft, es bleibt nur
+noch die Julia-Menge "ubrig, bestehend aus Startwerten, die nicht zu
+Iterationen gegen $\infty$ f"uhren.
+In \ref{julia:g} zerf"allt die Julia-Menge in einzelne Punkte, 
+man spricht auch von ``Cantor-Staub'',
+in \ref{julia:h} besteht sie aus einem fraktalen Baum.
+
 \section{Berechnung von Julia-Mengen}
 Es gibt zwei M"oglichkeiten, eine Julia-Menge sichtbar zu machen.
 In den F"allen, wo ein Fixpunkt $\hat z$ existiert, kann man f"ur jeden
 Punkt der komplexen Ebene die Iterationsfolge $z_n$ berechnen, und
 entscheiden ob sie gegen $\infty$ oder einen Zyklus konvergiert.
-Die Juliamenge ist dann die Grenze zwischen diesen Bereichen.
+Die Julia-Menge ist dann die Grenze zwischen diesen Bereichen.
 
 Dies funktioniert allerdings nicht f"ur Parameterwerte, f"ur die
-es keinen Zykles gibt, gegen den die Folge $z_n$ konvergieren k"onnte.
+es keinen Zyklus gibt, gegen den die Folge $z_n$ konvergieren k"onnte.
 In diesem Fall kann man die Abbildung $f_c(z)$ umkehren: wenn die
 Punkte $z_n$ von der Julia-Menge weg gegen $\infty$ konvergieren, dann 
 m"ussen die Urbilder gegen die Juliamenge konvergieren.
@@ -119,20 +134,38 @@ f"ur die Berechnung mit OpenCL.
 Jeder Pixel stellt ein eigenes Work-Item dar.
 Das Programm {\tt julia1.c} im Repository implementiert diese Strategie.
 
+Diese Methode zeigt nicht die Julia-Menge, sondern die Menge der Startpunkte,
+die unter Iteration nach $\infty$ konvergieren. Den Bereichen von Startpunkten,
+die zu beschr"ankten Iterationsfolgen f"uhren, kann mit dieser Methode
+keine Farbe zugeordnet werden.
+In den Abbildungen~\ref{julia:a} bis \ref{julia:h} sind diese Bereiche 
+schwarz dargestellt.
 
 \subsection{Julia-Mengen durch Inverse Iteration}
-Jeder Punkt $z\in\mathbb C$ hat zwei Urbilder unter der Abbildung $f_c$,
-denn
+Die hier beschriebene Methode zur Berechnung von Julia-Mengen wird in
+\cite{julia:peitgenrichter} als Inverse Iteration Method bezeichnet.
+F"ur die meisten Startpunkte konvergiert die Iterationen der Abbildung
+$z\mapsto f_c(z)$ konvergiert gegen $\infty$
+oder einen Zyklus, insbesondere entfernen sich die Punkte $z_n$ von der
+Julia-Menge.
+Verfolgt man die Iteration r"uckw"arts, also indem man eine Folge
+$\tilde z_{n+1}=f_c^{-1}(\tilde z_n)$ konstruiert, dann n"ahern sich die
+Punkte der Julia-Menge. Indem man die Punkte $\tilde z_n$ f"ur grosse $n$
+plottet, erh"alt man eine Apprxomation der Julia-Menge.
+
+Die Konstruktion der Folge $\tilde z_n$ ist nicht eindeugt, denn die
+Gleichung
 \[
-z=f_c(\tilde z)=\tilde z^2+c
-\qquad\Rightarrow\qquad
-\tilde z=\sqrt{z-c}
+z_n= f_c(z_{n+1})=\tilde z_{n+1}^2+c
 \]
-hat zwei Quadratwurzeln. 
+hat zwei L"osungen $\pm\sqrt{z_n-c}$. 
+Um eine m"oglichst gute Approximation der Julia-Menge zu bekommen, 
+werden wir jede m"oglich Wurzel r"uckw"arts verfolgen wollen.
 Die zwei Urbilder von $z$ haben unter $f_c$ insgesamt vier Urbilder, 
 die wiederum acht Urbilder.
 Jede weitere Iteration verdoppelt die Anzahl der Urbilder, daf"ur ist
-in OpenCL kein Platz vorhanden.
+in OpenCL kein Platz vorhanden, wir k"onnen nun mal in OpenCL nich beliebig
+Speicher allozieren.
 
 Wir verwenden daher eine andere Strategie: wir w"ahlen jeweils nur eines
 der Urbilder, wobei wir Zufallszahlen verwenden, um eines der zwei
@@ -151,6 +184,22 @@ hoch, ein einfacher Zufallszahlgenerator auf der Basis von linearen
 Kongruenzen wie der Lehmer-Generator \cite{julia:lehmer},
 auch bekannt als Park-Miller Generator, reicht v"ollig aus.
 
+Die Inverse Iteration f"uhrt f"ur stark verzweigte Julia-Mengen nicht
+zu guten Resultaten.
+Man kann dies dank der fraktalen Natur der Julia-Menge verstehen.
+Beginnt man mit einer geschlossenen Kurve $\gamma_0$ in $\mathbb C$,
+dann sind die Urbilder $\gamma_{n+1} = f_c(\gamma_n)$ jeweils Vereinigungen
+von geschlossenen Kurven, die die Julia-Menge immer besser Approximieren.
+Wegen der fraktalen Natur der Julia-Menge wird $\gamma_{n}$ mit zunehmendem
+$n$ immer l"anger.
+Entsprechend wird die Dichte der durch Inverse Iteration
+erzeugten Punkte auf $\gamma_{n+1}$ immer kleiner. 
+F"ur Julia-Mengen, die sich wie Kurven verhalten, ist die Approximation
+recht gut (Abbildungen~\ref{julia:a} und \ref{julia:h}).
+Am anderen Ende des Spektrum befinden sich Julia-Mengen, die in Cantor-Staub
+zerfallen wie in Abbildung~\ref{julia:g}, welche nur sehr schlechte
+Approximationen haben.
+
 \begin{figure}
 \begin{center}
 \includegraphics[width=\hsize]{julia/a.png}
@@ -159,7 +208,7 @@ auch bekannt als Park-Miller Generator, reicht v"ollig aus.
 
 \includegraphics[width=\hsize]{julia/j-a.png}
 \end{center}
-\caption{Julia-Menge f"ur $c= -0.1+0.1i$}
+\caption{Julia-Menge f"ur $c= -0.1+0.1i$\label{julia:a}}
 \end{figure}
 
 \begin{figure}
@@ -170,7 +219,7 @@ auch bekannt als Park-Miller Generator, reicht v"ollig aus.
 
 \includegraphics[width=\hsize]{julia/j-b.png}
 \end{center}
-\caption{Julia-Menge f"ur $c= -0.5+0.5i$}
+\caption{Julia-Menge f"ur $c= -0.5+0.5i$\label{julia:b}}
 \end{figure}
 
 \begin{figure}
@@ -181,7 +230,7 @@ auch bekannt als Park-Miller Generator, reicht v"ollig aus.
 
 \includegraphics[width=\hsize]{julia/j-c.png}
 \end{center}
-\caption{Julia-Menge f"ur $c= -1+0.05i$}
+\caption{Julia-Menge f"ur $c= -1+0.05i$\label{julia:c}}
 \end{figure}
 
 \begin{figure}
@@ -192,7 +241,7 @@ auch bekannt als Park-Miller Generator, reicht v"ollig aus.
 
 \includegraphics[width=\hsize]{julia/j-d.png}
 \end{center}
-\caption{Julia-Menge f"ur $c= -0.1+0.75i$}
+\caption{Julia-Menge f"ur $c= -0.1+0.75i$\label{julia:d}}
 \end{figure}
 
 \begin{figure}
@@ -203,7 +252,7 @@ auch bekannt als Park-Miller Generator, reicht v"ollig aus.
 
 \includegraphics[width=\hsize]{julia/j-e.png}
 \end{center}
-\caption{Julia-Menge f"ur $c= 0.25+0.52i$}
+\caption{Julia-Menge f"ur $c= 0.25+0.52i$\label{julia:e}}
 \end{figure}
 
 \begin{figure}
@@ -214,7 +263,7 @@ auch bekannt als Park-Miller Generator, reicht v"ollig aus.
 
 \includegraphics[width=\hsize]{julia/j-f.png}
 \end{center}
-\caption{Julia-Menge f"ur $c= -0.5+0.55i$}
+\caption{Julia-Menge f"ur $c= -0.5+0.55i$\label{julia:f}}
 \end{figure}
 
 \begin{figure}
@@ -225,7 +274,7 @@ auch bekannt als Park-Miller Generator, reicht v"ollig aus.
 
 \includegraphics[width=\hsize]{julia/j-g.png}
 \end{center}
-\caption{Julia-Menge f"ur $c= 0.66i$}
+\caption{Julia-Menge f"ur $c= 0.66i$\label{julia:g}}
 \end{figure}
 
 \begin{figure}
@@ -236,7 +285,7 @@ auch bekannt als Park-Miller Generator, reicht v"ollig aus.
 
 \includegraphics[width=\hsize]{julia/j-h.png}
 \end{center}
-\caption{Julia-Menge f"ur $c= -i$}
+\caption{Julia-Menge f"ur $c= -i$\label{julia:h}}
 \end{figure}
 
 \printbibliography[heading=subbibliography]
