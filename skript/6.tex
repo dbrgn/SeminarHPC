@@ -1,0 +1,50 @@
+F"ur welche Werte von $a$ und $b$ ist das Gauss-Seidel-Verfahren f"ur die
+Matrix
+\[
+A=\begin{pmatrix}
+a&1\\
+1&b
+\end{pmatrix}
+\]
+konvergent?
+
+\begin{loesung}
+Dem Gauss-Seidel-Verfahren entspricht die Zerlegung
+\[
+M=\begin{pmatrix}a&0\\1&b\end{pmatrix},\qquad
+N=\begin{pmatrix}0&1\\0&0\end{pmatrix}.
+\]
+Die Matrix
+\[
+C=M^{-1}N
+=
+\frac1{ab}
+\begin{pmatrix}b&0\\-1&a\end{pmatrix}
+\begin{pmatrix}0&1\\0&0\end{pmatrix}
+=
+\begin{pmatrix}
+0&\frac1a\\0&-\frac1{ab}
+\end{pmatrix}
+\]
+hat das charakteristische Polynom
+\[
+\chi_C(\lambda)=\lambda\biggl(\lambda +\frac1{ab}\biggr)
+\]
+mit den Nullstellen
+\[
+\lambda=\begin{cases}
+0&\\
+\displaystyle
+-\frac1{\sqrt{ab}}&
+\end{cases}
+\]
+der Spektralradius ist also
+\[
+\varrho(M^{-1}N)=\frac1{\sqrt{|ab|}}.
+\]
+Das Gauss-Seidel-Verfahren ist also genau dann konvergent, wenn
+\[
+|ab| > 1.
+\]
+\end{loesung}
+

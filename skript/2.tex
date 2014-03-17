@@ -1,0 +1,32 @@
+Sei $A_a$ die Matrix
+\[
+A_a=\begin{pmatrix}a&1\\1&a\end{pmatrix}.
+\]
+F"ur welche Werte von $a$ ist das Jacobi-Verfahren f"ur diese Matrix
+konvergent?
+
+\begin{loesung}
+Das Jacobi-Verfahren entspricht der Zerlegung
+\[
+M_a=\begin{pmatrix}a&0\\0&a\end{pmatrix},\qquad
+N=\begin{pmatrix}0&1\\1&0\end{pmatrix}.
+\]
+Die Matrix
+\[
+C=M^{-1}N=\frac1a\begin{pmatrix}0&1\\1&0\end{pmatrix}
+\]
+hat das charakteristische Polynom
+\[
+\chi_C(\lambda)=\lambda^2-\frac1{a^2}
+\]
+mit den Nullstellen $\lambda_\pm=\pm\frac1a$. Insbesondere gilt
+\[
+\varrho(M^{-1}N)=\frac1{|a|}\begin{cases}
+>1\qquad\qquad &|a| < 1,\\
+=1\qquad &|a|=1,\\
+<1\qquad &|a| > 1.
+\end{cases}
+\]
+Das Verfahren ist also genau f"ur $|a|>1$ konvergent.
+\end{loesung}
+

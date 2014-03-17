@@ -121,7 +121,17 @@ Hochschule f"ur Technik, Rapperswil, 2014
   \setlength{\labelsep}{5mm}
   \setlength{\rightmargin}{0pt}
 }}{\end{list}}
-
+\newcounter{uebungsaufgabe}
+% environment fuer uebungsaufgaben
+\newenvironment{uebungsaufgaben}{
+\begin{list}{\arabic{uebungsaufgabe}.}
+  {\usecounter{uebungsaufgabe}
+  \setlength{\labelwidth}{2cm}
+  \setlength{\leftmargin}{0pt}
+  \setlength{\labelsep}{5mm}
+  \setlength{\rightmargin}{0pt}
+  \setlength{\itemindent}{0pt}
+}}{\end{list}\vfill\pagebreak}
 \newenvironment{teilaufgaben}{
 \begin{enumerate}
 \renewcommand{\labelenumi}{\alph{enumi})}
@@ -134,10 +144,11 @@ Hochschule f"ur Technik, Rapperswil, 2014
 \begin{proof}[L"osung]%
 \renewcommand{\qedsymbol}{$\bigcirc$}
 }{\end{proof}}
+\newenvironment{diskussion}{}{}
 \def\keineloesungen{%
 \renewenvironment{loesung}{\swallow\begingroup}{\endgroup}%
+\renewenvironment{diskussion}{\swallow\begingroup}{\endgroup}%
 }
-
 \newenvironment{beispiel}{%
 \begin{proof}[Beispiel]%
 \renewcommand{\qedsymbol}{$\bigcirc$}

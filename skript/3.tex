@@ -1,0 +1,47 @@
+Sei $A_a$ die Matrix
+\[
+A_a=\begin{pmatrix}a&1\\1&a\end{pmatrix}.
+\]
+F"ur welche Werte von $a$ ist das Gauss-Seidel-Verfahren f"ur diese Matrix
+konvergent?
+
+\begin{loesung}
+Das Gauss-Seidel-Verfahren entspricht der Zerlegung
+\[
+M_a=\begin{pmatrix}a&0\\1&a\end{pmatrix},\qquad
+N=\begin{pmatrix}0&1\\0&0\end{pmatrix}.
+\]
+Die Matrix $M^{1}$ kann mit Hilfe von Minoren berechnet werden:
+\[
+M^{-1}=\frac1{a^2}\begin{pmatrix}
+a&0\\
+-1&a
+\end{pmatrix}
+=
+\begin{pmatrix}
+\frac1{a^2}&0\\
+-\frac1a&\frac1{a^2}
+\end{pmatrix}
+\]
+Die Matrix
+\[
+C=M^{-1}N=\begin{pmatrix}
+0&\frac1{a^2}\\
+0&-\frac1a
+\end{pmatrix}
+\]
+hat das charakteristische Polynom 
+\[
+\chi_C(\lambda)=\lambda\biggl(\lambda+\frac1{a^2}\biggr)
+\]
+mit den Nullstellen $\lambda=0$ und $\lambda=-\frac1{a^2}$. Insbesondere gilt
+\[
+\varrho(M^{-1}N)=\frac1{a^2}=\begin{cases}
+>1\qquad &|a| < 1,\\
+=1\qquad &|a|=1,\\
+<1\qquad &|a| > 1.
+\end{cases}
+\]
+Das Verfahren ist also genau f"ur $|a|>1$ konvergent.
+\end{loesung}
+

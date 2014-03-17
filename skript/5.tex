@@ -1,0 +1,45 @@
+F"ur welche Werte von $a$ und $b$ ist das Jacobi-Verfahren f"ur die
+Matrix
+\[
+A=\begin{pmatrix}
+a&1\\
+1&b
+\end{pmatrix}
+\]
+konvergent?
+
+\begin{loesung}
+Dem Jacobi-Verfahren entspricht die Zerlegung
+\[
+M=\begin{pmatrix}a&0\\0&b\end{pmatrix},\qquad
+N=\begin{pmatrix}0&1\\1&0\end{pmatrix}.
+\]
+Die Matrix
+\[
+C=M^{-1}N
+=
+\begin{pmatrix}\frac1a&0\\0&\frac1b\end{pmatrix}
+\begin{pmatrix}0&1\\1&0\end{pmatrix}
+=
+\begin{pmatrix}
+0&\frac1a\\\frac1b&0
+\end{pmatrix}
+\]
+hat das charakteristische Polynom
+\[
+\chi_C(\lambda)=\lambda^2 -\frac1{ab}
+\]
+mit den Nullstellen
+\[
+\lambda_\pm=\pm\frac1{\sqrt{ab}},
+\]
+der Spektralradius ist also
+\[
+\varrho(M^{-1}N)=\frac1{\sqrt{|ab|}}.
+\]
+Das Jacobi-Verfahren ist also genau dann konvergent, wenn
+\[
+|ab| > 1.
+\]
+\end{loesung}
+

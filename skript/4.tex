@@ -1,0 +1,63 @@
+Tridiagonale Matrizen sind effizient l"osbar mit einer Variante des
+Gauss-Algorithmus, die auch als Thomas-Algorithmus bekannt ist.
+F"ur die Matrix 
+\[
+A=\begin{pmatrix}
+2.1&1&0&1\\
+1&2.1&1&0\\
+0&1&2.1&1\\
+1&0&1&2.1
+\end{pmatrix}
+\]
+ist jetzt auch eine Zerlegung in eine tridiagonale Matrix
+\[
+M=\begin{pmatrix}
+2.1&1&0&0\\
+1&2.1&1&0\\
+0&1&2.1&1\\
+0&0&1&2.1
+\end{pmatrix}
+\]
+und $N=A-M$ m"oglich.
+Welches Iterationsverfahren konvergiert schneller,
+Gauss-Seidel oder das zu dieser Zerlegung geh"orige Verfahren?
+
+\begin{loesung}
+F"ur das Gauss-Seidel-Verfahren muss man den Spektralradius von
+\[
+C_{\text{GS}}=
+\begin{pmatrix}
+2.1&0&0&0\\
+1&2.1&0&0\\
+0&1&2.1&0\\
+1&0&1&2.1\\
+\end{pmatrix}^{-1}
+\begin{pmatrix}
+0&1&0&1\\
+0&0&1&0\\
+0&0&0&1\\
+0&0&0&0
+\end{pmatrix}
+\]
+berechnen, man findet $\varrho(C_{\text{GS}})=0.90756$.
+Andererseits findet man f"ur 
+\[
+C_{\text{T}}=
+\begin{pmatrix}
+2.1&1&0&0\\
+1&2.1&1&0\\
+0&1&2.1&1\\
+0&0&1&2.1\\
+\end{pmatrix}^{-1}
+\begin{pmatrix}
+0&0&0&1\\
+0&0&0&0\\
+0&0&0&0\\
+1&0&0&0
+\end{pmatrix}
+\]
+den Spektralradius $\varrho(C_{\text{T}})=0.83969$,
+der zus"atzliche Aufwand bei der L"osung
+des tridiagonalen Gleichungssystems schl"angt sich tats"achlich in
+rascherer Konvergenz nieder.
+\end{loesung}

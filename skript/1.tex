@@ -1,0 +1,242 @@
+Betrachten Sie die Matrix
+\[
+A_a=\begin{pmatrix}
+a&1&1&1\\
+1&a&1&1\\
+1&1&a&1\\
+1&1&1&a
+\end{pmatrix}
+\qquad\text{und den Vektor}\quad
+b=\begin{pmatrix}1\\1\\1\\1\end{pmatrix}.
+\]
+Sie kann in Octave/Matlab mit Hilfe der Funktion
+\begin{verbatim}
+function retval = m(n, a)
+    retval = ones(n, n) + (a - 1) * eye(n);
+endfunction
+\end{verbatim}
+als {\tt m(4,2)} erzeugt werden. 
+F"ur $a=1$ ist die Matrix singul"ar, man kann also nicht erwarten, dass
+das Gleichungssystem $Ax=b$ eine L"osung hat. 
+\begin{teilaufgaben}
+\item Konvergiert das Jacobi-Verfahren f"ur die Matrix $A_{3.1}$?
+\item Konvergiert das Jacobi-Verfahren f"ur die Matrix $A_{2.9}$?
+\item Konvergiert das Jacobi-Verfahren f"ur die Matrix $A_{1.1}$?
+\item Konvergiert das Gauss-Seidel-Verfahren f"ur die Matrix $A_{1.1}$?
+\item Konvergiert das Gauss-Seidel-Verfahren f"ur die Matrix $A_{0.9}$?
+\end{teilaufgaben}
+
+\begin{loesung}
+Es muss untersucht werden, die Matrix $M^{-1}N$ einen Spektralradius $<1$
+hat, wobei $M$ und $N$ die Zerlegungen der Matrix f"ur das Jacobi-Verfahren
+bzw.~das Gauss-Seidel-Verfahren sind.
+Der Spektralradius kann mit der Funktion
+\begin{verbatim}
+function retval = spectralradius(A)
+        retval = max(abs(eig(A)));
+endfunction
+\end{verbatim}
+berechnet werden.
+
+F"ur den Jacobi-Algorithmus ist $M$ die Diagonale von $A$, leider gibt es
+in Octave keine Funktion, mit der diese extrahiert werden k"onnte. Man kann
+sich aber mit der Funktion
+\begin{verbatim}
+function retval = diagonal(A)
+        n = length(A);
+        result = zeros(n, n);
+        for i = (1:n)
+                result(i, i) = A(i, i);
+        endfor
+        retval = result;
+endfunction
+\end{verbatim}
+behelfen.
+F"ur das Gauss-Seidel-Verfahren ist $M$ die untere Dreiecksmatrix von $A$
+mitsamt der Diagonalen. Daf"ur gibt es in Octave die Funktion {\tt tril}.
+Nach diesen Vorbereitungen kann der Spektralradius von $M^{-1}N$ jeweils
+mit folgenden Befehlen bestimmt werden:
+\begin{verbatim}
+N = A - M;
+spectralradius(M^-1 * N)
+\end{verbatim}
+\begin{teilaufgaben}
+\item Im Jacobi-Verfahren ist $M$ die Diagonale von $A_{3.1}$, also
+\[
+M=\operatorname{diag}(3.1,\dots,3.1),\qquad
+N=
+\begin{pmatrix}
+0&1&1&1\\
+1&0&1&1\\
+1&1&0&1\\
+1&1&1&0
+\end{pmatrix}.
+\]
+F"ur den Spektralradius findet man den Wert $0.96774>1$, das Jacobi-Verfahren
+wird also im allgemeinen konvergieren.
+\item Dieselbe Rechnung wie in a), aber mit $a=2.9$ liefert den Spektralradius
+$1.0345>1$, das Jacobi-Verfahren wird also im allgmeinen nicht 
+konvergieren.
+\item Dieselbe Rechnung wie in a), aber mit $a=1.1$ liefert den Spektralradius
+$2.7273>1$, das Jacobi-Verfahren wird also im allgmeinen nicht 
+konvergieren.
+\item Dieselbe Rechnung wie in a), aber mit der unteren Dreicksmatrix von $A$
+f"ur $M$ liefert den Spektralradius $0.90712 < 1$, das Verfahren wird also
+immer konvergieren.
+\item
+Wiederholung der Rechnung mit $a=0.9$ liefert den Spektralradius $1.2418>1$,
+das Gauss-Seidel-Verfahren wird also im Allgemeinen nicht konvergieren.
+\item Finden Sie die L"osung durch Iteration in einem der F"alle, die sie
+als konvergent erkannt haben.
+\item Wir verwenden das Gauss-Seidel Verfahren im Fall $a=1.1$ mit dem
+initialen Vektor $x=0$. Da gem"ass Teilaufgabe c) der Spektralradius relativ
+nahe bei $1$ ist, kann nicht mit besonders schneller Konvergenz gerechnet
+werden. 
+Es ergeben sich folgende Werte f"ur die Approximationen der L"osung:
+\end{teilaufgaben}
+\begin{center}
+\begin{tabular}{|>{$}r<{$}|>{$}r<{$}>{$}r<{$}>{$}r<{$}>{$}r<{$}|}
+\hline
+i&x_1&x_2&x_3&x_4\\
+\hline
+  1&0.90909 & 0.08264 & 0.00751 & 0.00068\\
+  2&0.82650 & 0.15026 & 0.02049 & 0.00248\\
+  3&0.75159 & 0.20493 & 0.03725 & 0.00564\\
+  4&0.68378 & 0.24846 & 0.05645 & 0.01026\\
+  5&0.62255 & 0.28247 & 0.07700 & 0.01633\\
+  6&0.56744 & 0.30838 & 0.09804 & 0.02376\\
+  7&0.51801 & 0.32743 & 0.11889 & 0.03240\\
+  8&0.47387 & 0.34075 & 0.13906 & 0.04210\\
+  9&0.43462 & 0.34928 & 0.15817 & 0.05265\\
+ 10&0.39989 & 0.35388 & 0.17596 & 0.06386\\
+%11&0.36934 & 0.35529 & 0.19226 & 0.07553\\
+%12&0.34263 & 0.35414 & 0.20698 & 0.08748\\
+%13&0.31944 & 0.35098 & 0.22007 & 0.09954\\
+%14&0.29945 & 0.34630 & 0.23155 & 0.11154\\
+%15&0.28237 & 0.34049 & 0.24145 & 0.12335\\
+%16&0.26791 & 0.33389 & 0.24986 & 0.13485\\
+%17&0.25582 & 0.32679 & 0.25685 & 0.14594\\
+%18&0.24583 & 0.31943 & 0.26254 & 0.15654\\
+%19&0.23771 & 0.31200 & 0.26704 & 0.16659\\
+ 20&0.23125 & 0.30466 & 0.27046 & 0.17603\\
+%21&0.22623 & 0.29753 & 0.27292 & 0.18484\\
+%22&0.22246 & 0.29071 & 0.27454 & 0.19299\\
+%23&0.21978 & 0.28426 & 0.27542 & 0.20049\\
+%24&0.21803 & 0.27824 & 0.27568 & 0.20732\\
+%25&0.21706 & 0.27268 & 0.27540 & 0.21351\\
+%26&0.21673 & 0.26759 & 0.27469 & 0.21907\\
+%27&0.21695 & 0.26299 & 0.27363 & 0.22403\\
+%28&0.21759 & 0.25886 & 0.27229 & 0.22842\\
+%29&0.21858 & 0.25520 & 0.27073 & 0.23227\\
+ 30&0.21982 & 0.25198 & 0.26903 & 0.23561\\
+%31&0.22126 & 0.24919 & 0.26722 & 0.23848\\
+%32&0.22282 & 0.24679 & 0.26537 & 0.24093\\
+%33&0.22447 & 0.24476 & 0.26349 & 0.24298\\
+%34&0.22615 & 0.24307 & 0.26164 & 0.24467\\
+%35&0.22783 & 0.24169 & 0.25982 & 0.24605\\
+%36&0.22949 & 0.24058 & 0.25807 & 0.24714\\
+%37&0.23110 & 0.23971 & 0.25640 & 0.24799\\
+%38&0.23263 & 0.23907 & 0.25483 & 0.24861\\
+%39&0.23408 & 0.23862 & 0.25336 & 0.24904\\
+ 40&0.23544 & 0.23833 & 0.25199 & 0.24931\\
+%41&0.23670 & 0.23818 & 0.25073 & 0.24944\\
+%42&0.23786 & 0.23815 & 0.24959 & 0.24945\\
+%43&0.23891 & 0.23822 & 0.24856 & 0.24937\\
+%44&0.23987 & 0.23837 & 0.24763 & 0.24921\\
+%45&0.24072 & 0.23858 & 0.24681 & 0.24899\\
+%46&0.24147 & 0.23885 & 0.24608 & 0.24873\\
+%47&0.24213 & 0.23914 & 0.24545 & 0.24843\\
+%48&0.24270 & 0.23947 & 0.24491 & 0.24811\\
+%49&0.24319 & 0.23981 & 0.24445 & 0.24778\\
+ 50&0.24361 & 0.24015 & 0.24406 & 0.24744\\
+%51&0.24396 & 0.24050 & 0.24373 & 0.24710\\
+%52&0.24424 & 0.24084 & 0.24347 & 0.24677\\
+%53&0.24447 & 0.24117 & 0.24326 & 0.24645\\
+%54&0.24465 & 0.24149 & 0.24310 & 0.24615\\
+%55&0.24479 & 0.24179 & 0.24298 & 0.24586\\
+%56&0.24489 & 0.24207 & 0.24290 & 0.24559\\
+%57&0.24495 & 0.24233 & 0.24284 & 0.24534\\
+%58&0.24499 & 0.24257 & 0.24282 & 0.24511\\
+%59&0.24500 & 0.24279 & 0.24282 & 0.24490\\
+ 60&0.24499 & 0.24299 & 0.24283 & 0.24471\\
+%61&0.24496 & 0.24317 & 0.24286 & 0.24455\\
+%62&0.24493 & 0.24333 & 0.24291 & 0.24440\\
+%63&0.24488 & 0.24347 & 0.24296 & 0.24427\\
+%64&0.24482 & 0.24359 & 0.24302 & 0.24415\\
+%65&0.24476 & 0.24370 & 0.24308 & 0.24406\\
+%66&0.24470 & 0.24379 & 0.24314 & 0.24397\\
+%67&0.24463 & 0.24387 & 0.24321 & 0.24390\\
+%68&0.24457 & 0.24393 & 0.24327 & 0.24385\\
+%69&0.24450 & 0.24398 & 0.24334 & 0.24380\\
+ 70&0.24444 & 0.24402 & 0.24340 & 0.24376\\
+%71&0.24437 & 0.24406 & 0.24346 & 0.24374\\
+%72&0.24432 & 0.24408 & 0.24352 & 0.24372\\
+%73&0.24426 & 0.24410 & 0.24357 & 0.24370\\
+%74&0.24421 & 0.24411 & 0.24362 & 0.24369\\
+%75&0.24416 & 0.24411 & 0.24366 & 0.24369\\
+%76&0.24412 & 0.24411 & 0.24370 & 0.24369\\
+%77&0.24408 & 0.24411 & 0.24374 & 0.24370\\
+%78&0.24405 & 0.24410 & 0.24377 & 0.24370\\
+%79&0.24402 & 0.24410 & 0.24380 & 0.24371\\
+ 80&0.24399 & 0.24409 & 0.24383 & 0.24372\\
+%81&0.24396 & 0.24408 & 0.24385 & 0.24374\\
+%82&0.24394 & 0.24406 & 0.24387 & 0.24375\\
+%83&0.24393 & 0.24405 & 0.24389 & 0.24376\\
+%84&0.24391 & 0.24404 & 0.24390 & 0.24377\\
+%85&0.24390 & 0.24403 & 0.24391 & 0.24379\\
+%86&0.24389 & 0.24401 & 0.24392 & 0.24380\\
+%87&0.24388 & 0.24400 & 0.24393 & 0.24381\\
+%88&0.24387 & 0.24399 & 0.24393 & 0.24382\\
+%89&0.24387 & 0.24398 & 0.24394 & 0.24383\\
+ 90&0.24387 & 0.24397 & 0.24394 & 0.24384\\
+%91&0.24386 & 0.24396 & 0.24394 & 0.24385\\
+%92&0.24386 & 0.24395 & 0.24394 & 0.24386\\
+%93&0.24386 & 0.24394 & 0.24394 & 0.24387\\
+%94&0.24386 & 0.24393 & 0.24394 & 0.24387\\
+%95&0.24386 & 0.24393 & 0.24394 & 0.24388\\
+%96&0.24386 & 0.24392 & 0.24394 & 0.24389\\
+%97&0.24387 & 0.24392 & 0.24394 & 0.24389\\
+%98&0.24387 & 0.24391 & 0.24393 & 0.24389\\
+%99&0.24387 & 0.24391 & 0.24393 & 0.24390\\
+100&0.24387 & 0.24391 & 0.24393 & 0.24390\\
+\hline
+\end{tabular}
+\end{center}
+Der Spektralradius ist in diesem Fall $0.90712$, um eine L"osung auf
+$k$ Stellen nach dem Komma genau zu erhalten, muss man mit
+\[
+n=\frac{-k\log 10}{\log 0.90712}
+\]
+Iterationen rechnen, im vorliegenden Fall braucht man f"ur vier Stellen
+nach dem Komma etwa 118 Iterationen.
+\end{loesung}
+
+\begin{diskussion}
+Man kann diese Untersuchung auf eine $n\times n$-Matrix
+\[
+A=\begin{pmatrix}
+     a&     1&     1&\dots &1\\
+     1&     a&     1&\dots &1\\
+     1&     1&     a&\ddot &1\\
+\vdots&\vdots&\vdots&\ddots&\vdots\\
+     1&     1&     1&\dots &a
+\end{pmatrix}
+\]
+bestehend aus 
+Einsen ausserhalb der Diagonalen und $a$ auf der Diagonalen
+verallgemeinern, und findet folgendes
+Resultat:
+\begin{center}
+\begin{tabular}{|>{$}c<{$}|cc|}
+\hline
+\text{Bedingung}&Jacobi-Verfahren&Gauss-Seidel-Verfahren\\
+\hline
+a > n-1&konvergent&konvergent\\
+1 < a < n-1&divergent&konvergent\\
+1-n<a < 1&divergent&divergent\\
+a < 1-n&konvergent&konvergent\\
+\hline
+\end{tabular}
+\end{center}
+\end{diskussion}
+
