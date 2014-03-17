@@ -885,7 +885,8 @@ auf den von den Eigenvektoren $u_2,\dots,u_n$ aufgespannten Raum
 beschr"anken.
 Das Problem ist allerdings, dass man diesen Raum gar nicht kennt,
 man hat die Eigenvektoren ja noch gar nicht bestimmt.
-Wenn allerdings die Matrix $A$ symmetrisch ist, dann weiss man,
+
+Wenn die Matrix $A$ symmetrisch ist, dann weiss man,
 dass die Eigenvektoren $u_2,\dots,u_n$ senkrecht stehen auf dem
 bereits gefunden Vektor $u_1$.
 Man muss also nur eine Basis von Vektoren senkrecht auf $u_1$ finden,
@@ -904,8 +905,125 @@ A=
 \end{array}
 \right)
 \]
+haben.
 Die Matrix $A_1$ ist wieder eine symmetrische $(n-1)\times(n-1)$-Matrix,
 die die Eigenwerte $\lambda_2,\dots,\lambda_n$ hat.
+
+\begin{beispiel}
+Man finde die Eigenwerte und Eigenvektoren der Matrix 
+\[
+A=\begin{pmatrix}
+3&2&0\\
+2&2&1\\
+0&1&1
+\end{pmatrix}.
+\]
+Da die Matrix symmetrisch ist, kann man von orthogonalen Eigenvektoren
+ausgehen.
+Mit Hilfe des Potenzverfahrens findet man den Eigenvektor $v_1$
+zum dominanten Eigenwert $\lambda_1$:
+\[
+\lambda_1=4.6691,\qquad
+v_1
+=
+\begin{pmatrix}
+0.75632\\
+0.63118\\
+0.17203
+\end{pmatrix}
+\]
+Jetzt muss man die Matrix in eine Basis transformieren, die $v_1$ als
+ersten Basisvektor hat.
+Man kann dies in Octave mit der QR-Zerlegung bewerkstelligen.
+Man zerlegt dazu die Matrix
+\[
+U=
+\begin{pmatrix}
+0.75632&0&0\\
+0.63118&1&0\\
+0.17203&0&1
+\end{pmatrix}
+=QR,
+\]
+wobei $Q$ eine orthogonale Matrix ist, und $R$ eine obere Dreiecksmatrix.
+$Q$ ist eine m"ogliche orthogonale Basis, die als ersten Basisvektor
+den $v_1$ hat. Der Octave-Befehl daf"ur ist
+\begin{verbatim}
+[Q, R] = qr(U)
+\end{verbatim}
+Im vorliegenden Fall bekommt man
+\[
+Q=
+\begin{pmatrix}
+-0.75632&           -0.13208&           -0.64073\\
+-0.63118&           -0.11022& \phantom{-}0.76777\\
+-0.17203& \phantom{-}0.98509&           -0.00000
+\end{pmatrix}.
+\]
+Jetzt kann man die Matrix $A$ transformieren:
+\[
+A_2 = Q^t A Q=
+\begin{pmatrix}
+   4.6691 & 0.00000 & 0.00000\\
+   0.0000 & 0.88811 & 0.77938\\
+   0.0000 & 0.77938 & 0.44281
+\end{pmatrix}
+\]
+Jetzt m"ussen nur noch Eigenvektoren f"ur den $2\times 2$-Block rechts
+unten gefunden werden.
+Mit Hilfe der Potenzmethode findet man den zweiten Eigenwert mit
+zugeh"origem Eigenvektor:
+\[
+\lambda_2=1.4760,\qquad
+v_2'=\begin{pmatrix}
+   0.00000\\
+   0.79834\\
+   0.60221
+\end{pmatrix}.
+\]
+Allerdings ist dies ein Vektor in der neuen Basis, repr"asentiert durch
+die Matrix $Q$.
+Um einen Eigenvektor in der urspr"unglichen Basis zu finden, muss man ihn
+mit $Q$ r"ucktransformieren:
+\[
+v_2=Qv_1=\begin{pmatrix}
+          -0.49130\\
+\phantom{-}0.37436\\
+\phantom{-}0.78644
+\end{pmatrix}.
+\]
+Damit kann man jetzt die Matrix $U$ um einen weitere Vektor erweitern,
+und erneut die $QR$-Zerlegung anwenden. In diesem Fall erh"alt man die
+Matrix
+\[
+Q_2=\begin{pmatrix}
+-0.75632&          -0.49130&\phantom{-}0.43198\\
+-0.63118&\phantom{-}0.37436&          -0.67931\\
+-0.17203&\phantom{-}0.78644&\phantom{-}0.59323
+\end{pmatrix}
+\]
+und die Transformierte Matrix von $A$ ist
+\[
+A_3 = Q_2^tAQ_2=\begin{pmatrix}
+   4.66908 & 0       & 0      \\
+   0       & 1.47602 & 0      \\
+   0       & 0       &-0.14510
+\end{pmatrix}
+\]
+Daraus kann man jetzt ablesen, dass der dritte Eigenvektor
+die dritte Spalten von $Q_2$ ist, der zugeh"orige Eigenwert ist
+$-0.14510$:
+\[
+\lambda_3 = -0.14510,\qquad
+v_3=
+\begin{pmatrix}
+\phantom{-}0.43198\\
+          -0.67931\\
+\phantom{-}0.59323
+\end{pmatrix}.
+\]
+\end{beispiel}
+
 
 Dieses Verfahren ist offenbar etwas umst"andlich, und nicht unbedingt
 in dieser Form durchf"uhrbar.
@@ -916,6 +1034,131 @@ Dieses erweiterte Potenzverfahren heisst Francis Verfahren, es
 wurde von John Francis 1961 entwickelt.
 Eine gute Beschreibung findet man auch im Buch von Watkins
 \cite[Chapter 5]{skript:watkins}.
+
+\subsection{Anwendung: Nullstellen von Polynomen}
+Das Francis-Verfahren erlaubt Eigenwerte und Eigenvektoren auch
+von grossen Matrizen zu finden, ohne dass je das charakteristische
+Polynom berechnet und dessen Nullstellen gefunden werden m"ussen.
+Man kann jetzt umgekehrt dieses Verfahren dazu verwenden, die Nullstellen
+auch von Polynomen hohen Grades zu finden. Sei daher
+\begin{equation}
+p(\lambda)=a_0+a_1\lambda+a_2\lambda^2+\dots + a_{n-1}\lambda^{n-1}+\lambda^n
+\label{polynomnullstellen:p}
+\end{equation}
+ein Polynom $n$-ten Grades.
+
+Wir berechnen jetzt das charakteristische Polynom der Matrix
+\begin{equation}
+A=\begin{pmatrix}
+-a_{n-1}&-a_{n-2}&\dots         &  -a_1&  -a_0\\
+       1&       0&              &      &      \\
+        &       1&\smash{\ddots}&      &      \\
+        &        &\smash{\ddots}&     0&      \\
+        &        &              &     1&     0
+\end{pmatrix}.
+\label{polynomnullstellen:A}
+\end{equation}
+Wir behaupten, dass das charakteristische Polynom von $A$ 
+das Polynom
+\[
+\chi_{A_p}(\lambda)=
+(-1)^n(
+a_0+a_1\lambda+a_2\lambda^2+\dots+a_{n-2}\lambda^{n-1}+a_{n-1}\lambda^{n-1}+\lambda^n
+)
+\]
+ist.
+Tats"achlich ist f"ur $n=1$ 
+\[
+A_p=\begin{pmatrix}-a_0\end{pmatrix}
+\qquad
+\Rightarrow
+\qquad
+\chi_{A_p}(\lambda)=-a_0-\lambda=(-1)^1(a_0+\lambda),
+\]
+Die Behauptung stimmt also f"ur $n=1$.
+
+Wir f"uhren jetzt einen Induktionsbeweis, und nehmen daher an, die
+Behaupt sei f"ur $n < k$ schon bewiesen.
+Durch Entwicklung nach der letzten Spalte bekommt man
+\begin{align*}
+\chi_{A_p}(\lambda)
+&=
+\left|\,
+\begin{matrix}
+-a_{n-1}-\lambda&-a_{n-1}&\dots         &    -a_1&    -a_0\\
+               1&-\lambda&              &        &        \\
+                &       1&\smash{\ddots}&        &        \\
+                &        &\smash{\ddots}&-\lambda&        \\
+                &        &              &       1&-\lambda
+\end{matrix}\,\right|
+\\
+&=
+-\lambda
+\left|\,
+\begin{matrix}
+-a_{n-1}-\lambda&-a_{n-1}&\dots         &    -a_1\\
+               1&-\lambda&              &        \\
+                &       1&\smash{\ddots}&        \\
+                &        &\smash{\ddots}&-\lambda
+\end{matrix}
+\,\right|
+-
+(-1)^{n-1}
+a_0
+\left|\,
+\begin{matrix}
+               1&-\lambda&              &        \\
+                &       1&\smash{\ddots}&        \\
+                &        &\smash{\ddots}&-\lambda\\
+                &        &              &       1
+\end{matrix}
+\,\right|
+\\
+&=
+-\lambda (-1)^{n-1}(
+a_1+a_2\lambda+\dots+a_{n-2}\lambda^{n-3}+a_{n-1}\lambda^{n-2}+\lambda^{n-1})
++(-1)^na_0\\
+&=(-1)^n(a_0
+a_1\lambda+a_2\lambda^2+\dots+a_{n-2}\lambda^{n-2}+a_{n-1}\lambda^{n-1}+\lambda^n)
+\\
+&=(-1)^n \chi_A(\lambda).
+\end{align*}
+Damit is der Induktionsschritt vollzogen.
+
+Statt die Nullstellen des Polynoms $p(\lambda)$ (\ref{polynomnullstellen:p})
+zu berechnen, kann man jetzt auch die Eigenwerte der Matrix
+$A_p$ (\ref{polynomnullstellen:A}) bestimmen.
+
+\begin{beispiel}
+Die Nullstellen des Polynoms $p(x)=x^4-10x^3+35x^2-50x+24$ sind die 
+Eigenwerte der Matrix
+\[
+A=\begin{pmatrix}
+10&-35&50&-24\\
+ 1&  0& 0&  0\\
+ 0&  1& 0&  0\\
+ 0&  0& 1&  0
+\end{pmatrix}
+\]
+Octave liefert daf"ur die Werte 
+\begin{verbatim}
+A =
+
+   10  -35   50  -24
+    1    0    0    0
+    0    1    0    0
+    0    0    1    0
+
+octave:2> eig(A)
+ans =
+
+   4.0000
+   3.0000
+   2.0000
+   1.0000
+
+\end{verbatim}
+\end{beispiel}
 
 \section{Iterative Methoden f"ur symmetrische Matrizen}
 \rhead{Symmetrische Matrizen}
@@ -2031,5 +2274,7 @@ Details dazu in \cite[Chapter 8.6]{skript:watkins}.
 \input 5.tex
 \item
 \input 6.tex
+\item
+\input 10.tex
 \end{uebungsaufgaben}
 
