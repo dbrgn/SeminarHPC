@@ -9,6 +9,7 @@
 #include <fitsio.h>
 #include <fftw3.h>
 #include <math.h>
+#include <common.h>
 
 /**
  * \brief auxiliary function to retrieve the fits error message as std::string
@@ -211,10 +212,18 @@ int	main(int argc, char *argv[]) {
 	}
 	fits_close_file(in, &status);
 
+	// initialize timing
+	init_gettime();
+	double	start = gettime();
+
 	// now perform filter on all lines
+#pragma omp parallel for
 	for (int row = 0; row < height; row++) {
 		filter(imagedata + row * width, width);
 	}
+
+	double	end = gettime();
+	std::cout << "time: " << (end - start) << std::endl;
 
 	// write the filtered image back to the output file
 	fitsfile	*out = NULL;
