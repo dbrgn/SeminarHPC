@@ -22,7 +22,7 @@ radontransform:	radontransform.o radon.o
 filter:	filter.cpp
 	g++ $(CPPFLAGS) $(CXXFLAGS) -o filter filter.cpp $(LDFLAGS)
 
-filtertest:	filtertest
+filtertest:	filter
 	if [ -f out.fits ]; then rm out.fits; fi
 	./filter in.fits out.fits
 

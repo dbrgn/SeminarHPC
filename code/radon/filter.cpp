@@ -10,6 +10,7 @@
 #include <fftw3.h>
 #include <math.h>
 #include <common.h>
+#include <stdexcept>
 
 /**
  * \brief auxiliary function to retrieve the fits error message as std::string
@@ -58,43 +59,7 @@ static double	filterfunction(double s) {
 	case COSINE:
 		return (s <= L) ? s * cos(M_PI * s / L) : 0.;
 	}
-}
-
-/**
- * \brief Perform filtering
- *
- * This method applies an FFT for each row of radon transform, multplies it
- * by the value of the filter function, and transforms it back.
- *
- * \param data	pointer to the data to be filtered
- * \param size	size of the data array 
- */
-static int	filter(double *data, int size) {
-	fftw_complex	*f = fftw_alloc_complex(size);
-
-	// forward transform to frequency space
-	fftw_plan	plan = fftw_plan_dft_r2c_1d(size, data, f, 0);
-	fftw_execute(plan);
-	fftw_destroy_plan(plan);
-
-	// multiply by filter function
-	double	max = 1 + size / 2;
-	for (int s = 0; s <= size / 2; s++) {
-		double	S = filterfunction(s / max);
-		f[s][0] *= S;
-		f[s][1] *= S;
-	}
-	
-	// backward transform
-	plan = fftw_plan_dft_c2r_1d(size, f, data, 0);
-	fftw_execute(plan);
-	fftw_destroy_plan(plan);
-
-	// cleanup
-	fftw_free(f);
-
-	// return code
-	return 0;
+	throw std::runtime_error("bad filter variable");
 }
 
 /**
@@ -124,7 +89,7 @@ int	selectfilter(const std::string& filtername) {
 }
 
 /**
- * \brief 
+ * \brief usage message
  */
 static void	usage(const std::string& progname) {
 	std::cout << "usage: " << progname
@@ -199,9 +164,9 @@ int	main(int argc, char *argv[]) {
 		return EXIT_FAILURE;
 	}
 
-	long	width = naxes[0];
-	long	height = naxes[1];
-	long	npixels = width * height;
+	int	width = naxes[0];
+	int	height = naxes[1];
+	int	npixels = width * height;
 	long	firstpixel[3] = { 1, 1, 1 };
 	double	*imagedata = (double *)malloc(npixels * sizeof(double));
 	if (fits_read_pix(in, TDOUBLE, firstpixel, npixels, NULL, imagedata,
@@ -212,18 +177,46 @@ int	main(int argc, char *argv[]) {
 	}
 	fits_close_file(in, &status);
 
+	// allocate memory for the frequency stuff
+	int	cwidth = 1 + width / 2;
+	fftw_complex	*freq = fftw_alloc_complex(height * cwidth);
+
 	// initialize timing
 	init_gettime();
 	double	start = gettime();
 
+	// create the forward plan, and perform the forward transformation
+	fftw_plan	forward_plan = fftw_plan_many_dft_r2c(
+				1, &width, height,
+				imagedata, NULL, 1, width,
+				freq, NULL, 1, cwidth, 0);
+	fftw_execute(forward_plan);
+	fftw_destroy_plan(forward_plan);
+
 	// now perform filter on all lines
-#pragma omp parallel for
-	for (int row = 0; row < height; row++) {
-		filter(imagedata + row * width, width);
+	double	max = cwidth;
+	for (int column = 0; column < cwidth; column++) {
+		double	s = filterfunction(column / max);
+		for (int row = 0; row < height; row++) {
+			freq[column + row * cwidth][0] *= s;
+			freq[column + row * cwidth][1] *= s;
+		}
 	}
 
+	// create the backward plan and perform backward transformation
+	fftw_plan	backward_plan = fftw_plan_many_dft_c2r(
+				1, &width, height,
+				freq, NULL, 1, cwidth,
+				imagedata, NULL, 1, width, 0);
+	fftw_execute(backward_plan);
+	fftw_destroy_plan(backward_plan);
+
+	// measure time
 	double	end = gettime();
 	std::cout << "time: " << (end - start) << std::endl;
+
+	// free the allocatd data
+	fftw_free(freq);
 
 	// write the filtered image back to the output file
 	fitsfile	*out = NULL;
