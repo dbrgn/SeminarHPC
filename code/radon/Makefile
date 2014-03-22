@@ -5,9 +5,9 @@
 #
 CXXFLAGS = -g -Wall -O2
 CPPFLAGS = -I/usr/include/opencv2
-LDFLAGS = -lopencv_core -lopencv_highgui -lopencv_imgproc -llapack -lfftw3 -lm
+LDFLAGS = -lopencv_core -lopencv_highgui -lopencv_imgproc -llapack -lfftw3 -lm -lcfitsio
 
-all:	radontransform 
+all:	radontransform filter
 
 radon.o:	radon.cpp
 	g++ $(CPPFLAGS) $(CXXFLAGS) -c -o radon.o radon.cpp
@@ -17,6 +17,13 @@ radontransform.o:	radontransform.cpp
 
 radontransform:	radontransform.o radon.o
 	g++ -o radontransform radontransform.o radon.o $(LDFLAGS)
+
+filter:	filter.cpp
+	g++ $(CPPFLAGS) $(CXXFLAGS) -o filter filter.cpp $(LDFLAGS)
+
+filtertest:	filtertest
+	if [ -f out.fits ]; then rm out.fits; fi
+	./filter in.fits out.fits
 
 RES=512
 
