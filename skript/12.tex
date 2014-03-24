@@ -1,0 +1,113 @@
+Zu einem Polynom $p(x)=a_0+a_1x+a_2x+\dots+a_{n-1}x^{n-1}+x^n$ betrachtet
+man die Matrix
+\[
+A_p=\begin{pmatrix}
+-a_{n-1}&-a_{n-2}&-a_{n-3}& \dots&  -a_1&-a_0\\
+       1&       0&       0&      &      &    \\
+       0&       1&       0&      &      &    \\
+        &        &  \ddots&\ddots&      &    \\
+        &        &        &\ddots&\ddots&    \\
+        &        &        &      &     1&   0
+\end{pmatrix}.
+\]
+Sei $\lambda$ eine Nullstelle von $p(x)$. Ist der Vektor
+\[
+v_\lambda=\begin{pmatrix}
+1\\\lambda^{-1}\\\lambda^{-2}\\\vdots\\\lambda^{-n+1}
+\end{pmatrix}
+\]
+ein Eigenvektor von $A$?
+
+\begin{loesung}
+Zun"achst beachten wir, dass $p(\lambda)=0$ gleichbedeutend ist mit
+\begin{align}
+\lambda^n
++
+a_{n-1}\lambda^{n-1}
++
+\dots
++
+a_2\lambda^2
++
+a_1\lambda
++
+a_0
+&=0
+\notag
+\\
+\lambda^n
+&=
+-a_{n-1}\lambda^{n-1}
+-
+a_{n-2}\lambda^{n-2}
+-
+\dots
+-
+a_2\lambda^2
+-
+a_1\lambda
+-
+a_0
+\notag
+\\
+\lambda&=
+-a_{n-1}
+-
+a_{n-2}\lambda^{-1}
+-
+\dots
+-
+a_2\lambda^{-n+3}
+-
+a_1\lambda^{-n+2}
+-
+a_0\lambda^{-n+1}
+\label{aufg12:1}
+\end{align}
+Wir bilden das Matrizenprodukt $A_pv_\lambda$.
+\begin{align*}
+A_pv_\lambda
+&=
+\begin{pmatrix}
+-a_{n-1}&-a_{n-2}&-a_{n-3}& \dots&  -a_1&-a_0\\
+       1&       0&       0&      &      &    \\
+       0&       1&       0&      &      &    \\
+        &        &  \ddots&\ddots&      &    \\
+        &        &        &\ddots&\ddots&    \\
+        &        &        &      &     1&   0
+\end{pmatrix}
+\begin{pmatrix}
+1\\\lambda^{-1}\\\lambda^{-2}\\\vdots\\\lambda^{-n+2}\\\lambda^{-n+1}
+\end{pmatrix}
+\\
+&=
+\begin{pmatrix}
+-a_{n-1}-a_{n-2}\lambda^{-1}+a_{n-3}\lambda^{-2}-\dots-a_1\lambda^{-n+2}-a_0\lambda^{-n+1}
+\\
+1\\
+\lambda^{-1}\\
+\vdots\\
+\lambda^{-n+2}
+\end{pmatrix}
+=
+\begin{pmatrix}
+\lambda \\
+1\\
+\lambda^{-1}\\
+\vdots\\
+\lambda^{-n+2}
+\end{pmatrix}
+=
+\lambda
+\begin{pmatrix}
+1\\
+\lambda^{-1}\\
+\lambda^{-2}\\
+\vdots\\
+\lambda^{-n+1}
+\end{pmatrix}
+=\lambda v_\lambda
+\end{align*}
+Dabei haben wir (\ref{aufg12:1}) verwendet.
+Also ist tats"achlich $v_\lambda$ ein Eigenvektor von $A_p$.
+\end{loesung}

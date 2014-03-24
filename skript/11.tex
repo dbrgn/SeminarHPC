@@ -1,0 +1,128 @@
+Mit Hilfe der Potenzmethode kann man auch Nullstellen eines beliebigen
+Polynoms finden. Wenden Sie diese Methode auf das Polynom
+\[
+p(x)=x^3-6x^2+11x-6
+\]
+an, und verwenden Sie den Startvektor
+\[
+x_0=\begin{pmatrix}1\\1\\1\end{pmatrix}.
+\]
+Finden Sie die betragsgr"osste Nullstelle von $p(x)$.
+
+\begin{loesung}
+Die zu $p$ geh"orige Matrix ist
+\[
+A_p
+=
+\begin{pmatrix}
+6&-11&6\\
+1&  0&0\\
+0&  1&0
+\end{pmatrix}
+\]
+Die Iteration mit $x_0$ ergibt:
+\[
+Ax_0=
+\begin{pmatrix}
+6&-11&6\\
+1&  0&0\\
+0&  1&0
+\end{pmatrix}
+\begin{pmatrix}1\\1\\1\end{pmatrix}
+=
+\begin{pmatrix}
+1\\1\\1
+\end{pmatrix},
+\]
+also ist $1$ ein Eigenwert von $A_p$, oder $p$ hat $1$ als Nullstellen.
+Allerdings ist
+\[
+q(x)=\frac{p(x)}{x-1}=\frac{x^3-6x^2+11x-6}{x-1}
+=x^2-5x+6,
+\]
+und $q(x)$ hat die beiden Nullstellen
+\[
+x_\pm=\frac52\pm\sqrt{\frac{25}4-6}
+=\frac52\pm\sqrt{\frac14}=\frac52\pm\frac12=\begin{cases}3\\2.\end{cases}
+\]
+Der Betragsgr"osste Eigenwert von $A_p$ ist also 3.
+
+Der Grund, warum die Potenzmethode den Betragsgr"ossten Eigenwert nicht 
+findet ist, dass wir die Iteration mit einem Eigenvektor von $A_p$
+beginnen.
+Da Eigenvektoren von $A_p$ als Elemente Vielfache der Potenzen des
+zugeh"origen Eigenwertes haben, sollte man die Iteration mit einem
+Vektor beginnen, dessen Komponenten nicht monoton zunehmend oder
+abnehmend sind. Der Startvektor
+\[
+x_0=\begin{pmatrix}1\\\frac12\\\frac14\end{pmatrix}
+\]
+f"uhrt auf die Iteration
+\begin{align*}
+A_px_0
+&=
+\begin{pmatrix}
+6&-11&6\\
+1&  0&0\\
+0&  1&0
+\end{pmatrix}
+\begin{pmatrix}1\\\frac12\\\frac14\end{pmatrix}
+=
+\begin{pmatrix}
+6-\frac{11}2+\frac64
+1\\
+\frac12
+\end{pmatrix}
+=
+\begin{pmatrix}
+2\\
+1\\
+\frac12
+\end{pmatrix}
+=2
+\begin{pmatrix}1\\\frac12\\\frac14\end{pmatrix}
+\end{align*}
+Da die Komponenten dieses Startvektors in Bin"ararithmetik exakt
+dargestellt werden k"onnen, wird man mit diesem Startvektor ebenfalls
+den betragsgr"ossten Eigenwert nicht finden.
+
+In Octave ist es zweckm"assig, einen zuf"alligen Startvektor zu w"ahlen:
+\begin{center}
+\begin{tabular}{|>{$}c<{$}|>{$}r<{$}>{$}r<{$}>{$}r<{$}|}
+\hline
+k& x_{k,1}&x_{k,2}&x_{k,3}\\
+\hline
+ 0&  0.03254&   0.53063&  0.27617\\
+ 1&  1.00000&  -0.00816& -0.13316\\
+ 2&  1.00000&   0.18900& -0.00154\\
+ 3&  1.00000&   0.25564&  0.04831\\
+ 4&  1.00000&   0.28753&  0.07350\\
+ 5&  1.00000&   0.30505&  0.08771\\
+% 6&  1.00000&   0.31538&  0.09620\\
+% 7&  1.00000&   0.32175&  0.10148\\
+% 8&  1.00000&   0.32577&  0.10482\\
+% 9&  1.00000&   0.32837&  0.10697\\
+10&  1.00000&   0.33005&  0.10838\\
+%11&  1.00000&   0.33116&  0.10930\\
+%12&  1.00000&   0.33189&  0.10991\\
+%13&  1.00000&   0.33237&  0.11031\\
+%14&  1.00000&   0.33270&  0.11058\\
+15&  1.00000&   0.33291&  0.11076\\
+%16&  1.00000&   0.33305&  0.11088\\
+%17&  1.00000&   0.33314&  0.11095\\
+%18&  1.00000&   0.33321&  0.11101\\
+%19&  1.00000&   0.33325&  0.11104\\
+20&  1.00000&   0.33328&  0.11106\\
+%21&  1.00000&   0.33330&  0.11108\\
+%22&  1.00000&   0.33331&  0.11109\\
+%23&  1.00000&   0.33332&  0.11110\\
+%24&  1.00000&   0.33332&  0.11110\\
+25&  1.00000&   0.33333&  0.11110\\
+26&  1.00000&   0.33333&  0.11111\\
+\hline
+\end{tabular}
+\end{center}
+Mit diesem Startvektor konvergiert die Iteration gegen einen Eigenvektor
+zum Eigenwert 3, dem betragsgr"ossten Eigenwert.
+\end{loesung}
+

@@ -1,0 +1,29 @@
+Die Matrix
+\[
+D_\alpha
+=
+\begin{pmatrix}
+\cos\alpha&-\sin\alpha\\
+\sin\alpha& \cos\alpha
+\end{pmatrix}
+\]
+hat nur komplexe Eigenwerte.
+Wie "aussert sich dies in der Potenzmethode?
+Wie k"onnen Sie den Eigenwert trotzdem bestimmen?
+
+\begin{loesung}
+Die Matrix $D_\alpha$ ist eine Drehmatrix. 
+Iteration $D_\alpha^n x$ sind also einfach Drehungen von $x$
+um den Winkel $n\cdot \alpha$.
+Die Potenzmethode liefert in jeder Iteration einen neuen Vektor,
+aber der Quotient der L"ange von $x$ und $Ax$ konvergiert 
+gegen den Betrag des dominanten Eigenwertes, in diesem Fall $1$.
+
+Um den Eigewert zu bekommen, muss man auch den Drehwinkel kennen.
+Den kann man aber mit Hilfe des Skalarproduktes aus
+\[
+\cos \alpha = x\cdot Ax
+\]
+ermitteln. Dann ist der gesuchte Eigenwert $e^{i\alpha}$.
+\end{loesung}
+
