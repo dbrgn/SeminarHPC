@@ -3,6 +3,101 @@
 \begin{refsection}
 
 \chapterauthor{Andreas M"uller}
+\section{Dynamische System und Iteration}
+In der Analyis lernt man "uber 
+gew"ohnliche Differentialgleichung, dass L"osungen f"ur eine gewisse
+Zeit existieren und eindeutig seien.
+Nur gerade f"ur lineare Differentialgleichungen lassen sich Aussagen 
+dar"uber machen, ob f"ur lange Zeiten L"osungen existieren.
+Die elementare Theorie ist im wesentlichen eine lokale.
+In den Anwendungen werden nicht lineare Differentialgleichungen immer
+wichtiger.
+Solche Probleme lassen sich manchmal linearisieren, womit ausreichend
+genaue Aussagen erhalten werden k"onnen.
+Ist jedoch die Nichtlinearit"at ausgepr"agt genug, darf sie nicht l"anger
+vernachl"assigt werden.
+Mit einer analytischen L"osung einer nichtlinearen Differentialgleichung
+kann man nur in Ausnahmef"allen rechnen, dies ist aber meist auch nicht
+n"otig. Oft reicht es, qualitative Aussagen "uber das Verhalten der
+L"osung zu haben,
+insbesondere die Stabilit"at nichtlinearer Systeme "uber lange Zeit.
+Die Theorie der dynamischen Systeme macht allgemeine Aussagen "uber das
+Verhalten von L"osungen von Differentialgleichungen auch "uber lange
+Zeitintervalle.
+
+Wir betrachten ein dynamisches System, beschrieben durch eine
+gew"ohnliche Differentialgleichung $\dot x= f(t,x)$, welches eine
+periodische Bahn ausgehend vom Startwert $x_0$ hat.
+Ist $T$ die Bahnperiode, gilt also
+$x(nT)=x_0$ f"ur $n\in\mathbb N$.
+Die Theorie der dynamischen Systeme interessiert sich f"ur das Verhalten
+der L"osung bei einer kleinen "Anderung von $x_0$.
+
+Man betrachte jetzt eine Ebene $H$ senkrecht auf die Bahnkurve im Punkt $x_0$.
+Bahnen, die von einem Punkt in $H$ gen"ugend nahe bei $x_0$ ausgehen, werden
+nach ungef"ahr Zeit $T$ wieder in der N"ahe von $x_0$ durch $H$ gehen.
+Man kann also zu jedem Startpunkt $x\in H$ nahe bei $x_0$ den ersten
+Durchstosspunkt $g(x)$ der Bahn durch $H$ finden.
+Die Abbildung $x\mapsto g(x)$ enth"alt die gleiche Information "uber das
+Verhalten von L"osungen in der N"ahe von $x_0$ wie die urspr"ungliche
+Differentialgleichung.
+Dies zeigt, dass es reicht, das Verhalten von nichtlinearen Abbildungen
+unter Iteration zu verstehen.
+
+Die einfachste nichtlineare Abbildung in einer Dimension ist
+die sogenannte logistische Abbildung \cite{julia:logistic}
+\[
+f_a(x)=ax(1-x).
+\]
+Wir untersuchen Iterationsfolgen $x_{n+1}=f_a(x_n)$ der logistischen Abbildung
+ausgehend von Startpunkten in $[0,1]$.
+Die Funktion hat einen Fixpunk $f_a(0)=0$, und f"ur $a < 1$ f"uhren Iterationen
+immer wieder zum Punkt $0$ zur"uck.
+Sobald $a>1$ wird, "andert sich dieses Verhalten.
+Zun"achst tritt ein einzelner Fixpunkt bei $x=\frac{1-a}a$ auf.
+Dieser Fixpunkt wird bei $a=3$ instabil und spaltet sich einen Zyklus 
+mit Periode zwei auf.
+Mit zunehmendem $a$ spaltet sich der Zyklus erneut auf, er durchl"auft
+eine Kaskade von Periodenverdoppelungen
+(Abbildung~\ref{julia:periodenverdoppelung}).
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.7\hsize]{julia/logistic.png}
+\end{center}
+\caption{Periodenverdoppelungen bei der logistischen Abbildung in
+Abh"angigkeit vom Parameter (aus \cite{julia:logistic}).
+\label{julia:periodenverdoppelung}}
+\end{figure}
+
+Das bei der logistischen Abbildung beobachtete Verhalten tritt auch in
+anderen Beispielen auf, zum Beispiel konnte es bei einem nichtlinearen
+Halbleiter-Oszillator beobachtet werden.
+In der Praxis h"angen Systeme meist von mehreren Parametern ab, es liegt
+also nahe zu fragen, wie die Gebiete im Parameterraum aussehen, f"ur
+die die Iteration einer nichtlinearen, von einem Parameter $a\in\mathbb R^n$
+abh"angige Funktion konvergiert oder divergiert.
+
+Ein besonders interessanter Spezialfall ist die einfachste nichtlineare
+Funktion in den komplexen Zahlen, die Abbildung
+\[
+f_c(z)=z^2 + c,\qquad z,c\in\mathbb C,
+\]
+sie ist die direkte Verallgemeinerung der logistischen Abbildung auf
+komplexe Zahlen.
+Gaston Julia und Pierre Fatou haben die Iterationen rationaler 
+Funktionen komplexer Variablen bereits zu Beginn des zwanzigsten
+Jahrhunderts studiert, ohne allerdings den Luxus moderner Computergraphik
+zur Verf"ugung zu haben. Sie haben sich speziell f"ur die Menge der
+Startwerte interessiert, die zu einem bestimmten Verhalten der
+Iterierten f"uhrt.
+
+Verwandt mit der Frage nach der Menge der Startwerte, die zu einem
+bestimmten Verhalten f"uhren, ist die Frage nach der Menge der Parameter,
+die zu einem bestimmten Verhalten f"uhren.
+Die Menge der Punkte $c\in\mathbb C$, f"ur die die Iterierten der
+Funktion $f_c(z)$ mit Startwert $0$ beschr"ankt bleiben, heisst die
+Mandelbrot-Menge, auch als ``Apfelm"annchen'' bekannt.
+
 \section{Was sind Julia-Mengen?}
 F"ur jede komplexe Zahl $c\in\mathbb C$ kann man die Iterationen der
 Funktion
@@ -140,6 +235,29 @@ die zu beschr"ankten Iterationsfolgen f"uhren, kann mit dieser Methode
 keine Farbe zugeordnet werden.
 In den Abbildungen~\ref{julia:a} bis \ref{julia:h} sind diese Bereiche 
 schwarz dargestellt.
+Die Julia-Menge ist also der Rand des schwarzen Gebietes.
+
+F"ur gewisse Parameter, zum Beispiel f"ur $c=i$ (Abbildung~\ref{julia:g})
+oder $c=0.66i$ (Abbildung~\ref{julia:h}), enth"alt die ``schwarze'' Menge
+keine inneren Punkte mehr, man kann sie daher auf den Bildern
+kaum mehr erkennen.
+In diesen F"allen ist die Julia-Menge nur daran erkennbar, dass Startwerte
+nahe der Julia-Menge viele Iterationen ben"otigen, bis $z_n$ "uber die
+gew"ahlte Schranke gewachsen ist.
+
+Zusammenfassend kann man f"ur diese Methode folgende Eigenarten der
+Implementation festhalten:
+\begin{itemize}
+\item Jeder Pixel ist ein Work-Item. Dimensionen des Resultat Array
+ergeben sich somit aus der globalen Gr"osse.
+\item Der Startwert $c$, der einem Work-Item entspricht, kann mit Hilfe
+weniger, in einem globalen Array "ubergebener Parameter, aus der
+ID des Work-Item errechnet werden.
+\item Die Resultate werden in einem Array zur"uckgegeben, in dem jedes
+Work-Item genau einen Wert speichert, die Anzahl der Iterationen bis
+zum Erreichen der Schranke.
+Eine Initialisierung des Array ist nicht n"otig.
+\end{itemize}
 
 \subsection{Julia-Mengen durch Inverse Iteration}
 Die hier beschriebene Methode zur Berechnung von Julia-Mengen wird in
@@ -200,90 +318,105 @@ Am anderen Ende des Spektrum befinden sich Julia-Mengen, die in Cantor-Staub
 zerfallen wie in Abbildung~\ref{julia:g}, welche nur sehr schlechte
 Approximationen haben.
 
+Als Charakteristika dieser L"osung halten wir fest:
+\begin{itemize}
+\item Resultat ist ein Array von Pixel-Werten, in jedem Pixel wird
+gez"ahlt, wie oft dieser Punkt in der inversen Iteration getroffen wurde.
+\item Die Strukturierung der Work-Items ist willk"urlich.
+\item Kein Bezug zwischen Work-Items und Pixeln, daher muss ein bereits
+mit 0 initialisierter Array dem Kernel "ubergeben werden.
+Initialisierung durch den Kernel und Synchronisation w"aren viel zu teuer.
+\item
+Zur optimalen Ausnutzung der
+Hardware muss die m"ogliche Workgroup-Gr"osse abgefragt werden.
+In diesem Fall ist sie wegen des umfangreicheren
+Kernels deutlich kleiner als das Maximum.
+\end{itemize}
+
 \begin{figure}
 \begin{center}
-\includegraphics[width=\hsize]{julia/a.png}
+\includegraphics[width=\hsize]{julia/c-a-low.png}
 
 \bigskip
 
-\includegraphics[width=\hsize]{julia/j-a.png}
+\includegraphics[width=\hsize]{julia/j-a-low.png}
 \end{center}
 \caption{Julia-Menge f"ur $c= -0.1+0.1i$\label{julia:a}}
 \end{figure}
 
 \begin{figure}
 \begin{center}
-\includegraphics[width=\hsize]{julia/b.png}
+\includegraphics[width=\hsize]{julia/c-b-low.png}
 
 \bigskip
 
-\includegraphics[width=\hsize]{julia/j-b.png}
+\includegraphics[width=\hsize]{julia/j-b-low.png}
 \end{center}
 \caption{Julia-Menge f"ur $c= -0.5+0.5i$\label{julia:b}}
 \end{figure}
 
 \begin{figure}
 \begin{center}
-\includegraphics[width=\hsize]{julia/c.png}
+\includegraphics[width=\hsize]{julia/c-c-low.png}
 
 \bigskip
 
-\includegraphics[width=\hsize]{julia/j-c.png}
+\includegraphics[width=\hsize]{julia/j-c-low.png}
 \end{center}
 \caption{Julia-Menge f"ur $c= -1+0.05i$\label{julia:c}}
 \end{figure}
 
 \begin{figure}
 \begin{center}
-\includegraphics[width=\hsize]{julia/d.png}
+\includegraphics[width=\hsize]{julia/c-d-low.png}
 
 \bigskip
 
-\includegraphics[width=\hsize]{julia/j-d.png}
+\includegraphics[width=\hsize]{julia/j-d-low.png}
 \end{center}
 \caption{Julia-Menge f"ur $c= -0.1+0.75i$\label{julia:d}}
 \end{figure}
 
 \begin{figure}
 \begin{center}
-\includegraphics[width=\hsize]{julia/e.png}
+\includegraphics[width=\hsize]{julia/c-e-low.png}
 
 \bigskip
 
-\includegraphics[width=\hsize]{julia/j-e.png}
+\includegraphics[width=\hsize]{julia/j-e-low.png}
 \end{center}
 \caption{Julia-Menge f"ur $c= 0.25+0.52i$\label{julia:e}}
 \end{figure}
 
 \begin{figure}
 \begin{center}
-\includegraphics[width=\hsize]{julia/f.png}
+\includegraphics[width=\hsize]{julia/c-f-low.png}
 
 \bigskip
 
-\includegraphics[width=\hsize]{julia/j-f.png}
+\includegraphics[width=\hsize]{julia/j-f-low.png}
 \end{center}
 \caption{Julia-Menge f"ur $c= -0.5+0.55i$\label{julia:f}}
 \end{figure}
 
 \begin{figure}
 \begin{center}
-\includegraphics[width=\hsize]{julia/g.png}
+\includegraphics[width=\hsize]{julia/c-g-low.png}
 
 \bigskip
 
-\includegraphics[width=\hsize]{julia/j-g.png}
+\includegraphics[width=\hsize]{julia/j-g-low.png}
 \end{center}
 \caption{Julia-Menge f"ur $c= 0.66i$\label{julia:g}}
 \end{figure}
 
 \begin{figure}
 \begin{center}
-\includegraphics[width=\hsize]{julia/h.png}
+\includegraphics[width=\hsize]{julia/c-h-low.png}
 
 \bigskip
 
-\includegraphics[width=\hsize]{julia/j-h.png}
+\includegraphics[width=\hsize]{julia/j-h-low.png}
 \end{center}
 \caption{Julia-Menge f"ur $c= -i$\label{julia:h}}
 \end{figure}

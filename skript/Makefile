@@ -6,7 +6,7 @@
 all:	subdirs skript.pdf
 
 subdirs:
-	for d in graphics heat; \
+	for d in graphics julia heat; \
 	do \
 		cd $${d}; make; cd ..; \
 	done
