@@ -3,12 +3,12 @@
 \begin{refsection}
 
 \chapterauthor{Andreas M"uller}
-\section{Dynamische System und Iteration}
+\section{Dynamische Systeme und Iteration}
 In der Analyis lernt man "uber 
 gew"ohnliche Differentialgleichung, dass L"osungen f"ur eine gewisse
 Zeit existieren und eindeutig seien.
 Nur gerade f"ur lineare Differentialgleichungen lassen sich Aussagen 
-dar"uber machen, ob f"ur lange Zeiten L"osungen existieren.
+dar"uber machen, ob f"ur lange Zeit L"osungen existieren.
 Die elementare Theorie ist im wesentlichen eine lokale.
 In den Anwendungen werden nicht lineare Differentialgleichungen immer
 wichtiger.
@@ -22,7 +22,7 @@ n"otig. Oft reicht es, qualitative Aussagen "uber das Verhalten der
 L"osung zu haben,
 insbesondere die Stabilit"at nichtlinearer Systeme "uber lange Zeit.
 Die Theorie der dynamischen Systeme macht allgemeine Aussagen "uber das
-Verhalten von L"osungen von Differentialgleichungen auch "uber lange
+Verhalten von L"osungen von Differentialgleichungen auch "uber grosse
 Zeitintervalle.
 
 Wir betrachten ein dynamisches System, beschrieben durch eine
@@ -35,7 +35,7 @@ der L"osung bei einer kleinen "Anderung von $x_0$.
 
 Man betrachte jetzt eine Ebene $H$ senkrecht auf die Bahnkurve im Punkt $x_0$.
 Bahnen, die von einem Punkt in $H$ gen"ugend nahe bei $x_0$ ausgehen, werden
-nach ungef"ahr Zeit $T$ wieder in der N"ahe von $x_0$ durch $H$ gehen.
+nach ungef"ahr der Zeit $T$ wieder in der N"ahe von $x_0$ durch $H$ gehen.
 Man kann also zu jedem Startpunkt $x\in H$ nahe bei $x_0$ den ersten
 Durchstosspunkt $g(x)$ der Bahn durch $H$ finden.
 Die Abbildung $x\mapsto g(x)$ enth"alt die gleiche Information "uber das
@@ -278,22 +278,21 @@ z_n= f_c(z_{n+1})=\tilde z_{n+1}^2+c
 \]
 hat zwei L"osungen $\pm\sqrt{z_n-c}$. 
 Um eine m"oglichst gute Approximation der Julia-Menge zu bekommen, 
-werden wir jede m"oglich Wurzel r"uckw"arts verfolgen wollen.
+werden wir jede m"ogliche Wurzel r"uckw"arts verfolgen wollen.
 Die zwei Urbilder von $z$ haben unter $f_c$ insgesamt vier Urbilder, 
-die wiederum acht Urbilder.
+die wiederum haben acht Urbilder.
 Jede weitere Iteration verdoppelt die Anzahl der Urbilder, daf"ur ist
-in OpenCL kein Platz vorhanden, wir k"onnen nun mal in OpenCL nich beliebig
+in OpenCL kein Platz vorhanden, wir k"onnen nun mal in OpenCL nicht beliebig
 Speicher allozieren.
 
 Wir verwenden daher eine andere Strategie: wir w"ahlen jeweils nur eines
-der Urbilder, wobei wir Zufallszahlen verwenden, um eines der zwei
-Urbilder zu w"ahlen.
+der Urbilder, wobei wir die Auswahl mit Hilfe von Zufallszahlen steuern.
 Diese Berechnung wiederholen wir viele Male, jeweils mit einer anderen
 Zufallszahlfolge.
 Auf diese Weise werden ebenfalls alle Punkte der Julia-Menge irgendwann
 approximiert.
 
-Mit dieser Strategie handeln wir uns aber ein neues Problem ein, wir brauchen
+Mit dieser Strategie handeln wir uns aber ein neues Problem ein: wir brauchen
 eine Folge von Zufallszahlen.
 OpenCL stellt kein API f"ur Zufallszahlen zur Verf"ugung, dies muss also
 ebenfalls im OpenCL Code implementiert werden.
@@ -302,7 +301,7 @@ hoch, ein einfacher Zufallszahlgenerator auf der Basis von linearen
 Kongruenzen wie der Lehmer-Generator \cite{julia:lehmer},
 auch bekannt als Park-Miller Generator, reicht v"ollig aus.
 
-Die Inverse Iteration f"uhrt f"ur stark verzweigte Julia-Mengen nicht
+Die inverse Iteration f"uhrt f"ur stark verzweigte Julia-Mengen nicht
 zu guten Resultaten.
 Man kann dies dank der fraktalen Natur der Julia-Menge verstehen.
 Beginnt man mit einer geschlossenen Kurve $\gamma_0$ in $\mathbb C$,
@@ -331,6 +330,9 @@ Zur optimalen Ausnutzung der
 Hardware muss die m"ogliche Workgroup-Gr"osse abgefragt werden.
 In diesem Fall ist sie wegen des umfangreicheren
 Kernels deutlich kleiner als das Maximum.
+\item
+Zufallszahlen notwendig, erzeugung mit Hilfe des Park-Miller
+Zufallszahl-Generators, initialisiert mit der Work-ID.
 \end{itemize}
 
 \begin{figure}
