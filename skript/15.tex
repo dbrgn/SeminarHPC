@@ -1,0 +1,124 @@
+Verwenden Sie die Matrix 
+\[
+T=\begin{pmatrix}
+1&0&0\\
+1&1&0\\
+0&1&1
+\end{pmatrix},
+\]
+um die symmetrische Matrix
+\[
+A=\begin{pmatrix}
+1&1&0\\
+1&1&1\\
+0&1&1
+\end{pmatrix}
+\]
+nach der Formel $(T^t)^{-1}AT^{-1}$ zu
+pr"akonditionieren.
+Verbessert sich dadurch die Konditionszahl gegen"uber der nich konditionierten
+Matrix $A$?
+
+\begin{loesung}
+Im vorangegangenen Beispiel wurde die Konditionszahl von $A$ als $3+2\sqrt{2}$
+berechnet.
+Die Inverse von $T$ kann mit dem Gauss-Algorithmus bestimmt werden:
+\begin{align*}
+\begin{tabular}{|>{$}c<{$}>{$}c<{$}>{$}c<{$}|>{$}c<{$}>{$}c<{$}>{$}c<{$}|}
+\hline
+1&0&0&1&0&0\\
+1&1&0&0&1&0\\
+0&1&1&0&0&1\\
+\hline
+\end{tabular}
+&
+\rightarrow
+\begin{tabular}{|>{$}c<{$}>{$}c<{$}>{$}c<{$}|>{$}c<{$}>{$}c<{$}>{$}c<{$}|}
+\hline
+1&0&0& 1&0&0\\
+0&1&0&-1&1&0\\
+0&1&1& 0&0&1\\
+\hline
+\end{tabular}
+\rightarrow
+\begin{tabular}{|>{$}c<{$}>{$}c<{$}>{$}c<{$}|>{$}c<{$}>{$}c<{$}>{$}c<{$}|}
+\hline
+1&0&0& 1& 0&0\\
+0&1&0&-1& 1&0\\
+0&0&1& 1&-1&1\\
+\hline
+\end{tabular}
+\end{align*}
+also
+\[
+T^{-1}=
+\begin{pmatrix}
+ 1& 0&0\\
+-1& 1&0\\
+ 1&-1&1
+\end{pmatrix}
+\]
+Damit kann jetzt die konditionierte Matrix $A'$ berechnet werden als
+\begin{align*}
+A'=
+(T^{-1})^tAT^{-1}
+&=
+\begin{pmatrix}
+ 1&-1& 1\\
+ 0& 1&-1\\
+ 0& 0& 1
+\end{pmatrix}
+\begin{pmatrix}
+1&1&0\\
+1&1&1\\
+0&1&1
+\end{pmatrix}
+\begin{pmatrix}
+ 1& 0& 0\\
+-1& 1& 0\\
+ 1&-1& 1
+\end{pmatrix}
+\\
+&=
+\begin{pmatrix}
+ 1&-1& 1\\
+ 0& 1&-1\\
+ 0& 0& 1
+\end{pmatrix}
+\begin{pmatrix}
+0&1&0\\
+1&0&1\\
+0&0&1
+\end{pmatrix}
+=
+\begin{pmatrix}
+-1&1&0\\
+ 1&0&0\\
+ 0&0&1
+\end{pmatrix}.
+\end{align*}
+F"ur die Konditionszahl sind die Eigenwerte des $2\times 2$-Blockes in der
+linken oberen Ecke massgebend. Dieser hat das charakteristische
+Polynom
+\begin{align*}
+\left|\begin{matrix}
+-1-\lambda&1\\
+         1&-\lambda
+\end{matrix}\right|
+&=
+\lambda(\lambda+1)-1=\lambda^2+\lambda-1
+\end{align*}
+mit den Nullstellen
+\[
+\lambda_{1,2}=-\frac12\pm\sqrt{\frac14+1}=\frac{-1\pm\sqrt{5}}2
+\]
+Die Konditionszahl von $A'$ wird damit
+\[
+\frac{\sqrt{5}+1}{\sqrt{5}-1}=\frac{(\sqrt{5}+1)^2}{4}
+=\frac{5+2\sqrt{5}+1}4=\frac{3+\sqrt{5}}2\simeq2.6180,
+\]
+eine deutliche Verbesserung der Konditionszahl gegen"uber der nicht 
+konditionierten Matrix.
+\end{loesung}
+
+

@@ -1,0 +1,78 @@
+F"uhren Sie f"ur das Gleichungssystem
+\[
+\begin{linsys}{3}
+x&+&y& & &=&1\\
+x&+&y&+&z&=&2\\
+ & &y&+&Z&=&3
+\end{linsys}
+\]
+Abstiesschritte ausgehend vom Punkt $x_0=(1,0,-1)$ durch, und zwar
+\begin{teilaufgaben}
+\item
+mit Abstiegsrichtung
+\[
+\vec v=\begin{pmatrix}1\\0\\0\end{pmatrix}
+\]
+\item
+mit steilstem Abstieg
+\end{teilaufgaben}
+
+\begin{loesung}
+F"ur den Abstieg verwenden wir die Abstiegsformel
+\[
+x_1=x_0-\frac{p^t(Ax_0-b)}{p^tAp}p
+\]
+\begin{teilaufgaben}
+\item
+Wegen
+\[
+Ax_0=
+\begin{pmatrix}
+1&1&0\\
+1&1&1\\
+0&1&1
+\end{pmatrix}
+\begin{pmatrix}
+1\\0\\-1
+\end{pmatrix}
+=
+\begin{pmatrix}1\\0\\-1\end{pmatrix}
+\qquad
+\text{und}
+\qquad
+Ax_0-b
+=
+x_0-b
+=
+\begin{pmatrix}
+0\\-2\\-4
+\end{pmatrix}
+\]
+($x_0$ ist ein Eigenvektor von $A$) folgt
+$v^t(Ax_0-b)=0$.
+Der Abstiegsschritt f"uhrt also auf den gleichen Punkt: $x_1=x_0$.
+\item
+Steilster Abstieg verlangt, dass als Abstiegsrichtung die Richtung des
+Gradienten von $J$ verwendet wird. 
+Dieser ist
+\[
+p=\operatorname{grad}J(x_0)=Ax_0-b=\begin{pmatrix}0\\-2\\-4\end{pmatrix}.
+\]
+Die Abstiegsformel f"ur diese Richtung liefert
+\begin{align*}
+p^tp&=20,
+&
+p^tAp&=\begin{pmatrix}0\\-2\\-4\end{pmatrix}^t
+\begin{pmatrix} -2\\-6\\-6 \end{pmatrix}
+=12+24=36,
+&
+x_1&=x_0-\frac{20}{36}p
+=\begin{pmatrix}
+1\\
+\frac{10}{9}\\
+\frac{11}{9}
+\end{pmatrix}.
+\end{align*}
+\end{teilaufgaben}
+\end{loesung}
+
