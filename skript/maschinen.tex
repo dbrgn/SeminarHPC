@@ -6,6 +6,7 @@ Die Darstellung ist nicht vollst"andig, und wir werden auch keine
 Theorie dazu entwickeln, wie sich die Rechenleistung eines Systems
 f"ur eine bestimmte Aufgabe absch"atzen l"asst.
 Eine hervorragende Referenz dazu ist das Buch von Hager und Wellein
+\index{NUMA}
 \cite{skript:hagerwellein}.
 \begin{figure}
 \begin{center}
@@ -43,6 +44,7 @@ Kontrolle dar"uber geben auszudr"ucken, auf welcher CPU der Prozess laufen
 soll.
 
 \subsection{Illusion 2: Alle Speicherzugriffe sind gleich}
+\index{Cache-Hierarchie}
 Die CPU kann viel schneller Hauptspeicheranfragen generieren, also der
 Hauptspeicher beantworten kann.
 Daher verwenden moderne CPUs eine Hierarchie von Caches, typischerweise
@@ -82,6 +84,7 @@ von jedem Prozessor aus erreichbar, aber Zugriffe auf den
 Speicher eines anderen Prozessors dauern typischerweise l"anger.
 
 \subsection{Illusion 3: Alle Threads sind gleich}
+\index{Hyperthreading}
 Moderene CPUs verwenden Hyperthreading: ein Core kann zwei Instruktionsstr"ome
 ausf"uhren.
 Das bedeutet, dass die Resourcen eines Cores wie Integer und
@@ -111,6 +114,7 @@ andere File-Zugriffe m"ussen "uber den Cluster-Interconnect, was
 zus"atzliche Latenz einf"uhrt.
 
 \subsection{Illusion 5: Instruktionen brauchen immer gleich lange}
+\index{Pipeline}
 Zus"atzlich zu den Caches verwenden moderne Prozessoren eine Pipepline
 zum Decodieren und Ausf"uhren der Instruktionen.
 Die Ausf"uhrung einer Instruktion setzt sich aus einer grossen Zahl
@@ -157,6 +161,7 @@ Aus den Illusionen lassen sich ein paar Faustregeln ableiten, wie man
 Code formulieren kann, so dass er der Realit"at besser Rechnung tr"agt.
 
 \subsection{Datenlokalit"at}
+\index{Datenlokalit"at}
 Die Daten im Speicher sollen so angeordnet werden, dass die Zugriff w"ahrend
 der Rechnung m"oglichst lange einen m"oglichst kleinen Adressbereich umfassen,
 so dass Die Arbeit im Cache erfolgen kann.
@@ -179,7 +184,6 @@ Ist $n$ gleich gross wie die Cache-Gr"osse, dann erfolgt jeder $B$-Zugriff
 Speichert man die Matrix $B$ transponiert ab, erfolgen beide Zugriffe
 in Einerschritten.
 \end{beispiel}
-
 
 \subsection{Code-Komplexit"at}
 Die gr"osste Ausf"uhrungsgeschwindigkeit erreicht man, wenn der
@@ -277,6 +281,7 @@ so dass sie h"aufig aus dem Cache geworfen werden.
 
 {\bf Abhilfe:} Code so aufbauen, dass m"oglichst wenige Verzweigungen
 n"otig sind. Rechnen statt verzweigen. Loop unrolling.
+\index{Loop unrolling}
 
 \item Der Prozessor hat nicht gen"ugen Resourcen, um die verlangten
 Floating-Point-Operationen auszuf"uhren. 
@@ -292,15 +297,18 @@ In den letzten Jahren wurde immer bedeutendere Floating-Point Kapazit"at
 aus anderen Hardware-Komponenten verf"ugbar:
 \begin{itemize}
 \item Moderne Prozessoren verf"ugen oft "uber ``Vektoreinheiten'', 
+\index{Vektoreinheit}
 die die gleichen Rechenoperationen parallel mit einer Reihe von Datenelementen
 durchf"uhren k"onnen.
 Da ein einzelner Instruktionsstrom die Verarbeitung mehrerer Datenstr"ome
 steuert, spricht von SIMD: Single Instruction Multiple Data.
+\index{SIMD}
 Ohne spezielle Unterst"utzung durch Programmierumgebungen sind diese
 Vektoreinheiten nur durch Assembler-Programmierung nutzbar, was den
 Code unportable und schwer wartbar macht.
 OpenMP unterst"utzt SIMD einheiten mit den {\tt simd} Direktiven.
 \item 3D-Graphikkarten m"ussen f"ur die Darstellung einer dreidimensionalen
+\index{Graphikkarten}
 Szene eine grosse Zahle von Operationen mit 3D-Vektoren durchf"uhren. 
 Daher bestehen 3D-Graphikkarten aus einer grossen Zahl von SIMD Einheiten,
 die diese immer gleichen Operationen parallel durchf"uhren k"onnen. 
@@ -314,14 +322,17 @@ die Synergistic Processing Element (SPE) genannt werden.
 Durch die enge Integration mit der CPU ist der Cell-Prozessor zu einer hohen
 Rechenleistung f"ahig, wenigstens f"ur Anwendungen, die nicht auf grosse
 Datenmengen angewiesen sind.
+\index{Cell-Prozessor}
 \item Digitale Signalprozessoren k"onnen einen Datenstrom mit einer immer
 gleich bleibenden Folge von Instruktionen bearbeiten. Prozessoren
 f"ur Multimedia-Ger"ate integrieren solche Prozessoren oft mit auf dem
 Chip, zum Beispiel f"ur hoch performante Audio-Verarbeitung. 
 Enge Schleifen in einer Berechnung k"onnten von so einem Signalprozessor 
 besonders effizient gerechnet werden.
+\index{Signalprozessor}
 \item Anwendungen im Hochgeschwindigkeitsb"orsenhandel verlangen noch
 schnellere Antwortzeiten.
+\index{FPGA}
 Hierzu werden manchmal FPGAs eingesetzt. Der Algorithmus wird dabei
 in eine Verschaltung der Recheneinheiten des FPGA "ubersetzt, und das
 FPGA zur Laufzeit programmiert.
@@ -358,6 +369,7 @@ gewinnen, und so die Fortf"uhrung der Berechnung verhindern.
 \label{hardware:opencl}}
 \end{figure}
 Die Open Compute Language (OpenCL) hat sich zur Aufgabe gemacht, den
+\index{OpenCL}
 Zugang zu solchen Beschleunigersystemen zu vereinheitlichen.
 Ein einziges API soll ein Vielzahl von entsprechenden Ger"aten bedienen
 k"onnen.

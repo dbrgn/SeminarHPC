@@ -33,6 +33,7 @@ gestellt werden muss, damit die parallele Implementierung effizient
 von Statten gehen kann.
 
 \subsection{Der Gauss-Algorithmus}
+\index{Algorithmus!Gauss}
 Wir erinnern an den grundlegenden Gauss-Algorithmus.
 Gegeben ist eine regul"are
 $n\times n$-Matrix $A$, gesucht wird ihre Inverse $A^{-1}$.
@@ -61,6 +62,7 @@ Mit Hilfe von Zeilenoperationen in ein Tableau der Form
 \label{targettableau}
 \end{equation}
 Die Matrix $C$ ist die gesuchte Inverse: $C=A^{-1}$.
+\index{Matrix!inverse}
 
 Die Zeilenoperationen beginnen damit, dass ein Pivot-Element ausgew"ahlt
 werden muss.
@@ -224,6 +226,7 @@ Parallelisierungstechnologie bereitgestellt werden m"ussen, um das Problem
 der Fallstudie zu l"osen.
 
 \subsection{Thread-Erzeugung}
+\index{Threads}
 Parallelisierung verlangt, dass eine angemessene Zahl von Threads erzeugt
 werden k"onnen muss.
 
@@ -237,6 +240,7 @@ laufen k"onnen, ohne dass sie sich gegenseitig den Cache streitig machen.
 Daher muss es m"oglich sein, die Zahl der Threads zu kontrollieren.
 
 \subsection{Scope}
+\index{Scope}
 Wann immer ein Code-Segment parallelisiert wird, muss unterschieden
 werden k"onnen zwischen Thread-spezifischen Variablen und globalen
 Variablen.
@@ -295,6 +299,7 @@ Auch daf"ur gibt es keine Information im vorhandenen Code.
 \end{itemize}
 
 \subsection{Synchronisation}
+\index{Synchronisation}
 Die Threads, die an einer Probleml"osung beteiligt sind, werden alle
 vergleichbare Arbeit leisten. 
 Im Gauss-Algorithmus k"onnen die einzelnen Threads erst weiterarbeiten,
@@ -302,6 +307,7 @@ wenn die Division der Pivot-Zeile abgeschlossen ist, und die Division
 der Pivotzeile darf erst erfolgen,
 wenn alle Threads mit ihren Zeilenoperationen fertig sind.
 Diese beiden Punkte im Code heissen Barrierepunkte.
+\index{Barriere}
 
 In vielen Anwendungen, in denen Threads mit v"ollig verschiedenen
 Aufgaben eingesetzt werden, dienen Synchronisationsprimitive vor allem
@@ -362,6 +368,7 @@ damit sie f"ur die Cluster-Infrastruktur sinnvoll werden.
 
 \section{Pthreads}
 \rhead{Pthreads}
+\index{Pthreads}
 Posix Threads sind das standardisierte API f"ur Thread-Programmierung
 und Posix-Systemen.
 Das API ist vollst"andig in den Manual-Pages dokumentiert, wir gehen
@@ -531,6 +538,7 @@ einem Thread deutlich "ubersteigt.
 
 \section{OpenMP\label{openmp-intro}}
 \rhead{OpenMP}
+\index{OpenMP}
 Aus den Beobachtungen zur Performance einer Parallelisierung mit
 Pthreads kann man ableiten, dass es sinnvoll sein kann,
 eine Parallelisierungsmethode zu w"ahlen, bei der die einzelnen
@@ -610,6 +618,7 @@ keinen Gewinn mehr.
 
 \section{OpenCL\label{opencl-intro}}
 \rhead{OpenCL}
+\index{OpenCL}
 Die Open Compute Language \cite{skript:opencl}
 erlaubt die plattformunabh"angige Programmierung
 f"ur Beschleuniger-Hardware wie zum Beispiel Graphikkarten, wie wir
@@ -637,6 +646,8 @@ an den Ausf"uhrungseinheiten und ihren Threads orientert, sondern an
 der gesamten durchzuf"uhrenden Berechnung.
 
 \subsubsection{Work-Items und Kernel}
+\index{Kernel}
+\index{Work-Item}
 Eine Berechnungsaufgabe wird in OpenCL in eine Anzahl Work-items
 zerlegt.
 Eine Kernel ist ein OpenCL Programm, welches f"ur jedes Work-item
@@ -654,6 +665,7 @@ Programmierer also vor allem mit der Frage befassen, wie er die
 gesamte Rechnung in {\em work-items} strukturieren kann. 
 
 Work-Items werden in Work-Groups zusammengefasst.
+\index{Work-Group}
 Work-Groups zerlegen das Gitter aller Work-Items in gleich grosse ``Quader''.
 Die ``Kantenl"ange'' eines solche Quaders muss also immer ein Teiler
 der  ``Kantenl"ange'' des ganzen Gitters sein.
@@ -730,11 +742,13 @@ die die Arbeit in anderen Work-Items nichst st"oren d"urfen.
 Solche Variablen beinhalten also Daten, die f"ur jedes Work-Item
 privat sind, sie m"ussen mit dem Qualifier \verb+__private+
 deklariert werden.
+\index{private@\texttt{\_\_private}}
 
 Die Arbeit innerhalb einer Workgroup kann gemeinsame Daten verwenden,
 die f"ur andere Work-Groups nicht zug"anglich sein soll.
 Solche Variable sind mit dem Qualifier \verb+__local+ zu
 deklarieren.
+\index{local@\texttt{\_\_local}}
 
 \subsubsection{Command Queues}
 Alle Aktionen mit dem OpenCL-Ger"at sind "uber eine sogenannte
@@ -851,6 +865,7 @@ Der Kernel wird mit drei Argumenten deklariert:
 __kernel void   invert(__global float *input, __global float *output,
         const unsigned int n)
 \end{verbatim}
+\index{kernel@\texttt{\_\_kernel}}
 Nach der Diskussion zur Aufteilung der Arbeit in Work-Groups wissen wir,
 welcher Bereich von Zeilen von jedem Work-Item bearbeitet werden muss.
 Diese Information beh"ort aber zu jedem Work-Item, muss also als 
@@ -912,6 +927,7 @@ while (i < n) {
 \end{verbatim}
 
 \subsection{SIMD-Operationen}
+\index{SIMD}
 Die Zeilenoperationen nutzen die F"ahigkeiten einer SIMD-Engine in keiner
 Weise aus, und es ist nicht klar, wie der OpenCL-Compiler die innere
 {\tt while}-Schleife parallelisieren kann. 
@@ -921,6 +937,7 @@ Zu jedem primitiven Datentyp gibt es in OpenCL Vektordatentypen mit
 verschiedenen L"angen,
 zum Beispiel gibt es zu {\tt float} die Vektortypen {\tt float2},
 {\tt float4}, {\tt float8}  und {\tt float16}.
+\index{float4@\texttt{float4}}
 Verwendet man diese Typen, wird die Anwendung der SIMD-Engine trivial.
 Die Grundoperationen sind alle sowohl auf primitive Typen als auch auf
 Vektortypen anwendbar, zus"atzlich bietet OpenCL eine grosse Zahl von
@@ -930,6 +947,8 @@ Im globalen Speicher liegen die Daten jedoch in roher Form vor, als Vektoren
 k"onnen Sie erst auf Ebene Compute-Unit verstanden werden.
 OpenCL bietet daher Lade- und Speicheroperationen {\tt vload}$n$ und
 {\tt vstore}$n$ an , welche den Transfer erm"oglichen.
+\index{vstore@\texttt{vstore}}
+\index{vload@\texttt{vload}}
 
 Mit den Vektor-Operationen l"asst sich die innere Schleife wie folgt
 mit Vektoren der L"ange 4 formulieren:
@@ -989,6 +1008,7 @@ Gr"ossere Vektorl"angen bringen keinen Geschwindigkeitsvorteil, die
 SIMD-Engine ist nicht genug breit daf"ur.
 
 Etwas entt"auschend ist, dass die SIMD Engine bei der Nvidia-Implementation 
+\index{Nvidia}
 nur gerade einen Faktor 2 herausholen kann (Abbildung~\ref{opencl-simd-nvidia}).
 Die Ursache d"urfte hier sein, dass die Daten gr"osstenteils global sind.
 Die Parallelisierung wird durch die Hauptspeicherzugriffe gebremst.
@@ -1028,6 +1048,8 @@ Standardisierung wie in Abbildung \ref{opencl-simd-amd}.
 
 \section{Message Passing: OpenMPI}
 \rhead{OpenMPI}
+\index{OpenMPI}
+\index{Message Passing}
 In den Abschnitten~\ref{openmp-intro} und \ref{opencl-intro}
 hat sich gezeigt, dass sich damit nur Probleme effizient l"osen lassen,
 die in einem einzigen Adressraum untergebracht werden k"onnen.
@@ -1089,6 +1111,7 @@ ierr = MPI_Comm_size(MPI_COMM_WORLD, &num_procs);
 Die Funktion \verb+MPI_Init+ initialisiert OpenMPI, danach kann mit
 den Funtionen \verb+MPI_Comm_size+ die Anzahl der Prozesse und mit
 \verb+MPI_Comm_rank+ der Rang, also die Nummer, des aktuellen Prozesses
+\index{Rang}
 ermittelt werden.
 
 Wie man einen parallelen Algorithmus basierend auf Rang und Anzahl

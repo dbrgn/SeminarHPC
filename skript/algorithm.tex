@@ -126,6 +126,8 @@ gefunden werden (siehe auch Abbildung~\ref{algorithm:laplacian}):
 \caption{Diskretisation des Laplace-Operators an der Stelle $(x,y)=(ih, jh)$.
 \label{algorithm:laplacian}}
 \end{figure}
+\index{Diskretisation}
+\index{Laplace-Operator}
 Die Differentialgleichung wir damit zu einer approximativen linearen
 Gleichung 
 \begin{equation}
@@ -242,6 +244,7 @@ Unser Hauptaugenmerk in diesem Kapitel m"ussen also Methoden sein,
 die f"ur d"unn besetzte Matrizen oder f"ur Bandmatrizen gut funktionieren.
 
 \subsection{Jacobi-Algorithmus}
+\index{Algorithmus!Jacobi}
 Wir illustrieren den Jacobi-Algorithmus an folgendem Beispielproblem:
 \begin{equation}
 A=\begin{pmatrix}1&\frac12\\\frac12&1\end{pmatrix},\quad
@@ -353,6 +356,7 @@ Ausserdem sind die Rechenoperationen des Jacobi-Algorithmus hochgradig
 parallelisierbar.
 
 \subsection{Gauss-Seidel}
+\index{Algorithmus!Gauss-Seidel}
 Im Jacobi-Verfahren wurde aus einer angen"aherten L"osung $v^{(k)}$
 eine verbesserte angen"aherte L"osung $v^{(k+1)}$ berechnet.
 Diese neuen Werte sind aber auch keine L"osungen, sondern nur verbesserte
@@ -387,6 +391,7 @@ m"oglich ist, man m"usste aber vom Jacobi-Algorithmus ausgehen.
 
 
 \subsection{Matrix-Aufteilung}
+\index{Matrix-Aufteilung}
 Das Jacobi- und das Gauss-Seidel-Verfahren sind beide Spezialf"alle
 einer Aufteilung der Matrix $A$ in zwei Teile. 
 Von einer Matrix-Aufteilung sprechen wir, wenn $A$ als $M+N$ geschrieben
@@ -601,12 +606,14 @@ Die Summe auf der rechten Seite kann nur dann gegen 0 konvergieren, wenn
 jedes $\lambda_i$ Betrag $|\lambda_i|<1$ hat. 
 
 \begin{definition}
+\index{Spektralradius}
 Sind $\lambda_i$ alle Eigenwerte einer Matrix $C$, dann heisst
 $\varrho(C)=\max_{1\le i\le n}|\lambda_i|$ der Spektralradius
 von $C$.
 \end{definition}
 
 \begin{satz}
+\index{Iterationsverfahren!Auf einer Matrixzerlegung basierendes}
 Das auf der Matrix-Aufteilung $A=M+N$ basierende Iterationsverfahren
 konvergiert, wenn $\varrho(M^{-1}N)<1$ gilt.
 \end{satz}
@@ -685,6 +692,7 @@ daf"ur aber besser parallelisierbar ist, so dass sich insgesamt trotzdem
 eine effiziente L"osung ergibt.
 
 \subsection{Potenzmethode}
+\index{Potenzmethode}
 Sei $A$ eine $n\times n$-Matrix, $\lambda_1$ der betragsm"assig
 gr"osste Eigenwert von $A$ und $v_1$ der zugeh"orige Eigenvektor.
 Wir nehmen weiter an, dass alle anderen Eigenwerte $\lambda_i$ zugeh"orige
@@ -1031,6 +1039,7 @@ Das Potenzverfahren kann jedoch in einer Art formuliert werden, dass
 es mittels Iteration alle Eigenwerte und Eigenvektoren einer beliebigen
 Matrix bestimmen kann, selbst wenn die Eigenvektoren komplex sind.
 Dieses erweiterte Potenzverfahren heisst Francis Verfahren, es
+\index{Algorithmus!Algorithmus}
 wurde von John Francis 1961 entwickelt.
 Eine gute Beschreibung findet man auch im Buch von Watkins
 \cite[Chapter 5]{skript:watkins}.
@@ -1248,6 +1257,7 @@ der Funktion $J(x)=\frac12x^tAx-x^tb$, wenn $Ax=b$.
 \end{satz}
 
 \subsection{Abstieg}
+\index{Abstieg}
 Statt das lineare Gleichungssystem direkt zu l"osen, k"onnen wir nach
 den Resultaten des vorangegangenen Abschnittes
 auch versuchen, das zugeh"orige Minimalproblem zu l"osen. 
@@ -1275,6 +1285,7 @@ s=-\frac{p^t(Ax_1-b)}{p^tAp}.
 \]
 Damit bekommen wir jetzt als neue Sch"atzung der L"osung 
 der Abstiegsformel
+\index{Abstiegsformel}
 \begin{equation}
 x_{i+1}=x_i-\frac{p^t(Ax_i-b)}{p^tAp} p.
 \label{descent:main}
@@ -1454,6 +1465,7 @@ dass
 \[
 q\le \biggl(\frac{\frac{a}{b}-1}{\frac{a}{b}+1}\biggr)^2.
 \]
+\index{Konditionszahl}
 Man nennt den Quotienten $\kappa_2(A)=\frac{a}{b}$ auch die
 {\em Konditionszahl} der Matrix $A$.
 F"ur den Fehler $f_n$ nach $n$ Iterationen gilt also
@@ -1628,6 +1640,7 @@ v_1^tAv_2
 \label{descent:ortho}
 \end{align}
 \begin{definition}
+\index{konjugierte Richtungen}
 Man nennt zwei Richtungen $v_1$ und $v_2$ mit der Eigenschaft
 $v_1^tAv_2=0$ konjugierte Richtungen zur Matrix $A$.
 \end{definition}
@@ -1649,6 +1662,7 @@ Entsprechend m"ussten wir dann auch $x^tAy=\langle x,y\rangle_A$ als
 Skalarprodukt verwenden. 
 
 \begin{definition}
+\index{verallgemeinertes Skalarprodukt}
 Ist $A$ eine symmetrische, positiv definite Matrix, dann heisst
 \[
 \langle x,y\rangle_A=x^tAy
@@ -1737,6 +1751,7 @@ Das Skalarprodukt $\langle\cdot,\cdot\rangle_A$ kann also dazu verwendet
 werden, aus der Folge der Gradienten $v_i'=\operatorname{grad}J(x_i)$
 durch Orthogonalisieren eine Folge von Abstiegsrichtungen zu 
 konstruieren.
+\index{Gram-Schmidt-Verfahren}
 Das Orthogonalsierungsverfahren nach Gram-Schmidt liefert die
 orthogonalisierten Vektoren
 \[
@@ -1761,6 +1776,8 @@ Damit haben wir jetzt ein Iterationsverfahren konstruiert, welches nicht
 nur immer bessere Werte liefert, sondern in $n$ Schritten sogar die exakte
 L"osung.
 Dies ist das Verfahren der konjugierten Gradienten, kurz der CG-Algorithmus.
+\index{CG-Algorithmus}
+\index{Algorithmus!der konjugierten Gradienten}
 
 \begin{figure}
 \begin{center}
