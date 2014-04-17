@@ -19,7 +19,7 @@ JULIAFILES = julia/julia.tex julia/julia.bib
 TEXFILES = vorwort.tex einleitung.tex maschinen.tex sprachen.tex \
 	daten.tex algorithm.tex $(SAMPLEFILES) $(HEATFILES) $(JULIAFILES)
 
-BLXFILES = skript1-blx.bbl skript2-blx.bbl skript3-blx.bbl
+BLXFILES = skript1-blx.bbl skript2-blx.bbl skript3-blx.bbl skript4-blx.bbl
 
 IMAGES = graphics/cgresults.pdf
 
@@ -45,6 +45,9 @@ skript2-blx.bbl:	skript2-blx.aux
 
 skript3-blx.bbl:	skript3-blx.aux
 	bibtex skript3-blx
+
+skript4-blx.bbl:	skript4-blx.aux
+	bibtex skript4-blx
 
 # standalone compilation of a single article
 standalone.pdf:	standalone.tex $(TEXFILES)

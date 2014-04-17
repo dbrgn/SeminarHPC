@@ -26,7 +26,8 @@
 \usepackage{makeidx}
 \usepackage{array}
 \usepackage{hyperref}
-%\usepackage{tikz}
+\usepackage{tikz}
+\usepackage{placeins}
 %\usetikzlibrary{arrows,decorations.pathmorphing,positioning,fit,petri}
 %\usetikzlibrary{calc,intersections,through,backgrounds,graphs}
 %\usetikzlibrary{patterns,decorations.pathreplacing}
@@ -56,6 +57,7 @@
 \addbibresource{references.bib}
 \addbibresource{sample/sample.bib}
 \addbibresource{julia/julia.bib}
+\addbibresource{apfel/apfelmaennchen.bib}
 \AtEndDocument{\clearpage\ifodd\value{page}\else\null\clearpage\fi}
 \makeindex
 \begin{document}
@@ -178,6 +180,7 @@ Hochschule f"ur Technik, Rapperswil, 2014
 \def\chapterauthor#1{{\large #1}\bigskip\bigskip}
 \input sample/sample.tex
 \input julia/julia.tex
+\input apfel/apfelmaennchenInput.tex
 \input heat/heat.tex
 \vfill
 \pagebreak
