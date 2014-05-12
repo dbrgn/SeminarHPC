@@ -1,0 +1,1137 @@
+\chapter{Knacken von MD5 mit OpenCL}
+\rhead{Knacken von MD5 mit OpenCL}
+\begin{refsection}
+
+\chapterauthor{Danilo Bargen, Lukas Murer}
+
+
+\section{Einleitung}
+
+\subsection{Hashfunktionen}
+\index{Hashfunktion}
+
+Hashfunktionen sind in der Informatik allgegenw"artig. Die Aufgabe einer
+Hashfunktion ist es, eine beliebig grosse Eingabemenge auf eine kleine
+Ausgabemenge (den Hashwert) abzubilden. Anwendungsgebiete sind beispielsweise
+die Integrit"atspr"ufung von Daten (Pr"ufsummen) oder das Verschleiern von
+Passw"ortern (Passwort-Hashes).
+
+Eine der einfachsten Hashfunktionen ist die Quersumme, bei welcher die
+Ziffernwerte einer Zahl summiert werden:
+\[
+	q(1337) = 1 + 3 + 3 + 7 = 14
+\]
+Eine andere weit verbreitete Hashfunktion ist der MD5 Algorithmus. Er bildet
+eine beliebig lange Eingabe auf einen 128-Bit grossen Hashwert ab:
+\[
+	MD5(\textrm{``HSR''}) = \textrm{11bcd72b5eb1092800721a515cb10ea5}
+\]
+Weitere bekannte Hashfunktionen sind die Divisions-Rest-Methode
+(Modulo-Arithmetik), CRC-Pr"ufsummen (Integrit"atspr"ufung) oder der Secure Hash
+Algorithm (Kryptologie).
+
+Die Anforderungen an eine ``gute'' Hashfunktion sind Abh"angig vom
+Anwendungsbereich. Bei der ISBN-10 ist beispielsweise lediglich eine
+Plausibilit"atspr"ufung in Form einer Pr"ufsumme notwendig. Bei
+Anwendungsf"allen in der Kryptologie (zum Beispiel beim Hashen von Passw"ortern)
+sind jedoch viele weitere Kriterien relevant. Nachfolgend werden einige davon
+vorgestellt.
+
+\subsection{Eigenschaften von Hashfunktionen}
+\label{crypto:hashfunktionen:eigenschaften}
+
+\subsubsection{Chaos}
+
+Der Hashwert einer chaotischen Hashfunktion soll f"ur "ahnliche Eingabewerte
+v"ollig unterschiedlich sein. Eine Einzelbit-"Anderung des Eingabewertes f"uhrt
+im Mittel zu einer "Anderung der H"alfte aller Hashwert-Bits.
+
+\subsubsection{Schwierige Umkehrbarkeit}
+
+Eine schwierig umkehrbare Hashfunktion hat zum Ziel, die Berechnung des
+Funktionswertes m"oglichst zu vereinfachen, aber die Umkehrung dieses Ergebnisses
+(Berechnen des Ausgangswertes aus der Abbildung) m"oglichst zu erschweren. Anders
+gesagt, es soll praktisch nicht m"oglich sein, zu einem gegebenen Hashwert $x$
+eine Nachricht $m$ zu finden, f"ur welche $h(m) = x$ gilt.  Funktionen welche
+diese Eigenschaft erf"ullen werden auch Einwegfunktionen genannt.
+
+\subsubsection{Surjektivit"at}
+
+Bei einer surjektiven Hashfunktion ist kein Hashwert unm"oglich, jeder kann
+tats"achlich vorkommen.
+
+\subsubsection{Kollisionsresistenz}
+\label{crypto:kollisionsresistenz}
+\index{Kollisionsresistenz}
+
+Eine Kollisionsresistente Hashfunktion soll es erschweren, zwei Eingabewerte zu
+finden die denselben Hashwert ergeben. Daf"ur sollen die Hashwerte m"oglichst
+gleichverteilt auftreten. In der Kryptologie wird zwischen schwacher und starker
+Kollisionsresistenz unterschieden\cite{crypto:stephan2011kryptographie}:
+
+\begin{itemize}
+		\item Schwache Kollisionsresistenz heisst, dass es praktisch nicht m"oglich
+			ist, zu einer gegebenen Nachricht $m_0$ eine zweite Nachricht $m_1$ zu finden, f"ur
+			welche $h(m_0) = h(m_1)$ gilt.
+		\item Starke Kollisionsresistenz heisst, dass es praktisch nicht m"oglich
+			ist, zwei Nachrichten $m_0$ und $m_1$ zu finden, f"ur welche $h(m_0) =
+			h(m_1)$ gilt.
+\end{itemize}
+
+\subsubsection{Effizienz}
+
+Je nach Anwendungsfall m"ochte man effiziente oder ineffiziente Berechnungen
+eines Hashwertes erzielen. W"ahrend ersteres logisch erscheint -- man m"ochte in
+der Regel den Algorithmus in Hard- und Software m"oglichst einfach und schnell
+implementieren k"onnen -- ist letzteres auf den ersten Blick ein merkw"urdiges
+Ziel. Die Eigenschaft ist jedoch vor allem f"ur Passwort-Hash-Funktionen
+relevant. Um zu verhindern dass ein Angreifer m"oglichst schnell alle m"oglichen
+Passw"orter vorberechnet (wie wir es in dieser Arbeit tun), m"ochte man in
+diesem Fall eine Hashfunktion, welche aufwendig und ressourcenintensiv zu
+berechnen ist.
+
+\subsection{MD5}
+\index{MD5}
+
+Der MD5 Algorithmus (Message-Digest Algorithm 5) wurde im Jahr 1991 vom
+Kryptologen Ronald L. Rivest entwickelt. MD5 erzeugt zu einer beliebig langen
+Nachricht einen 128-Bit Hashwert.
+
+Unter Unix-basierten Betriebssystemen kann man MD5-Werte ganz einfach auf der
+Kommandozeile berechnen:
+
+\begin{verbatim}
+$ echo -n "Mathematisches Seminar" | md5sum 
+47b2d986d0ae09d6504b9696e9406ca4
+\end{verbatim}
+
+Man sieht also, dass der Eingabewert ``Mathematisches Seminar'' auf den Hashwert
+\texttt{47b2\-d986\-d0ae\-09d6\-504b\-9696\-e940\-6ca4} (in hexadezimaler
+Notation) abgebildet wird. Wenn man nun nur ein einzelnes Zeichen im
+Eingabestring "andert, sieht die Ausgabe v"ollig anders aus ($\rightarrow$
+Chaoseigenschaft, siehe Abschnitt \ref{crypto:hashfunktionen:eigenschaften}):
+
+\begin{verbatim}
+$ echo -n "Mathematisches Saminar" | md5sum 
+625a5fb1280f153aa06709d70b38dfb8
+\end{verbatim}
+
+Wenn man die Bin"arwerte der beiden Hashes vergleicht, sieht man, dass die
+Einzelbit-"Anderung (\texttt{a} $\rightarrow$ \texttt{e}) zu einer "Anderung bei
+62 der 128 Bits gef"uhrt hat -- mit 48.4\% ziemlich genau die erwartete H"alfte
+aller Bits.
+
+MD5 war (und ist) ein weit verbreiteter Algorithmus und wurde in der
+Vergangenheit neben der Integrit"atspr"ufung auch h"aufig zum Verschleiern von
+Passw"ortern verwendet.  Wie dies funktioniert, l"asst sich einfach an einem
+Praxisbeispiel demonstrieren:
+
+\begin{enumerate}
+		\item Ein Benutzer registriert sich mit Benutzername und Passwort auf einer
+			Website. Beide Werte werden an den Webserver "ubertragen.
+		\item Der Server berechnet den Hashwert des Passwortes. Das Passwort wird
+			verworfen, nur der Hashwert wird gespeichert.
+		\item Der User m"ochte sich zu einem sp"ateren Zeitpunkt wieder einloggen.
+			Daf"ur "ubermittelt er erneut das Passwort an den Server.
+		\item Der Server berechnet erneut den Hashwert des Passwortes und
+			vergleicht diesen mit dem zuvor gespeicherten Wert. Stimmen die beiden
+			Werte "uberein, wird dem Benutzer Zugang zu den gesch"utzten Inhalten
+			gew"ahrt.
+\end{enumerate}
+
+An diesem Beispiel erkennt man auch sehr gut, wie wichtig die Einwegeigenschaft
+und die Kollisionsresistenz f"ur kryptologische Hashfunktionen ist. Sollte
+n"amlich ein Passwort-Hash an die "Offentlichkeit gelangen (beispielsweise durch
+ein Datenleck, wie sie in den letzten Jahren -- zuletzt bei Adobe -- immer
+wieder geschehen sind), sollte es f"ur einen Angreifer mit praktischem Aufwand
+nicht m"oglich sein, ausgehend vom Hashwert an das urspr"ungliche Passwort zu
+gelangen. Ebensowenig sollte es m"oglich sein, ein anderes Passwort zu finden
+welches denselben Hashwert ergibt. In beiden F"allen w"are der Benutzeraccount
+dadurch kompromittiert.
+
+MD5 gilt inzwischen als unsicher, weil erfolgreiche Angriffe auf die
+Kollisionsresistenz des Algorithmus gefunden wurden. Bereits im Jahr 2006 gelang
+es Forschern, MD5-Kollisionen auf einem Pentium 4 Rechner im Durchschnitt
+innerhalb einer Minute zu finden\cite{crypto:stevens2006fast}. Inzwischen sind
+Kollisionen auf markt"ublicher Hardware innerhalb weniger Sekunden berechenbar.
+Der MD5-Algorithmus ist also h"ochstens schwach kollisionsresistent (vgl.
+Abschnitt \ref{crypto:kollisionsresistenz}) und sollte f"ur kryptologische
+Anwendungen nicht mehr eingesetzt werden.
+
+\subsection{Brute-Force Angriff auf MD5}
+\index{Brute-Force}
+
+W"ahrend Kollisionen f"ur frei gew"ahlte Eingabewerte wie im letzten Abschnitt
+beschrieben heute problemlos berechenbar sind, ist bisher noch kein praktischer
+Preimage-Angriff auf MD5 bekannt. Ein Preimage-Angriff bedeutet, dass der
+Hashwert nicht frei gew"ahlt werden kann, sondern festgelegt ist; es ist also
+ein Angriff auf die schwache Kollisionsresistenz. Wenn man nun einen
+Passwort-Hash zur"uckrechnen will, ist daher bei einer "uberschaubaren
+Eingabemenge ein Brute-Force Angriff die simpelste M"oglichkeit.
+
+Bei einem Brute Force Angriff wird f"ur jeden Wert einer bestimmten
+Eingabemenge der Hash\-wert berechnet und mit dem Zielwert verglichen. In
+Pseudocode:
+
+\begin{verbatim}
+target = "47b2d986d0ae09d6504b9696e9406ca4"
+for word in keyspace:
+  if md5(word) == target:
+    print(word)
+    break
+\end{verbatim}
+
+\label{crypto:keyspace}
+\index{Keyspace}
+Die Eingabemenge nennt man auch ``Keyspace''. Will man beispielsweise f"ur alle
+Passw"orter bestehend aus den Klein- und Grossbuchstaben a-z / A-Z sowie den
+Zahlen 0-9 mit einer L"ange von bis zu 6 Zeichen die Hashes berechnen, ergibt
+dies "uber 57 Milliarden M"oglichkeiten.
+\[
+	\sum_{i=1}^{6} \left(26 + 26 + 10\right)^i = 57'731'386'986
+\]
+Hier sieht man auch schon die Schwierigkeit an der Sache, denn der Keyspace
+w"achst exponentiell. Bei Erh"ohung der Maximall"ange auf 8 Zeichen sind wir schon
+in der Gr"ossenordnung von $\sim$200 Billionen.
+\[
+	\sum_{i=1}^{8} \left(26 + 26 + 10\right)^i = 221'919'451'578'090
+\]
+Im Rahmen dieser Arbeit beschr"ankten wir daher sowohl die Anzahl der m"oglichen
+Zeichen wie auch die maximale L"ange der zu knackenden Passw"orter.
+
+\subsection{Zielsetzung}
+\label{crypto:zielsetzung}
+
+Unser Ziel im Rahmen dieser Arbeit war es, durch massiv parallele Berechnung von
+MD5-Hashwerten dasjenige Eingabewort zu finden, dessen MD5-Hashwert einem zuvor
+festgelegten Hashwert entspricht. Der Keyspace besteht dabei aus den
+Kleinbuchstaben a-z mit einer variablen L"ange von bis zu 6 Zeichen.
+
+Konkret haben wir uns als Ziel gesetzt, in m"oglichst kurzer Zeit den MD5-Hash
+des Wortes ``monkey'' (Platz 6 auf der Liste der am h"aufigsten verwendeten
+Passw"orter 2012 \cite{crypto:splash2012}) zu knacken.
+
+\begin{verbatim}
+$ echo -n "monkey" | md5sum
+d0763edaa9d9bd2a9516280e9044d885
+\end{verbatim}
+
+\subsection{Umsetzung mit OpenCL}
+
+Wenn man einen MD5-Hash brute-forcen will, ben"otigt man eine massive Anzahl
+komplett unabh"angiger paralleler Tasks. Die MD5-Berechnung selbst ist nicht
+unabh"angig und kann deshalb nicht parallelisiert werden, aber mehrere
+MD5-Berechnungen k"onnen nebeneinander ausgef"uhrt werden und ben"otigen
+keinerlei Interprozess-Kommunikation. OpenCL ist hierf"ur also bestens geeignet.
+
+
+\section{L"osungsansatz}
+\label{crypto:loesungsansatz}
+
+Um den Brute-Force-Knacker zu implementieren haben wir uns f"ur folgenden
+L"osungsansatz entschieden:
+
+\begin{itemize}
+	\item Jedes m"ogliche Eingabewort (siehe "Uberlegungen zum Keyspace in
+		Abschnitt \ref{crypto:keyspace}) wird einem Workitem zugewiesen.
+	\item Jedes Workitem berechnet den MD5-Hash f"ur genau ein Wort.
+	\item Das Eingabewort wird innerhalb des Kernels aus der Global ID
+		hergeleitet.
+	\item Der errechnete Hash wird innerhalb des Kernels mit dem Ziel-Hash
+		verglichen. Sofern die zwei Werte "ubereinstimmen, wird das Wort in den
+		Result-Buffer geschrieben.
+	\item Der Einfachheit halber wird im Erfolgsfall kein vorzeitiger Abbruch
+		durchgef"uhrt, stattdessen wird der ganze Keyspace durchprobiert. Dies
+		erm"oglicht auch einfache Performance-Vergleiche auf verschiedenen
+		Plattformen.
+	\item Nachdem alle m"oglichen Hash-Werte berechnet wurden, wird der
+		Result-Buffer vom Hauptprogramm ausgelesen und angezeigt.
+\end{itemize}
+
+\noindent Zusammengefasst besteht der Ablauf aus drei Phasen: Init (CPU),
+Calculate (GPU), Collect (CPU).
+
+\begin{figure}[H]
+	\centering
+	\input{crypto/tikz/programm-struktur}
+	\caption{L"osungsansatz Programmstruktur}
+	\label{img:crypto:programm-struktur}
+\end{figure}
+
+\subsection{Herleitung Wort aus Global ID}
+\index{Global ID}
+
+Irgendwie muss nun jedes Workitem herausfinden, welches Wort gehashed werden soll. Eine
+"Ubergabe des zu hashenden Wortes vom Hauptprogramm an jeden Kernel via Shared
+Memory w"are ineffizient und w"urde nur unn"otigen I/O verursachen. Es muss also
+eine bessere L"osung gefunden werden.
+
+Ein Vorteil des gegebenen Problemes ist, dass der Keyspace der m"oglichen
+Eingabewerte eine arithmetische Folge darstellt. Es liegt also nahe, das Wort
+aus der Global ID herzuleiten. Die Global ID ist eine $n$-Dimensionale
+nat"urliche Zahl, welche jedem Workitem von OpenCL zugewiesen wird. Der
+Wertebereich bewegt sich dabei in Einerschritten von $(0, ..., 0)$ bis $(s_1-1,
+..., s_n-1)$. Dabei steht $s$ f"ur die Work Size der entsprechenden
+Dimension.
+
+\subsubsection{Naiver Ansatz}
+
+Ein naiver Ansatz w"are nun, dass die jede Dimension der Global ID einem Zeichen
+des Eingabewortes entspricht. Die Dimensionszahl entspricht dann der Anzahl
+Zeichen im Eingabewort. Um diesen Ansatz zu verdeutlichen, nachfolgend ein
+Pseudocode-Beispiel f"ur ein Eingabewort mit der L"ange 3 und dem Alphabet a--z:
+
+\begin{small}
+\begin{verbatim}
+>>> id = (22, 19, 5)
+>>> alphabet = "abcdefghijklmnopqrstuvwxyz"
+>>> word = alphabet[id[0]] + alphabet[id[1]] + alphabet[id[2]]
+>>> print(word)
+wtf
+\end{verbatim}
+\end{small}
+
+\noindent Das sieht zwar auf den ersten Blick nach einem guten Ansatz aus,
+jedoch ergibt sich dabei das erste Problem: Die Anzahl Dimensionen der Global ID
+(Work Size Dimension) darf gem"ass OpenCL Standard\cite{crypto:opencl_ref}
+maximal 3 sein. Das bedeutet, dass man mit diesem Ansatz nur W"orter mit einer
+L"ange von bis zu 3 Zeichen knacken kann. Man muss also einen Weg finden, diese
+Dimensionen irgendwie zu vergr"ossern.
+
+\subsubsection{Virtuelle Dimensionen}
+\label{crypt:virtuelle_dimensionen}
+
+Eine M"oglichkeit dazu ist die Einf"uhrung virtueller Dimensionen. Dabei werden
+mehrere Dimensionen durch Multiplikation der Keyspace-Gr"osse in eine einzelne
+``Virtuelle Dimension'' gepackt. Konkret sieht das so aus:
+
+\begin{itemize}
+	\item Dimension bei Wort-L"ange 1: $(26,)$
+	\item Dimension bei Wort-L"ange 3: $(26, 26, 26)$
+	\item Dimension bei Wort-L"ange 4: $(26^2, 26, 26) = (676, 26, 26)$
+	\item Dimension bei Wort-L"ange 7: $(26^3, 26^2, 26^2) = (17576, 676, 676)$
+\end{itemize}
+
+\noindent Aus diesen Werten kann dann der Buchstabenindex $c_n$ an Position $n$
+mithilfe von Modulo-Arithmetik aus der jeweiligen Global ID $i$ abgeleitet
+werden:
+\[
+	c_n = \left\lfloor\,\frac{i}{26^n}\,\right\rfloor\! \mod\enskip 26
+\]
+Um nun den entsprechenden ASCII-Buchstaben zu erhalten, muss man lediglich
+diesen Wert $c_n$ um 97 (ASCII-Position des Kleinbuchstabens \texttt{a})
+erh"ohen.
+
+Damit das Ganze etwas einfacher zu implementieren ist, f"uhren wir zus"atzlich
+das Konzept eines ``Triplets'' ein. Die Triplet-ID ergibt sich, wenn man die
+Buchstaben des Wortes in Dreiergruppen aufteilt (Sliding Window Algorithmus).
+
+\begin{figure}[H]
+	\centering
+	\input{crypto/tikz/triplets}
+	\caption{Aufteilung des Wortes in Triplets}
+	\label{img:crypto:triplets}
+\end{figure}
+
+\noindent In OpenCL C sieht das folgendermassen aus:
+
+\begin{small}
+\begin{verbatim}
+// Initialize private variables
+__private char string[MAX_PW_LEN];
+__private unsigned int global_id;
+__private unsigned char triplet_id;
+
+for (int i = 0; i < 3; i++) {
+
+  // Get global ID for dimension i
+  global_id = get_global_id(i);
+
+  // Loop through triplets
+  for (triplet_id = 0; triplet_id <= (len - 1) / 3; triplet_id += 1) {
+    string[triplet_id * 3 + i] = 0x61 + ((int)(global_id / pown(26., triplet_id)) % 26);
+  }
+
+}
+\end{verbatim}
+\end{small}
+
+\noindent Das zu hashende Wort befindet sich nun in der Variablen
+\texttt{string} und kann nun weiterverarbeitet werden. Somit hat man einen
+sinnvollen L"osungsansatz. Jedoch sind damit noch nicht alle Probleme einfach
+gel"ost. Mehr dazu, wie man mit grossen Datenmengen umgeht, im nachfolgenden
+Kapitel.
+
+
+\section{Probleme mit grossen Problemen}
+\label{crypto:grosse_probleme}
+
+\subsection{Einf"uhrung}
+
+Auch wenn OpenCL ausdr"ucklich daf"ur entwickelt wurde, mit riesigen Clustern
+von heterogenen Recheneinheiten sehr umfangreiche Probleme zu l"osen, so st"osst
+man doch irgendwann an die Grenzen der Hardware oder der Implementierung.  Denn
+jedes Workitem, das ausgef"uhrt wird, ben"otigt Speicherplatz (Gr"osse des zur
+Verf"ugung stehenden Speichers, Hardware) und muss irgendwie verwaltet werden
+(Anzahl der maximal verwaltbaren Workitems und Workgroups, Implementierung).
+Zudem ist die Anzahl Dimensionen, die von einem Workitem verarbeitet werden k"onnen
+begrenzt (Workitem-Dimension, Hardware \& Implementierung). Deshalb folgen in
+diesem Kapitel einige Betrachtungen dazu, wie man mit diesen Limitationen
+umgehen kann.
+
+Wie in der Einleitung im Abschnitt \ref{crypto:keyspace} bereits erl"autert
+wurde, ergeben sich beim Zeichensatz \texttt{[a-zA-Z0-9]} und einer Wortl"ange
+von 8 Zeichen mehr als 200 Billionen ($2 * 10^{12}$) m"ogliche Kombinationen.
+Dieser Problemgr"osse stehen aber auf einem System mit einem Intel Core i5-3320M
+Prozessor, 8GB RAM und in einer OpenCL Workgroup gem"ass dem OpenCL Standard
+theoretisch maximal
+
+\[
+	N_{max} = w^d = 8193^{3} = 5.50 \cdot 10^{11} \quad\textrm{mit}\quad
+	\begin{aligned}
+		w &= \textrm{Anz. Workitems}\\
+		d &= \textrm{Anz. Workitem-Dimensionen}
+	\end{aligned}
+\]
+
+\noindent verwaltbare ``Problem-Teile'' entgegen. Trotzdem l"asst zum Beispiel
+die OpenCL Implementierung von Intel eine gr"ossere Anzahl Workitems problemlos
+zu, wohingegen sich die Nvidia Implementation mit einer ``Out of
+resources''-Meldung beendet.
+
+Genau um diese Grenzen soll es in diesem Abschnitt gehen. Es soll dabei nicht
+ersch"opfend auf die Grenzen von OpenCL oder auf alle Spezifikas der
+Implementierungen eingegangen, sondern vielmehr f"ur das Thema sensibilisiert
+werden. Es sollen m"ogliche Ans"atze f"ur den Umgang mit grossen Problemen in
+OpenCL aufgezeigt werden, was hoffentlich dazu f"uhren wird, dass der Leser ein
+Gesp"ur f"ur eigene, auf die spezifische Hardware und Implementierung
+zugeschnittene Ans"atze entwickeln kann.
+
+
+\subsection{Grenzen von OpenCL}
+
+OpenCL wurde entwickelt, um trotz einem m"oglichst Plattform"ubergreifenden
+Ansatz sehr flexibel auf die Spezifika der jeweiligen Hardware reagieren zu
+k"onnen. Das macht den Standard und die Grundkonzepte vor allem f"ur Einsteiger
+nicht unbedingt einfacher zu begreifen. Insbesondere k"onnen sich trotz
+standardisierter Schnittstelle die einzelnen OpenCL Compute Devices sehr stark
+voneinander unterscheiden, was wiederum die unterst"utzten Datentypen, die
+maximale Problemgr"osse und weitere Faktoren beeinflusst. Auf die wichtigsten
+Einstiegspunkte f"ur die Abfrage und Interpretation der Hardwaremerkmale soll
+hier kurz eingegangen werden.
+
+
+\subsubsection{Hardwaremerkmale abfragen}
+
+Gerade weil OpenCL so unterschiedliche Hardwareklassen unterst"utzt -- von der
+``normalen'' Desktop-CPU bis zu f"ur HPC Anwendungen spezialisierte Rechenkarten
+-- gibt es einen sehr m"achtigen Weg, um die jeweiligen Hardwaremerkmale
+abzufragen.  Das kann soweit gehen, dass w"ahrend der Laufzeit die
+Hardwarekonfiguration abgefragt wird, um das Problem dynamisch auf die
+vorhandene Hardware zu optimieren.
+
+An dieser Stelle macht es Sinn, sich nochmals vereinfacht die Top-Down-Struktur
+von OpenCL (wie bereits in Abbildung \ref{hardware:opencl} gezeigt) vor Augen zu
+f"uhren:
+\[
+	Platform \rightarrow Compute Device \rightarrow Compute Unit
+\]\[
+	(\rightarrow Workgroup \rightarrow Workitem \rightarrow Workitem Dimension)
+\]
+\noindent In dieser Reihenfolge werden auch die Hardwaremerkmale abgefragt.
+OpenCL 1.2 stellt dazu folgende Funktionen zur Verf"ugung:
+
+\begin{description}
+ \item [clGetPlatformIDs()] gibt eine Liste der vorhandenen Plattformen zur"uck.
+ \item [clGetPlatformInfo()] retourniert die Merkmale der aktuellen Plattform:
+                            Herausgeber der Implementation, implementierte 
+                            OpenCL Version und allf"allig von der Plattform 
+                            zus"atzlich unterst"utzte Erweiterungen.
+ \item [clGetDeviceIDs()]   Mit der jeweiligen Plattform-ID k"onnen nun die
+                            verf"ugbaren Compute-Devices abgefragt werden.
+ \item [clGetDeviceInfo()]  Mit den so erhaltenen Device-IDs erh"alt man anschliessend 
+                            zum abgefragten Compute Device einen ganzen Katalog von
+                            Merkmalen zur"uck, von der maximalen
+                            Workgroup- und Workitem-Anzahl "uber die
+                            Speicherkapazit"aten bis hin zur
+                            Clock-Frequenz und zum Hardware-Hersteller. Auf einzelne
+                            dieser Merkmale soll im Folgenden noch eingegangen werden.
+\end{description}
+
+\noindent Die genauen Parameter und R"uckgabewerte k"onnen der offiziellen
+OpenCL-Referenz\cite{crypto:opencl_ref} entnommen werden.
+
+Um die vorher genannten Funktionen und deren M"oglichkeiten zu demonstrieren, wird ein kurzes
+Code-Beispiel f"ur einen typischen Desktop-Computer mit einer OpenCL f"ahigen
+CPU und einer modernen Grafikkarte aufgef"uhrt. Es ist exemplarisch, der
+Anschaulichkeit wegen in Pseudocode verfasst und repr"asentiert weder den vollen
+Umfang der R"uckgabewerte noch die real ben"otigten Parameter!
+
+\begin{small}
+\begin{verbatim}
+> clGetPlatformIDs()
+0
+1
+
+> clGetPlatformInfo(platform=0)
+Name:          Intel(R) OpenCL
+Vendor:        Intel(R) Corporation
+Version:       1.2
+Profile:       Full
+Extensions:    cl_khr_icd,cl_khr_global_int32_base_atomics,(...)
+
+> clGetPlatformInfo(platform=1)
+Name:          NVIDIA(R) OpenCL
+Vendor:        NVIDIA Corp. limited
+Version:       1.2
+Profile:       Full
+Extensions:    (...)
+
+> clGetDeviceIDs(platform=0)
+0
+
+> clGetDeviceInfo(platform=0,device=0)
+General Information:
+ - Name:                 Intel(R) Core(TM) i5-3320M CPU @ 2.60GHz
+ - Available:            True
+ - Vendor (VID):         Intel(R) Corporation (32902)
+ - Version:              OpenCL 1.2 (Build 82248)
+ - Profile:              full
+ - Type:                 CPU 
+ - Extensions:           cl_khr_icd,cl_khr_global_int32_base_atomics,(...)
+ - Endianess:            Little
+
+Memory and Clocks
+ - Clock frequency (max):2600 MHz
+ - Compute units:        4
+ - Global memory:        7816 MB
+ - Local memory:         32768 kB, 2
+
+Kernel properties:
+ - Max param. size:      3840 B
+ - Max work group size:  8192
+ - Max work item dim.:   3
+ - Max work item size:   [8192, 8192, 8192]
+
+Datatypes:
+ - Floating point:       Single & Double precision
+ - Preferred vector size: 1 (all supported  types)
+\end{verbatim}
+\end{small}
+
+\vspace{1em}
+
+\noindent Zu einzelnen Punkten aus dem Codebeispiel hier eine kurze Erl"auterung:
+
+
+\begin{description}
+ \item [Version] Implementierte bzw. Unterst"utzte OpenCL Version.
+ \item [Profile] \texttt{full} oder \texttt{embedded} (in OpenCL 1.2).
+ \item [Type]    \texttt{CPU}, \texttt{GPU} oder \texttt{ACCELERATOR}.
+ \item [Compute Units] Anzahl der physisch vorhandenen Compute Units. Dies ist
+                 die Anzahl effektiv parallel ausgef"uhrten Workitems.
+ \item [Max work group size] Maximale Anzahl Workitems in einer Workgroup.
+ \item [Max work item dim.] Maximale direkt im Workitem bearbeitbare
+	 Dimensionen, minimal 1, maximal 3.
+ \item [Max work item size] Maximale Anzahl von Workitems in einer Workgroup nach
+                 Dimensionen (Ist je nach Ger"at unterschiedlich in den verschiedenen
+                 Dimensionen).
+ \item [Preferred vector size] (F"ur jeden unterst"utzten Datentyp) Vektorgr"osse, 
+                 die von der Hardware f"ur den jeweiligen Typ direkt (also sprich in einer 
+                 Instruktion) verarbeitet werden kann.
+ 
+\end{description}
+
+
+\noindent Dabei gelten anhand der R"uckgabewerte und gem"ass der OpenCL
+Spezifikation\cite{crypto:opencl_ref} folgende Regeln:
+
+\begin{itemize}
+ \item Eine Workgroup kann nur auf einer Compute Unit ausgef"uhrt werden (1 Workgroup = 1 
+       Compute Device). Das heisst, pro Compute Unit muss eine Workgroup erstellt werden.
+ \item Die Anzahl der Workitems pro Workgroup darf insgesamt 8192 nicht
+	 "ubersteigen (Global Work Size).
+ \item Dabei d"urfen die in ``Max work item size'' angegebenen Werte in der jeweiligen 
+       Dimension nicht "uberstiegen werden (local work size $[x,y,z,\ldots]$).
+			 Die Summe $x + y + z$ darf dabei insgesamt nicht gr"osser werden als ``Max work group size''.
+ \item Die Anzahl effektiv verwendeter Workitem Dimensionen darf im Bereich von 1 bis
+       ``Max work item dim.'' liegen.
+\end{itemize}
+
+
+\subsubsection {Maximale Problemgr"osse im 3-Dimensionalen Raum}
+\label{crypto:problemgroesse:3d}
+
+Die zur Verf"ugung stehende Rechenleistung klingt zun"achst f"ur fast jedes Problem
+ausreichend, doch soll ein kleines Beispiel demonstrieren, dass die Grenzen
+schneller erreicht sind als man denkt.
+
+Wir nehmen an, eine 3D-Simulation zu machen, in der sich das gesamte
+Simulationsproblem in lauter kleine W"urfel aufteilen l"asst
+(Anwendungsbeispiele hierf"ur gibt es viele, wie z.~B. Str"omungssimulationen,
+Verformungen bei Krafteinwirkung oder Wetterberechnungen). Dabei nehmen wir an,
+dass f"ur unser Problem eine Unterteilung des Raumes in $1\textrm{ mm}^{3}$
+W"urfel gen"ugt. Dabei soll in jedem Iterationsschritt der Zustand in jeweils
+einem Workitem neu berechnet werden.
+
+Zuerst berechnen wir das maximal so simulierbare Volumen mit einer einzelnen
+Workgroup.  Da die Gesamtzahl der Workitems in einer Workgroup f"ur das aktuelle
+Beispiel 8192 nicht "uberschreiten darf, k"onnen maximal
+
+\[
+ n = \left\lfloor\sqrt[3]{8192}\right\rfloor = \left\lfloor20.159\right\rfloor = 20
+\]
+
+\noindent W"urfel pro Dimension berechnet werden. Das entspricht einem W"urfel von 
+$2\textrm{ cm}^{3}$, was uns in den meisten F"allen noch nicht sonderlich weit bringt.
+
+Angenommen wir erweitern nun die Zahl der Workgroups nach demselben Schema --
+d.~h. jede Workgroup berechnet einen $2\textrm{ cm}^{3}$ W"urfel -- so
+entspricht das bei einer maximalen Workgroupzahl von 8192 zwanzig solcher
+W"urfeln in jede Dimension. Somit k"onnten wir f"ur die oben genannte
+Implementation in einem Berechnungsdurchgang von OpenCL einen W"urfel von
+$40\textrm{ cm}^{3}$ berechnen. Auch diese Zahl ist noch nicht sonderlich
+berauschend. 
+
+Im Folgenden soll nun gezeigt werden, wie das Problem so aufgeteilt werden kann,
+dass die Berechnung trotz der enormen Problemgr"osse noch durchgef"uhrt werden
+k"onnen.
+
+\subsection{Aufteilung von grossen Problemen}
+
+Sp"atestens wenn die Grenzen der Hardware erreicht sind, sollte man sich
+Gedanken zur besseren Aufteilung eines Problemes machen. Es lohnt sich aber
+bereits bei ``kleineren'' grossen Problemen, welche noch nicht an die Grenzen
+der Hardware stossen, diese m"oglichst effektiv aufzuteilen, so dass die
+vorhandenen Ressourcen optimal ausgenutzt werden k"onnen.  In diesem Kapitel
+werden daher die folgenden vier Techniken vorgestellt:
+
+\begin{itemize}
+ \item Mehrere Workgroups verwenden
+ \item Virtuelle Dimensionserweiterung
+ \item Mehr als eine Berechnung pro Workitem
+ \item Mehrfacher, parametrisierter Start des OpenCL Kernels
+\end{itemize}
+
+Dazu ist anzumerken, dass hier auf diejenigen Techniken eingegangen wird, die
+auch im Zuge der Implementierung des MD5-Cracking Projekts ausprobiert oder
+evaluiert wurden. Die Liste erhebt weder die den Anspruch auf Vollst"andigkeit,
+noch ist sie f"ur jedes spezielle Problem anwendbar. Wir hoffen aber, dem Leser
+ein paar Ideen in die Hand zu geben, wie er seine eigenen Anwendungen weiter
+optimieren kann.
+
+\subsubsection{Mehrere Workgroups verwenden}
+
+In den bisherigen Beispielen wurde meist davon ausgegangen, dass nur eine
+Workgroup verwendet wird. In der Praxis besitzt jeder moderne Desktop-Computer
+mindestens zwei OpenCL-f"ahige Ger"ate, namentlich die CPU und die GPU, welche
+wiederum ein oder mehrere Compute Devices -- real parallel laufende Rechenkerne
+-- umfassen.
+
+Genau hier kommt das Thema ``Mehrere Workgroups'' ins Spiel, denn eine Workgroup
+kann jeweils nur auf einem Compute Device laufen. Will man also nicht nur einen
+Prozessor \textit{oder} eine Recheneinheit der Grafikkarte verwenden, sondern
+die CPU \textit{und} die Grafikkarte voll ausnutzen, m"ussen unabh"angig von der
+Problemgr"osse mehrere Workgroups erzeugt werden.
+
+Wie bereit im Abschnitt \ref{crypto:problemgroesse:3d} erl"autert, kann mit den
+Workgroups die Anzahl der verarbeitbaren Workitems pro Berechnungsdurchgang der
+OpenCL-Maschine bereits deutlich erh"oht werden. Je nach Implementation und
+verwendeten Frameworks wird die Aufteilung in Workgroups sogar automatisch
+vorgenommen, wenn nichts explizit angegeben wurde. M"ochte man aber die
+vorhandene Hardware optimal ausnutzen und dabei ber"ucksichtigen, dass die
+Compute Devices nicht alle gleich schnell rechnen, kommt man nicht darum herum
+sich selbst Gedanken "uber die Aufteilung in Workgroups zu machen.
+
+Die Herausforderung dabei ist, die Anzahl der Workitems so "uber die Workgroups
+auf die Compute Devices zu verteilen, dass die Berechnungen der jeweiligen
+Workgroup auf allen Compute Devices ungef"ahr "ahnlich lange dauert.  Dabei geht
+es nicht lediglich um Sekunden; es kann durchaus sein dass die Portion, welche
+auf der GPU gerechnet wurde, nach 30 Minuten bereits fertig ist, w"ahrend
+diejenige der CPU 3 Stunden dauert. Da die OpenCL Spezifikation keinen Abbruch
+oder eine Neuverteilung zul"asst, bevor nicht alle Workgroups fertig gelaufen
+sind, ist die GPU in diesem Fall also 2.5 Stunden lang unbesch"aftigt.
+
+Hier empfiehlt es sich bei unbekannter Hardware, mit kleinen Portionen zu
+beginnen, die Durchlaufzeiten zu messen und erst dann zu entscheiden, wie die
+weitere Aufteilung aussehen soll. Um eine gute Aussagekraft zu erhalten, sollten
+die ersten Portionen auch nicht zu klein sein, irgendwo zwischen 10--100
+Berechnungen auf jedem Compute Device sollten jedoch gen"ugen. Dabei kann
+durchaus auch iterativ vorgegangen werden, um eine m"oglichst optimale
+Aufteilung zu erreichen.
+
+Zusammengefasst gilt f"ur die Erh"ohung der Anzahl Workgroups:
+
+\begin{itemize}
+ \item Zur Ausn"utzung aller Compute Devices auf einer Plattform
+       muss zwingend mit mindestens einer Workgroup pro Compute Device
+       gearbeitet werden. So kann die Geschwindigkeit schon mal 
+       grunds"atzlich erh"oht werden.
+ \item Synchronisation / Abbruch "uber Workgroup-Grenzen hinweg ist 
+       nicht direkt m"oglich, da die Workgroups nicht miteinander kommunizieren
+			 k"onnen.
+ \item Als Konsequenz k"onnen unterschiedliche Laufzeiten in den verschiedenen
+			 Compute Devices unter Umst"anden zu ungewollten Leerlauf-Zeiten f"ur die
+			 schnelleren Compute Devices f"uhren. Eine sorgf"altige, an die
+			 Geschwindigkeit der Compute Devices angepasste Aufteilung der Workitems ist
+			 n"otig.
+\end{itemize}
+
+\subsubsection{Virtuelle Dimensionserweiterung}
+
+Die Technik der Virtuellen Dimensioneserweiterung wurde zwar bereits in der
+Einf"uhrung erl"autert (siehe Abschnitt \ref{crypt:virtuelle_dimensionen}), soll
+hier aber nochmals zusammenfassend dargestellt werden.
+
+Ist die Anzahl zu verwendender Dimensionen gr"osser als die "ublicherweise
+unterst"utzten 3, aber die Gr"osse der einzelnen Dimensionen vergleichsweise
+klein, so k"onnen im Kernel die Dimensionszahlen f"ur das jeweilige Workitem
+mittels Modulo-Arithmetik aus der Global ID errechnet werden ($i$ = Global ID,
+$n$ = Anz.  Dimensionen, $d$ = Dimensionsgr"osse):
+\[
+	\left\lfloor\,\frac{i}{d^n}\,\right\rfloor\! \mod\enskip d
+\]
+Solange $d$ keine konstante Zweierpotenz ist, sind Divisionen und Modulo-Bildung
+auch auf modernen Floating-Point Units sehr rechenintensiv (Anzahl ben"otigter
+Taktzyklen $ \gg 1 $). Trotzdem kann dieses Vorgehen auch f"ur beliebige $d$
+sinnvoll sein, insbesondere wenn solch eine Dimensionsberechnung mit
+Modulo-Arithmetik dann gleich f"ur mehrere Berechnungen verwendet werden kann
+(mehr dazu im Abschnitt ``Mehr als eine Berechnung pro Workitem'').
+
+Sollte $d$ kleiner als $n$ sein, kann man sich generell "uberlegen, ob $n$ und
+$d$ allenfalls vertauscht werden k"onnten, wodurch die Anzahl der zur
+Dimensionsberechnung verwendeten Instruktionen in jedem Fall abnehmen w"urde.
+
+Zusammengefasst gilt f"ur die virtuelle Dimensionserweiterung:
+
+\begin{itemize}
+ \item Bei einem Problem, welches nur eine kleine Anzahl Berechnungen pro 
+       Dimension ben"otigt, aber viele Dimensionen hat, kann mit der
+       virtuellen Dimensionserweiterung eine ``Verschwendung'' von
+       ungenutzen aber m"oglichen Workitems in einer Workgroup verhindert 
+       werden.
+ \item Die Berechnungen der virtuellen Dimension mittels Modulo-Arithmetik 
+       ist bei einer beliebigen Dimensionsgr"osse sehr rechenintensiv.
+			 Werden konstante Zweierpotenzen verwendet, kann die Berechnung durch den
+			 Compiler zu einer Shift-Operation optimiert werden.
+\end{itemize}
+
+
+\subsubsection{Mehr als eine Berechnung pro Workitem}
+
+Ist der Initialisierungsaufwand im Kernel verglichen mit der eigentlichen
+Berechnung relativ gross und zeitaufwendig, so kann es sich lohnen, mehr als
+eine Berechnung pro Workitem durchf"uhren zu lassen. Speziell wenn der
+Arbeitsbereich zum Beispiel in einer Schleife abgearbeitet werden kann, kann mit
+dieser Technik sehr viel Performance rausgeholt werden. Der Nachteil dabei ist
+ein potentieller Verlust von Parallelit"at.
+
+Macht beispielsweise die Initialisierung innerhalb des Workitems 20\% der
+gesamten Rechenzeit aus, so ist ein Optimierungspotential von Faktor 10
+m"oglich, wenn statt einer gleich zehn Berechnungen in einem Workitem
+durchgef"uhrt werden. Der Overhead betr"agt dann (zumindest theoretisch) noch
+2\% pro Berechnung. 
+
+Da nun jedoch das Paradigma einer einzelnen Berechnung pro Workitem verletzt
+wird, bekommt die Problemaufteilung neben den Workgroups und Workitems eine
+zus"atzliche Ebene, was auch die Komplexit"at der Aufteilung erh"oht. Das kann
+beispielsweise dazu f"uhren, dass ein zu grosses Workitem noch l"auft, w"ahrend
+Ressourcen frei w"aren um einige der Berechnungen parallel in einem anderen
+Workitem auszuf"uhren ($\rightarrow$ Parallelit"atsverlust).
+
+Zusammengefasst gilt f"ur die Verwendung mehrerer Berechnungen pro Workitem:
+
+\begin{itemize}
+ \item Ist die Initialisierung im Workitem "ahnlich rechenintensiv wie die
+       tats"achliche Berechnung selber und ist das 
+       Arbeitspaket durch einfache Schleifen ``erweiterbar'', so lohnt
+       es sich dar"uber Gedanken zu machen, ob man mehr als eine Berechnung
+       pro Workitem durchf"uhren soll.
+ \item Doch steigen die Anforderungen an die Aufteilung der Arbeitspakete:
+       Soll nur in eine Dimension erweitert werden? Und in welche? Was 
+       passiert in Grenzf"allen? Ist ein Verlust der Parallelit"at m"oglich?
+ \item Auf unterschiedlicher Hardware kann das Verh"altnis Initialisierung zu
+       Rechenzeit durchaus deutliche Unterschiede zeigen. Die Aufteilung
+       lohnt sich nicht in jedem Fall und muss auf die jeweilige Hardware
+       zugeschnitten werden.
+\end{itemize}
+
+
+\subsubsection{Mehrfacher, parametrisierter Start des OpenCL Kernels}
+
+St"osst man trotz der in den vorherigen Abschnitten betrachteten Techniken an
+die Grenzen einer Workgroup oder sogar der Gesamtzahl der verf"ugbaren
+Workgroups, oder will man vor allem bei Verwendung mehrerer Workgroups nach
+einer gewissen Anzahl von Berechnungen pr"ufen ob das Ergebnis schon vorliegt,
+so muss man den OpenCL Kernel mehrmals aufrufen. Dabei kann ein Offset definiert
+werden, der dann bei der Berechnung des Arbeitspakets im Kernel zu der
+Dimensionszahl hinzugez"ahlt wird (Fragmentierung).
+
+Dieser Offset kann vom initialisierenden Code mit einer globalen Variable
+"ubergeben werden. Die Variable kann dann in jedem Workitem ausgelesen werden.
+Realisiert werden kann dies mit OpenCL Buffer Objects. Damit kann das Programm
+beliebig weiter ausgebaut werden, jedoch kostet die Initialisierung eines OpenCL
+Kernels auch Rechenzeit. F"ur eine kleine Menge von Workitems mit jeweils
+kurzer Rechenzeit pro Workitem lohnt sich der Aufwand somit im Normalfall kaum. 
+
+Anders sieht die Lage aus, wenn die Berechnungen pro Workitem sehr aufwendig
+sind, die Workgroup sehr gross wird oder wenn gelegentlich eine
+(workgroup-"ubergreifende) Abbruchbedingung gepr"uft werden soll. Zwischen den
+Workgroups kann keine Kommunikation stattfinden und so auch keine
+Abbruchbedingung gesetzt oder gepr"uft werden. Es muss gewartet werden, bis die
+restlichen Workgroups fertig sind mit ihrem Arbeitspaket, erst dann kann "uber
+mehrere Workgroups hinweg gepr"uft werden, ob das Abbruchkriterium erf"ullt ist
+um anschliessend die Ausf"uhrung weiterlaufen zu lassen oder anzuhalten.
+
+Wie bereits im Abschnitt zur Verwendung mehrerer Workgroups anget"ont, kann
+es sich zudem vor allem bei heterogenen Compute Device Umgebungen auch lohnen,
+schon relativ fr"uh die Berechnungen nochmals anzuhalten um die Workitems anhand
+der gemessenen Laufzeiten der Workgroups m"oglichst effizient auf die Compute
+Devices aufzuteilen.
+
+Zusammengefasst gilt f"ur den parametrisierten Start von OpenCL Kernels:
+
+\begin{itemize}
+ \item Den OpenCL Kernel mehrfach anzuhalten und wieder zu starten
+       kann aus unterschiedlichen Gr"unden sinnvoll sein. Beispielsweise
+       wenn das Problem so gross wird, dass es nicht mehr sinnvoll auf 
+       die verf"ugbare Menge von Workgroups und Workitems je Workgroup
+       aufgeteilt werden kann, wenn das Problem eine definierte 
+       Abbruchbedingung hat, die man regelm"assig und Workgroup-
+       "Ubergreifend pr"ufen m"ochte, oder wenn man die Performance eines
+			 Compute Devices automatisiert messen m"ochte.
+ \item Der Overhead f"ur die Initialisierung und den Start eines OpenCL Kernels
+			 kann aber im Vergleich zur Arbeitszeit eines Kernels sehr gross sein. Diese
+			 Technik sollte also trotz also der genannten Vorteile und M"oglichkeiten
+			 nur mit Bedacht eingesetzt werden.
+\end{itemize}
+
+
+\section{Implementationsdetails des MD5 Crackers}
+
+\subsection{Berechnung des MD5-Hashes}
+\label{crypto:md5lib}
+
+Zur effektiven Berechnung des MD5-Hashes innerhalb des Kernels haben wir eine
+bereits bestehende C-Implementierung des MD5-Algorithmus
+verwendet\cite{crypto:md5_impl}, welche im Jahr 2001 von Alexander Peslyak
+geschrieben und als gemeinfrei ver"offentlich wurde.
+
+Die Library musste geringf"ugig angepasst werden, um innerhalb eines OpenCL
+Kernels lauff"ahig zu sein. Beispielsweise mussten alle dynamischen
+Memory-Manipulationen wie \texttt{memcpy} und \texttt{memset} durch
+entsprechende statischen Loops ersetzt werden, da OpenCL keine dynamische
+Memory-Al\-lo\-ka\-ti\-on erlaubt. Auch mussten Address Space Qualifier (wie
+\texttt{\_\_constant}, \texttt{\_\_private}, etc) erg"anzt werden.
+
+Nach erfolgten Anpassungen kann ein MD5-Hash innerhalb des OpenCL Kernels
+folgendermassen errechnet werden:
+
+\begin{small}
+\begin{verbatim}
+__private MD5_CTX context;
+__constant unsigned char len;
+__private char string[MAX_PW_LEN];
+__private unsigned char digest[16];
+
+MD5_Init(&context);
+MD5_Update(&context, (const void *)string, len);
+MD5_Final(digest, &context);
+\end{verbatim}
+\end{small}
+
+\subsection{Verifikation des Resultates}
+\label{crypto:verifikation}
+
+In jedem Workitem wird der berechnete MD5-Hash mit dem Ziel-Hash verglichen.
+Stimmen die Werte "uberein, so wird das verwendete Eingabewort in den
+Result-Buffer im Global Memory geschrieben.
+
+\begin{small}
+\begin{verbatim}
+// Copy matching string from private to global memory
+if (compare(hash, digest, 16) == 0) {
+  for (int i = 0; i < len; i++) {
+    result[i] = string[i];
+  }
+}
+\end{verbatim}
+\end{small}
+
+\subsection{Init \& Collect}
+
+\subsubsection{Init}
+
+Die Aufgabe der Initialisierungsphase ist es, das gew"unschte OpenCL Device
+auszuw"ahlen und die Workitems zu konfigurieren, zu initialisieren und dann zu
+starten.
+
+Wir haben im Rahmen dieser Arbeit nicht direkt mit den OpenCL C Libraries
+gearbeitet, sondern eine Wrapper-Library namens
+PyOpenCL\cite{crypto:pyopencl_docs} f"ur die Programmiersprache
+Python\cite{crypto:python} eingesetzt. Im direkten Vergleich mit C ist es so viel
+einfacher, OpenCL zu initialisieren und zu konfigurieren (wobei nat"urlich
+Python-Kenntnisse vorausgesetzt sind). Auf die Syntax von Python und die
+Implementationsdetails der Library wird hier nicht n"aher eingegangen.
+
+Als Erstes muss ein OpenCL-Kontext und eine Command Queue eingerichtet werden:
+
+\begin{small}
+\begin{verbatim}
+ctx = cl.create_some_context()
+queue = cl.CommandQueue(ctx)
+\end{verbatim}
+\end{small}
+
+\noindent Danach m"ussen die ganzen Buffer- und Result-Objekte vorbereitet
+werden:
+
+\begin{small}
+\begin{verbatim}
+result = bytearray(MAX_PW_LEN)
+result_string = bytearray(MAX_PW_LEN)
+
+mf = cl.mem_flags
+hash_buf = cl.Buffer(ctx, mf.READ_ONLY | mf.COPY_HOST_PTR, hostbuf=input_hash)
+result_buf = cl.Buffer(ctx, mf.WRITE_ONLY | mf.COPY_HOST_PTR, hostbuf=result)
+\end{verbatim}
+\end{small}
+
+\noindent Anschliessend wird der Kernel-Code aus der Datei \texttt{md5.cl}
+geladen.
+
+\begin{small}
+\begin{verbatim}
+with open('md5.cl', 'r') as f:
+    fstr = ''.join(f.readlines())
+    prg = cl.Program(ctx, fstr).build()
+\end{verbatim}
+\end{small}
+
+\noindent Nun werden in $n$ Runden jeweils alle m"oglichen Eingabeworte der
+L"ange $i$ berechnet, wobei $n$ der Maximall"ange des Eingabewortes entspricht
+und $i$ die jeweilige Wortl"ange zwischen 1 und $n$ ist.
+
+\begin{small}
+\begin{verbatim}
+for i in range(1, MAX_PW_LEN + 1):
+
+    # Define work sizes
+    global_worksize = []
+    for j in range(i):
+        if j < 3:
+            global_worksize.append(ALPHABET_SIZE)
+        else:
+            global_worksize[j % 3] *= ALPHABET_SIZE
+    local_worksize = None  # Let OpenCL figure out the best value
+
+    # Run kernel!
+    prg.crack(queue, global_worksize, local_worksize, hash_buf, result_buf, np.int8(i))
+
+    # Copy result back to device
+    cl.enqueue_read_buffer(queue, result_buf, result_string).wait()
+\end{verbatim}
+\end{small}
+
+\noindent Der gesamte Code (inkl. aller Variablen- und Konstantendefinitionen
+sowie aller Imports und Debug-Output) findet sich im Github-Repository (siehe
+Abschnitt \ref{crypto:resultate:links}).
+
+\subsubsection{Collect}
+
+In der Collection-Phase werden die Ergebnisse der Workitems entgegengenommen und
+verarbeitet. Da das korrekte Resultat im Erfolgsfall immer in den Result-Buffer
+geschrieben wird (siehe Abschnitt \ref{crypto:verifikation}), muss nun lediglich
+dieser Buffer ausgelesen werden. Da Python nicht mit null-terminierten
+Bytestrings sondern mit Unicode-Objekten arbeitet, m"ussen in unserem Fall
+zus"atzlich noch diese Null-Bytes entfernt werden.
+
+\begin{small}
+\begin{verbatim}
+# Strip null bytes, convert to unicode
+plaintext = result_string.strip(b'\x00').decode('ascii')
+if plaintext:
+    print('Result is "%s"!' % plaintext)
+else:
+    print('Did not find a result.')
+\end{verbatim}
+\end{small}
+
+
+\subsection{Limitationen und Optimierungspotential der gew"ahlten L"osung}
+
+\subsubsection{Ressourcen-Limits}
+\label{crypto:resourcenlimits}
+
+Abh"angig von der gew"ahlten Platform st"osst man mit unserem L"osungsansatz der
+virtuellen Dimensionserweiterung -- wie im Kapitel \ref{crypto:grosse_probleme}
+bereits genauer erl"autert -- relativ schnell an Ressourcen-Limits. Mit einer
+Nvidia GeForce GTX 760 Grafikkarte waren die Grenzen bereits ab einer L"ange von
+7 Zeichen erreicht:
+
+\begin{small}
+\begin{verbatim}
+(...)
+Starting round with length 7...
+Work size: [17576, 676, 676]
+Traceback (most recent call last):
+  File "crack_md5.py", line 58, in <module>
+    cl.enqueue_read_buffer(queue, result_buf, result_string).wait()
+  File "/usr/lib/python3.4/site-packages/pyopencl/__init__.py", line 860, in new_func
+    return func(*args, **kwargs)
+pyopencl.RuntimeError: clEnqueueReadBuffer failed: out of resources
+\end{verbatim}
+\end{small}
+
+Wir haben nicht genauer nachverfolgt, ob diese Fehlermeldung durch einen Fehler
+in der Library-Implementation verursacht wurde, oder ob ein effektives
+Hardware-Limit erreicht wurde, aber es ist offensichtlich dass man nicht
+beliebig viele Workitems parallel laufen lassen kann.
+
+\subsubsection{Vorzeitiger Abbruch}
+
+Aktuell wird die Ausf"uhrung des Programms nicht vorzeitig abgebrochen, wenn ein
+Kernel das Resultat gefunden hat. Dies w"are allerdings mit einem \textit{Result
+Found} Flag, welches durch den erfolgreichen Thread im Globalen Memory gesetzt
+wird, relativ einfach implementierbar. Jeder Kernel m"usste zu Beginn der
+Ausf"uhrung dieses Flag "uberpr"ufen. Ist es gesetzt, wird die MD5-Berechnung im
+Kernel gar nicht erst ausgef"uhrt. Zu bestimmten Zeitpunkten im Programm-Ablauf
+k"onnte auch das Hauptprogramm dieses Flag "uberpr"ufen und im Erfolgsfall das
+Erzeugen neuer Kernel abbrechen.
+
+Da das korrekte Resultat durchschnittlich nach 50\% der Versuche gefunden wird
+(vorausgesetzt nat"urlich, dass sich die korrekte L"osung im Keyspace befindet),
+w"urde ein vorzeitiger Abbruch die Programm-Laufzeit (abz"uglich des dadurch
+eingef"uhrten Overheads) im Schnitt halbieren.
+
+\subsubsection{Performance-Einbussen durch Python}
+
+Die Wahl der Programmiersprache Python zur Implementierung des Hauptprogramms
+verursacht nat"urlich leicht h"ohere Laufzeit w"ahrend der Init- und
+Collection-Phase, da Python eine interpretierte High-Level Programmiersprache
+mit Garbage-Collection ist. Da jedoch sowohl die PyOpenCL Library wie auch der
+Kernel-Code in C geschrieben sind, sind diese Performance-Einbussen in der Regel
+vernachl"assigbar, solange der Hauptteil der Arbeit im Kernel-Code geschieht.
+
+\subsubsection{Optimierung der MD5-Implementation}
+
+Wie schon im Abschnitt \ref{crypto:md5lib} beschrieben, haben wir innerhalb
+unseres Kernels eine bestehende MD5-Implementation verwendet. Diese
+Implementation wurde mit dem Fokus auf Einfachheit entwickelt und nicht im
+Hinblick auf maximale Performance. Im Rahmen dieser Arbeit haben wir keinerlei
+Optimierungen innerhalb dieser Library vorgenommen. Eine Parallelisierung des
+Algorithmus ist zwar aufgrund der rundenbasierten Natur von MD5 nicht m"oglich,
+jedoch bietet die Implementation selbst viel Raum f"ur plattformspezifische
+Verbesserungen. Wie gross die Welt der m"oglichen OpenCL-Kerneloptimierungen
+ist, sieht man eindr"ucklich im
+\citetitle{crypto:nvidia_bestpractices} \cite{crypto:nvidia_bestpractices}.
+
+
+\section{Resultate}
+
+Unsere Implementation kann das gesetzte Ziel aus Abschnitt
+\ref{crypto:zielsetzung} -- das Knacken des Wortes ``monkey'' innerhalb
+kurzer Zeit -- erreichen:
+
+\begin{small}
+\begin{verbatim}
+$ echo -n "monkey" | md5sum
+d0763edaa9d9bd2a9516280e9044d885
+$ python crack_md5.py d0763edaa9d9bd2a9516280e9044d885
+Starting round with length 1...
+Work size: [26]
+Starting round with length 2...
+Work size: [26, 26]
+Starting round with length 3...
+Work size: [26, 26, 26]
+Starting round with length 4...
+Work size: [676, 26, 26]
+Starting round with length 5...
+Work size: [676, 676, 26]
+Starting round with length 6...
+Work size: [676, 676, 676]
+Result is "monkey"!
+
+Stats
+-----
+
+- Elapsed total time: 1.204507s
+- Length 1: Finished in 0.000510s
+- Length 2: Finished in 0.000458s
+- Length 3: Finished in 0.000330s
+- Length 4: Finished in 0.002104s
+- Length 5: Finished in 0.049636s
+- Length 6: Finished in 1.151242s
+- Length 7: Projected time would be 29.932286s
+- Length 8: Projected time would be 778.239443s
+- Keyspace: 308915776
+\end{verbatim}
+\end{small}
+
+Man sieht also, dass unser Programm auf einer Nvidia GeForce GTX 760 Grafikkarte
+den Keyspace von 308'915'776 m"oglichen Eingabeworten innerhalb von 1.15s
+durchsuchen kann.
+
+Bei den anschliessend ausgegebenen Laufzeiten (sowohl effektiv wie auch
+extrapoliert) sieht man sehr gut die in Abschnitt \ref{crypto:keyspace}
+vorhergesagte exponentielle Entwicklung:
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=.9\textwidth]{crypto/graphs/runtime.pdf}
+	\caption{Entwicklung der Laufzeit abh"angig von der Wortl"ange}
+	\label{img:crypto:triplets}
+\end{figure}
+
+\newpage
+\subsection{Performancevergleich}
+
+Wir haben unsere Implementation auf verschiedenen CPU- und GPU-Platformen
+getestet. Nachfolgend ein Vergleich der Laufzeit (tiefer ist besser) auf 2 CPUs
+und 3 GPUs:
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=.9\textwidth]{crypto/graphs/speed_comparison_v1.png}
+	\caption{Performance-Vergleich}
+	\label{img:crypto:speed_comparison_v1}
+\end{figure}
+
+W"ahrend die Mobil-GPU \textit{Nvidia NVS 3100M} wie erwartet sehr
+langsam ist, sieht man deutlich wie im hardwaretechnisch leistungskr"aftigeren
+Bereich die GPUs klar vor den CPUs liegen. Am besten abgeschnitten hat die
+\textit{Nvidia GeForce GTX 760}, ein verwunderndes Ergebnis, da doch diese
+Grafikkarte f"ur Heimgebrauch (Gaming) gemacht wurde, w"ahrend die
+\textit{Nvidia Tesla M2090} eine Karte extra f"ur High Performance Computing
+ist. Das Beispiel zeigt gut, wie schwierig es ist, die Geschwindigkeit von
+Programmen auf unterschiedlicher Hardware abzusch"atzen.
+
+Auffallend ist auch der Unterschied zwischen der Intel- und der
+AMD-Implementierung von OpenCL bei der \textit{Intel Xeon X7550} CPU. Die
+Intel-Implementation ben"otigt mehr als doppelt so lange um denselben Code auf
+derselben Hardware auszuf"uhren. Das zeigt wiedermal die grossen Unterschiede
+bei der Qualit"at der OpenCL Implementierungen auf.
+
+Um den Geschwindigkeits-Gewinn durch OpenCL etwas zu verdeutlichen, haben wir
+zus"atzlich den selben C-Code als eigenst"andiges Programm ohne Parallelisierung
+implementiert. Die Resultate fallen deutlich aus: Die OpenCL Implementierung des
+MD5 Crackers ist auf der \textit{Intel Xeon X7550} rund um Faktor 74 schneller
+als die Single Threaded Variante.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=.9\textwidth]{crypto/graphs/speed_comparison_v2.png}
+	\caption{Performance: OpenCL vs. Single Threaded}
+	\label{img:crypto:speed_comparison_v2}
+\end{figure}
+
+
+\subsection{Links}
+\label{crypto:resultate:links}
+
+S"amtlicher Code zu diesem Kapitel ist auf Github zu finden:\\
+\url{https://github.com/AndreasFMueller/SeminarHPC/tree/master/code/crypto}
+
+
+\printbibliography[heading=subbibliography]
+\end{refsection}
