@@ -355,7 +355,7 @@ Operationen, die f"ur den Gauss-Algorithmus erforderlich sind.
 Ausserdem sind die Rechenoperationen des Jacobi-Algorithmus hochgradig
 parallelisierbar.
 
-\subsection{Gauss-Seidel}
+\subsection{Gauss-Seidel\label{section-gauss-seidel}}
 \index{Algorithmus!Gauss-Seidel}
 Im Jacobi-Verfahren wurde aus einer angen"aherten L"osung $v^{(k)}$
 eine verbesserte angen"aherte L"osung $v^{(k+1)}$ berechnet.
@@ -390,7 +390,7 @@ Der Gauss-Seidel-Algorithmus zeigt, dass eine Konvergenzbeschleunigung
 m"oglich ist, man m"usste aber vom Jacobi-Algorithmus ausgehen.
 
 
-\subsection{Matrix-Aufteilung}
+\subsection{Matrix-Aufteilung\label{section-matrix-aufteilung}}
 \index{Matrix-Aufteilung}
 Das Jacobi- und das Gauss-Seidel-Verfahren sind beide Spezialf"alle
 einer Aufteilung der Matrix $A$ in zwei Teile. 
@@ -501,6 +501,7 @@ A=\begin{pmatrix}
 ,
 \quad
 M=\frac52E
+\label{gauss-seidel-beispiel}
 \end{align*}
 Die Matrix $M$ ist leicht zu invertieren, es ist $M=\frac25E$.
 Die Iterationsformel (\ref{aufteilung:iteration}) wird damit zu
