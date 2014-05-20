@@ -209,8 +209,11 @@ d0763edaa9d9bd2a9516280e9044d885
 
 \section{Umsetzung mit OpenCL}
 
-- Wir haben OpenCL gew"Ahlt
-- Warum?
+Wenn man einen MD5-Hash brute-forcen will, ben"otigt man eine massive Anzahl
+komplett unabh"angiger paralleler Tasks. Die MD5-Berechnung selbst ist nicht
+unabh"angig und wird deshalb nicht parallelisiert, aber mehrere MD5-Berechnungen
+k"onnen nebeneinander ausgef"uhrt werden und ben"otigen keinerlei
+Interprozess-Kommunikation. OpenCL ist hierf"ur also bestens geeignet.
 
 \section{Probleme mit grossen Problemen}
 
@@ -322,7 +325,7 @@ Dokumentation \cite{crypto:opencl_ref} entnommen werden.
 
 Um das diese Begriffe etwas verst"andlicher zu machen, wird ein kurzes
 Code-Beispiel f"ur einen typischen Desktop-Computer mit einer OpenCL f"ahigen
-CPU und einer modernen Grafikkarte aufgeführt. Es ist exemplarisch, der
+CPU und einer modernen Grafikkarte aufgef"uhrt. Es ist exemplarisch, der
 Anschaulichkeit wegen in Pseudocode verfasst und repr"asentiert weder den vollen
 Umfang der R"uckgabewerte noch die real ben"otigten Parameter!
 
