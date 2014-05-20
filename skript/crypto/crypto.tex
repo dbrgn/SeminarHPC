@@ -214,12 +214,212 @@ d0763edaa9d9bd2a9516280e9044d885
 
 \section{Probleme mit grossen Problemen}
 
-Obwohl OpenCL gemacht ist für sehr grosse Probleme, st''osst es irgendwann an 
-seine Grenzen. Was diese Grenzen sind, wie man herausfindet wo diese bei der
-eingesetzten Hardware liegen und wie man das Problem so aufteilen kann, dass
-es trotzdem gerechnet werden kann.
+\subsection{Einf''uhrung}
 
-\subsection{(Hardware-)grenzen mit OpenCL}
+Auch wenn OpenCL ausdr''ucklich daf''ur entwickelt wurde, mit riesigen Clustern
+von heterogenen Recheneinheiten sehr umfangreiche Probleme zu l''osen, so 
+st''osst man doch irgendwann an die Grenzen der Hardware oder der Implementierung.
+Denn jeder Kernel der ausgef''uhrt wird, ben''otigt Speicherplatz (Gr''osse des
+zur Verfügung stehenden Speichers, Hardware), muss irgendwie verwaltet werden 
+(Anzahl der maximal verwaltbaren Work-Items und Work-Groups, Implementierung) und 
+die Anzahl Dimensionen, die von einem Kernel verarbeitet werden kann, ist begrenzt
+(Work-Item-Dimension, Hardware & Implementierung).
+
+Wir machen dazu im Rahmen behandelten Md5-Cracking folgende Betrachtungen:
+
+Angenommen wir verwenden nur den Zeichensatz [a-zA-Z0-9] sprich insgesamt 62 
+unterschiedliche Zeichen, die beliebig kombiniert werden k''onnen. Die 
+Kombinatorik sagt dazu, dass es also
+
+\[
+ N_{Komb} =  62^{n}
+\]
+
+m''ogliche Kombinationen gibt,  wobei \[n\] die Anzahl der Zeichen im Wort angibt. 
+Das ergibt bei einer Stellenzahl von 8 Stellen, was so in etwa der gel''aufigen 
+Mindestl''ange eines Passworts entspricht 
+
+\[ 
+ N_{Komb} = 62^{8} = 2.183 * 10^12 
+\] 
+
+Kombinationen. Demgegen''ber stehen aber auf einem System mit einem Intel i5-3320M 
+Prozessor und 8GB RAM und in einer OpenCL Workgroup maximal
+
+\[
+ N_{max} = N_{Workitems}^{wi_dim} = 8193^{3} = 5.50 * 10^11
+\]
+
+verwaltbare ``Problem-St''ucke`` entgegen. Trotzdem l''asst zum Beispiel die OpenCL
+Implementierung von Intel auch eine gr''ossere Anzahl WorkItems problemlos zu, 
+wohingegen sich die Nvidia Implementation mit einer ``Out-of-resources``-Meldung 
+beendet.
+
+Genau um diese Grenzen soll es in diesem Abschnitt geben. Er soll aber in keinster
+Weise ersch''opfend die Grenzen von OpenCL oder alle Spezifikas der 
+Implementierungen eingegangen werden, sondern vielmehr für das Thema sensibilisiert 
+und m''ogliche Ans''atze f''ur den Umgang mit grossen Problemen in OpenCL aufgezeigt
+werden, was hoffentlich dazu f''uhren wird, dass der Leser/die Leserin ein Gesp''ur 
+f''ur eigene, auf die spezifische Hardware und Implementierung zugeschnittene 
+Ans''atze entwickeln kann.
+
+
+\subsection{Grenzen von OpenCL}
+
+OpenCL wurde entwickelt um trotz einem m''glichst Plattform''ubergreifenden Ansatz 
+sehr flexibel auf die Spezifika der jeweiligen Hardware reagieren zu k''onnen, was
+auch das ebenfalls in OpenGL vorhandene Extension-System beinhaltet. Vor allem f''ur
+Einsteiger in die OpenCL/OpenGL-Welt (hier sei erw''ahnt, dass hinter beiden 
+Technologien sehr ''anhliche Grundkonzepte stehen) kann es dabei schwierig werden
+sich im Dschungel der Hardwaredaten und M''oglichkeiten zurechtzufinden. Auf die 
+wichtigsten Einstiegspunkte und die f''ur unsere Problemstellung relevanten Punkte
+soll hier kurz eingegangen werden.
+
+
+\subparagraph{Hardwaremerkmale abfragen}
+
+Gerade weil OpenCL so unterschiedliche Typen Hardware unterst''utzt, von der ``normalen''
+Desktop-CPU bis zu f''ur HPC Anwendungen spezialisierte Rechenkarten, gibt es einen
+sehr m''achtigen Weg die jeweiligen Hardwaremerkmale abzufragen. Das kann soweit 
+gehen, dass w''ahrend der Laufzeit die Hardwarekonfiguration abgefragt und das 
+Problem dynamisch auf die vorhandene Hardware optimiert wird.
+
+An dieser Stelle macht es Sinn sich nochmals vereinfacht die Top-Down-Struktur von 
+OpenCL vor Augen zu f''uhren: 
+
+   Plattform -> Compute Device -> Compute Unit (-> Work Group -> Work Item -> Work Item Dimension)
+   
+In dieser Reihenfolge fragt man auch die Hardwaremerkmale ab. OpenCL stellt dazu 
+folgende Funktionen zur Verf''gung:
+
+\begin{description}
+ \item [clGetPlatformIDs()] gibt eine Liste der vorhandenen Plattformen zur''uck.
+ \item [clGetPlatformInfo()] returniert die Merkmale der aktuellen Plattform. Das heisst,
+                            der Herausgeber der Implementation, die imlementierte 
+                            OpenCL Version und allf''allig von der Plattform 
+                            zus''atzlich unterst''utzte Erweiterungen (Das m''ussen
+                            nicht die gleichen sein wie die von den jeweiligen
+                            Compute Devices unterst''utzten).
+ \item [clGetDeviceIDs()]   Mit der jeweiligen Plattform-ID k''onnen nun die auf der 
+                            jeweiligen Plattform verf''ugbaren Compute-Devices abgefragt 
+                            werden.
+ \item [clGetDeviceInfo()]  Mit den so erhaltenen Device-IDs bekommt man anschliessend 
+                            zum abgefragten Compute Device einen ganzen Katalog von
+                            Merkmalen zur''uck, von der maximalen Anzahl von Workgroups
+                            und Work-Items, ''uber die Speicherkapazit''aten bis zur 
+                            Clock-Frequenz und dem Hersteller der Hardware. Auf einzelne 
+                            dieser Merkmale soll im Folgenden noch eingegangen werden.
+\end{description}
+
+Die genauen Parameter und R''uckgabewerte soll der Leser der offiziellen Dokumentation
+\cite{crypto:opencl_ref} entnehmen.
+
+Der besseren Verst''andlichkeit wegen soll hier zuerst ein kurzes Code-Beispiel f''ur 
+einen typischen Desktop-Computer mit einer OpenCL f''ahigen CPU und einer modernen 
+Grafikkarte aufgef''uhrt werden. Es ist exemplarisch, der Anschaulichkeit wegen in
+Pseudocode verfasst und repr''asentiert weder den vollen Umfang der 
+R''uckgabewerte noch die real ben''otigten Parameter!
+
+\begin{verbatim}
+> clGetPlatformIDs()
+0
+1
+
+> clGetPlatformInfo(platform=0)
+Name:          Intel(R) OpenCL
+Vendor:        Intel(R) Corporation
+Version:       1.2
+Profile:       Full
+Extensions:    cl_khr_icd,cl_khr_global_int32_base_atomics,(...)
+
+> clGetPlatformInfo(platform=1)
+Name:          NVIDIA(R) OpenCL
+Vendor:        NVIDIA Corp. limited
+Version:       1.2
+Profile:       Full
+Extensions:    (...)
+
+> clGetDeviceIDs(platform=0)
+0
+
+> clGetDeviceInfo(platform=0,device=0)
+General Information:
+ - Name:                 Intel(R) Core(TM) i5-3320M CPU @ 2.60GHz
+ - Available:            True
+ - Vendor (VID):         Intel(R) Corporation (32902)
+ - Version:              OpenCL 1.2 (Build 82248)
+ - Profile:              full
+ - Type:                 CPU 
+ - Extensions:           cl_khr_icd,cl_khr_global_int32_base_atomics,(...)
+ - Endianess:            Little
+
+Memory and Clocks
+ - Clock frequency (max):2600 MHz
+ - Compute units:        4
+ - Global memory:        7816 MB
+ - Local memory:         32768 kB, 2
+
+Kernel properties:
+ - Max param. size:      3840 B
+ - Max work group size:  8192
+ - Max work item dim.:   3
+ - Max work item size:   [8192, 8192, 8192]
+
+Datatypes:
+ - Flotating point:      Single & Double precision
+ - Preferred vector size: 1 (all supported  types)
+
+>
+\end{verbatim}
+
+
+Zu einzelnen Punkten aus dem Codebeispiel hier eine kurze Erleuterung:
+
+\begin{description}
+ \item [Version] Implementierte bzw. Unterst''utzte OpenCL Version
+ \item [Profile] ``full'' oder ``embedded'' (in OpenCL 1.2)
+ \item [Type]    CPU, GPU, ACCELERATOR (i.e. spezielle OpenCL Beschleuniger)
+ \item [Compute Units] Anzahl der physisch vorhandenen Compute Units. Dies ist
+                 die Anzahl effektiv parallel ausgef''uhrter Kernel
+ \item [Max work group size] Maximale Anzahl Work Items in einer Work Group
+ \item [Max work item dim.] Maximale direkt im Work Item bearbeitbare Dimensionen, minimal 3
+ \item [Max work item size] Maximale Anzahl von Work Items in einer Work Group nach
+                 Dimensionen (Ist je nach Ger''at unterschiedlich je nach
+                 Dimension)
+ \item [Preferred vector size] (Nach Datentyp) Vektorgr''osse, die von der Hardware 
+                 f''ur den jeweiligen Typ direkt (in einer Instruktion) verarbeitet
+                 werden kann.
+ 
+\end{description}
+
+
+Dabei gelten anhand der im Code gezeigten Zahlen folgende Regeln:\cite{crypto:opencl_ref}
+\begin{itemize}
+ \item Eine Work Group wird nur auf einer Compute Unit aufgef''uhrt (1 Work Group = 1 
+       Compute Device) 
+ \item Die Anzahl der Work-Items pro Work-Group darf insgesamt 8192 nicht ''ubersteigen (global work size)
+ \item Dabei d''urfen die in ``Max work item size'' angegebenen Werte in der jeweiligen 
+       Dimension nicht ''uberstiegen werden (local work size [x,y,z,\ldots]). \[x+y+z\] 
+       darf dabei aber nicht gr''osser werden als ``Max work group size''.
+ \item Die Anzahl effektiv verwendeter Work Item Dimensionen darf im Bereich von 1 bis
+       ``Max work item dim.'' liegen.
+\end{itemize}
+
+
+\subparagraph{Maximale Problemgr''osse an einem Beispiel}
+
+Das heisst nun f''ur unser Beispiel folgendes:
+
+\begin{itemize}
+ \item asdg
+\end{itemize}
+
+
+
+
+
+
+
 
 - Wo stossen wir an unsere Grenzen?
 - Bezug/Referenz auf Einleitung ("Uberlegungen zum Keyspace)
@@ -227,6 +427,9 @@ es trotzdem gerechnet werden kann.
 \subsection{Aufteilung von grossen Problemen}
 
 - Was gibt es f"ur L"osungsans"atze?
+
+
+
 
 \section{L"osungsansatz}
 
