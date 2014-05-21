@@ -446,10 +446,137 @@ Das heisst nun f"ur unser Beispiel folgendes:
 
 \section{L"osungsansatz}
 
-Wie haben wir es umgesetzt, und warum?
+% TODO danilo: Ev Bezug auf vorherige Section
 
-- Grob-Ansatz, Bezug auf vorherige Section
-- Herleitung Wort
+Um den Brute-Force-Knacker zu implementieren haben wir uns f"ur folgenden
+L"osungsansatz entschieden:
+
+\begin{itemize}
+	\item Jedes m"ogliche Eingabe-Wort wird einem Kernel zugewiesen
+	\item Jeder Kernel berechnet den MD5-Hash f"ur genau ein Wort
+	\item Das Eingabe-Wort wird innerhalb des Kernels aus der mehrdimensionalen
+		Global ID hergeleitet.
+	\item Der errechnete Hash wird innerhalb des Kernels mit dem Ziel-Hash
+		verglichen. Sofern die zwei WErte "ubereinstimmen, wird das Wort in den
+		Result-Buffer geschrieben.
+	\item Der Einfachheit halber wird im Erfolgsfall kein vorzeitiger Abbruch
+		durchgef"uhrt, stattdessen wird der ganze Keyspace durchprobiert.
+	\item Nachdem alle m"oglichen Hash-Werte berechnet wurden, wird der
+		Result-Buffer vom Hauptprogramm ausgelesen und angezeigt.
+\end{itemize}
+
+\noindent Zusammengefasst besteht der Ablauf aus drei Phasen: Init (CPU),
+Calculate (GPU), Collect (CPU).
+
+\begin{figure}[H]
+	\centering
+	\input{crypto/programm-struktur}
+	\caption{L"osungsansatz Programmstruktur}
+	\label{img:crypto:programm-struktur}
+\end{figure}
+
+\subsection{Herleitung Wort aus Global ID}
+
+Irgendwie muss nun jeder Kernel herausfinden, welches Wort er hashen soll. Eine
+"Ubergabe des zu hashenden Wortes vom Hauptprogramm an jeden Kernel via Shared
+Memory w"are ineffizient und w"urde nur unn"otigen I/O verursachen. Es muss also
+eine bessere L"osung gefunden werden.
+
+Der Vorteil an unserem Problem ist, dass der Keyspace f"ur die m"oglichen
+Eingabewerte einen Linearen Raum darstellt. Es liegt also nahe, das Wort aus der
+Global ID herzuleiten. Die Global ID ist eine $n$-Dimensionale nat"urliche Zahl,
+welche jedem Kernel von OpenCL zugewiesen wird. Der Wertebereich bewegt sich
+dabei in Einerschritten von $(0, ..., 0)$ bis $(n, ..., n)$. Dabei ist $n$ die
+\textit{Work Size} f"ur die entsprechende Dimension.
+
+\subsubsection{Naiver Ansatz}
+
+Ein naiver Ansatz w"are nun, dass die jede Dimension der Global ID einem
+m"oglichen Zeichen des Eingabewortes entspricht. Die Dimensionszahl entspricht
+dann der Anzahl Zeichen im Eingabewort. Um diesen Ansatz zu verdeutlichen,
+nachfolgend ein Beispiel f"ur ein Eingabewort mit der L"ange 3 und a-z als
+m"ogliches Alphabet:
+
+\begin{small}
+\begin{verbatim}
+>>> id = (22, 19, 5)
+>>> alphabet = "abcdefghijklmnopqrstuvwxyz"
+>>> word = alphabet[id[0]] + alphabet[id[1]] + alphabet[id[2]]
+>>> print(word)
+wtf
+\end{verbatim}
+\end{small}
+
+\noindent Das sieht zwar auf den ersten Blick nach einem guten Ansatz aus, jedoch ergibt
+sich dabei das erste Problem: Die Anzahl m"oglicher Dimensionen darf gem"ass
+OpenCL Standard\cite{crypto:stephan2011kryptographie} maximal 3 sein. Das
+bedeutet, dass man mit diesem Ansatz nur W"orter mit einer L"ange von bis zu 3
+Zeichen knacken kann. Man muss also einen Weg finden, diese Dimensionen
+irgendwie zu vergr"ossern.
+
+\subsubsection{Virtuelle Dimensionen}
+
+Eine M"oglichkeit dazu ist die Einf"uhrung virtueller Dimensionen. Dabei werden
+mehrere Dimensionen durch Multiplikation der Keyspace-Gr"osse in eine einzelne
+``Virtuelle Dimension'' gepackt. Konkret sieht das so aus:
+
+\begin{itemize}
+	\item Dimension bei Wort-L"ange 1: $(26,)$
+	\item Dimension bei Wort-L"ange 3: $(26, 26, 26)$
+	\item Dimension bei Wort-L"ange 4: $(26^2, 26, 26) = (676, 26, 26)$
+	\item Dimension bei Wort-L"ange 7: $(26^3, 26^2, 26^2) = (17576, 676, 676)$
+\end{itemize}
+
+\noindent Aus diesen Werten kann dann der Buchstabe $c_n$ an Position $n$ mithilfe von
+Modulo-Arithmetik aus der Work Size $d$abgeleitet werden:
+\[
+	c_n = \frac{d}{26^n} \enskip\%\enskip 26
+\]
+Um nun den entsprechenden ASCII-Buchstaben zu erhalten, muss man lediglich
+diesen Wert $c_n$ um 97 erh"ohen.
+
+Damit das ganze etwas einfacher zu implementieren ist, f"uhren wir zus"atzlich
+das Konzept eines ``Triplets'' ein. Die Triplet-ID ergibt sich, wenn man die
+Buchstaben des Wortes in Dreiergruppen aufteilt (Sliding Window Algorithmus).
+
+\begin{figure}[H]
+	\centering
+	\input{crypto/triplets}
+	\caption{Aufteilung des Wortes in Triplets}
+	\label{img:crypto:triplets}
+\end{figure}
+
+\noindent In OpenCL C sieht das Ganze folgendermassen aus:
+
+\begin{small}
+\begin{verbatim}
+// Initialize private variables
+__private char string[MAX_PW_LEN];
+__private unsigned int global_id;
+__private unsigned char triplet_id;
+
+for (int i = 0; i < 3; i++) {
+
+  // Get global ID for dimension i
+  global_id = get_global_id(i);
+
+  // Loop through triplets
+  for (triplet_id = 0; triplet_id <= (len - 1) / 3; triplet_id += 1) {
+    string[triplet_id * 3 + i] = 0x61 + ((int)(global_id / pown(26., triplet_id)) % 26);
+  }
+
+}
+\end{verbatim}
+\end{small}
+
+\subsection{Berechnen des MD5-Wertes}
+
+- Wie wird der MD5-Hash berechnet?
+
+\subsection{Init, Collect}
+
+- Wie werden die Kernel initialisiert? Wie wird der Rückgabewert entgegen
+genommen?
 
 \section{Implementationseigenheiten}
 
