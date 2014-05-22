@@ -225,7 +225,7 @@ man doch irgendwann an die Grenzen der Hardware oder der Implementierung.  Denn
 jeder Kernel der ausgef"uhrt wird, ben"otigt Speicherplatz (Gr"osse des zur
 Verf"ugung stehenden Speichers, Hardware) und muss irgendwie verwaltet werden
 (Anzahl der maximal verwaltbaren Work-Items und Work-Groups, Implementierung).
-Zudem ist die Anzahl Dimensionen, die von einem Kernel verarbeitet werden kann,
+Zudem ist die Anzahl Dimensionen, die von einem Kernel verarbeitet werden k''onnen,
 begrenzt (Work-Item-Dimension, Hardware \& Implementierung). Deshalb folgen in
 diesem Kapitel einige Betrachtungen dazu, wie man mit diesen Limitationen
 umgehen kann.
@@ -246,14 +246,14 @@ Das ergibt bei einer Stellenzahl von 8 Stellen, was so in etwa der gel"aufigen
 Mindestl"ange eines Passworts entspricht 
 
 \[ 
- N_{Komb} = 62^{8} = 2.183 * 10^12 
+ N_{Komb} = 62^{8} = 2.183 * 10^{12} 
 \] 
 
-Kombinationen. Demgegen"ber stehen aber auf einem System mit einem Intel i5-3320M 
+Kombinationen. Demgegen"uber stehen aber auf einem System mit einem Intel i5-3320M 
 Prozessor und 8GB RAM und in einer OpenCL Workgroup maximal
 
 \[
- N_{max} = N_{Workitems}^{wi_dim} = 8193^{3} = 5.50 * 10^11
+ N_{max} = N_{Workitems}^{wi_dim} = 8193^{3} = 5.50 * 10^{11}
 \]
 
 verwaltbare ``Problem-St"ucke'' entgegen. Trotzdem l"asst zum Beispiel die OpenCL
@@ -376,7 +376,7 @@ Kernel properties:
  - Max work item size:   [8192, 8192, 8192]
 
 Datatypes:
- - Flotating point:      Single & Double precision
+ - Floating point:       Single & Double precision
  - Preferred vector size: 1 (all supported  types)
 \end{verbatim}
 \end{small}
@@ -392,8 +392,7 @@ Datatypes:
  \item [Compute Units] Anzahl der physisch vorhandenen Compute Units. Dies ist
                  die Anzahl effektiv parallel ausgef"uhrter Kernel
  \item [Max work group size] Maximale Anzahl Work Items in einer Work Group
- % TODO: Stimmt das "minimal 3"? Sind das nicht maximal 3?
- \item [Max work item dim.] Maximale direkt im Work Item bearbeitbare Dimensionen, minimal 3
+ \item [Max work item dim.] Maximale direkt im Work Item bearbeitbare Dimensionen, minimal 1, maximal 3
  \item [Max work item size] Maximale Anzahl von Work Items in einer Work Group nach
                  Dimensionen (Ist je nach Ger"at unterschiedlich je nach
                  Dimension)
