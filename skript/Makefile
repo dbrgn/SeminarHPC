@@ -15,11 +15,14 @@ subdirs:
 SAMPLEFILES = sample/sample.tex sample/sample.bib
 HEATFILES = heat/heat.tex
 JULIAFILES = julia/julia.tex julia/julia.bib
+MAPREDUCEFILES = mapreduce/mapreduce.tex mapreduce/map.bib
 
 TEXFILES = vorwort.tex einleitung.tex maschinen.tex sprachen.tex \
-	daten.tex algorithm.tex $(SAMPLEFILES) $(HEATFILES) $(JULIAFILES)
+	daten.tex algorithm.tex \
+	$(SAMPLEFILES) $(HEATFILES) $(JULIAFILES) $(MAPREDUCEFILES)
 
-BLXFILES = skript1-blx.bbl skript2-blx.bbl skript3-blx.bbl skript4-blx.bbl
+BLXFILES = skript1-blx.bbl skript2-blx.bbl skript3-blx.bbl skript4-blx.bbl \
+	skript5-blx.bbl
 
 IMAGES = graphics/cgresults.pdf
 
@@ -48,6 +51,9 @@ skript3-blx.bbl:	skript3-blx.aux
 
 skript4-blx.bbl:	skript4-blx.aux
 	bibtex skript4-blx
+
+skript5-blx.bbl:	skript5-blx.aux
+	bibtex skript5-blx
 
 # standalone compilation of a single article
 standalone.pdf:	standalone.tex $(TEXFILES)

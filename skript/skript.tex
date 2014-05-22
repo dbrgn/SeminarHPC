@@ -7,6 +7,7 @@
 %\documentclass[a4paper,12pt]{book}
 %\documentclass[a4paper]{book}
 \documentclass{book}
+\usepackage{etex}
 \usepackage{geometry}
 \geometry{papersize={170mm,240mm},total={140mm,200mm},top=21mm,bindingoffset=10mm}
 \usepackage[ngerman]{babel}
@@ -29,11 +30,12 @@
 \usepackage{tikz}
 \usepackage{placeins}
 %\usetikzlibrary{arrows,decorations.pathmorphing,positioning,fit,petri}
-%\usetikzlibrary{calc,intersections,through,backgrounds,graphs}
-%\usetikzlibrary{patterns,decorations.pathreplacing}
+\usetikzlibrary{calc,intersections,through,backgrounds,graphs,positioning,shapes,arrows}
+\usetikzlibrary{patterns,decorations.pathreplacing}
 %\usetikzlibrary{shapes,snakes,trees}
 %\usetikzlibrary{decorations.pathreplacing}
 %\usetikzlibrary{patterns}
+\usepackage{siunitx}
 \usepackage{listings}
 \lstdefinestyle{Matlab}{
   numbers=left,
@@ -58,6 +60,7 @@
 \addbibresource{sample/sample.bib}
 \addbibresource{julia/julia.bib}
 \addbibresource{apfel/apfelmaennchen.bib}
+\addbibresource{mapreduce/map.bib}
 \AtEndDocument{\clearpage\ifodd\value{page}\else\null\clearpage\fi}
 \makeindex
 \begin{document}
@@ -182,6 +185,7 @@ Hochschule f"ur Technik, Rapperswil, 2014
 \input sample/sample.tex
 \input julia/julia.tex
 \input apfel/apfelmaennchenInput.tex
+\input mapreduce/mapreduce.tex
 \input heat/heat.tex
 \vfill
 \pagebreak
