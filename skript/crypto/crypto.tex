@@ -207,7 +207,7 @@ $ echo -n "monkey" | md5sum
 d0763edaa9d9bd2a9516280e9044d885
 \end{verbatim}
 
-\section{Umsetzung mit OpenCL}
+\subsection{Umsetzung mit OpenCL}
 
 Wenn man einen MD5-Hash brute-forcen will, ben"otigt man eine massive Anzahl
 komplett unabh"angiger paralleler Tasks. Die MD5-Berechnung selbst ist nicht
@@ -225,32 +225,15 @@ man doch irgendwann an die Grenzen der Hardware oder der Implementierung.  Denn
 jeder Kernel der ausgef"uhrt wird, ben"otigt Speicherplatz (Gr"osse des zur
 Verf"ugung stehenden Speichers, Hardware) und muss irgendwie verwaltet werden
 (Anzahl der maximal verwaltbaren Work-Items und Work-Groups, Implementierung).
-Zudem ist die Anzahl Dimensionen, die von einem Kernel verarbeitet werden k''onnen,
+Zudem ist die Anzahl Dimensionen, die von einem Kernel verarbeitet werden k"onnen,
 begrenzt (Work-Item-Dimension, Hardware \& Implementierung). Deshalb folgen in
 diesem Kapitel einige Betrachtungen dazu, wie man mit diesen Limitationen
 umgehen kann.
 
-% TODO: Im Kapitel "Brute-Force Angriff auf MD5" werden fast die selben
-% Berechnungen (Kombinatorik) bereits gemacht. Ev kann man darauf verweisen,
-% anstatt sie hier nochmals zu machen?
-Angenommen wir verwenden nur den Zeichensatz [a-zA-Z0-9] sprich insgesamt 62 
-unterschiedliche Zeichen, die beliebig kombiniert werden k"onnen. Die 
-Kombinatorik sagt dazu, dass es also
-
-\[
- N_{Komb} =  62^{n}
-\]
-
-m"ogliche Kombinationen gibt,  wobei \[n\] die Anzahl der Zeichen im Wort angibt. 
-Das ergibt bei einer Stellenzahl von 8 Stellen, was so in etwa der gel"aufigen 
-Mindestl"ange eines Passworts entspricht 
-
-\[ 
- N_{Komb} = 62^{8} = 2.183 * 10^{12} 
-\] 
-
-Kombinationen. Demgegen"uber stehen aber auf einem System mit einem Intel i5-3320M 
-Prozessor und 8GB RAM und in einer OpenCL Workgroup maximal
+Wie in der Einf"uhrung ins Problem bereits betrachtet, ergeben sich beim Zeichensatz
+[a-zA-Z0-9] und einer Passwortl"ange von 8 Zeichen mehr als 200 Billionen = $2^{12}$ 
+m"ogliche Kombinationen. Dieser Problemgr"osse stehen aber auf einem System mit einem 
+Intel Core i5-3320M Prozessor, 8GB RAM und in einer OpenCL Workgroup maximal
 
 \[
  N_{max} = N_{Workitems}^{wi_dim} = 8193^{3} = 5.50 * 10^{11}
@@ -272,9 +255,11 @@ Ans"atze entwickeln kann.
 
 \subsection{Grenzen von OpenCL}
 
+% @ Danilo: Ich würde es drin lassen. Sind zwei kurze Abschnitte, die fressen kaum
+% Heu, aber ein bisschen Hintergrundinfo, denke ich kann nicht schaden.
 % TODO: Ich würde auf Erweiterungen gar nicht erst eingehen. Sie sind für uns ja
 % nicht sonderlich relevant.
-OpenCL wurde entwickelt um trotz einem m"glichst Plattform"ubergreifenden Ansatz 
+OpenCL wurde entwickelt um trotz einem m"oglichst Plattform"ubergreifenden Ansatz 
 sehr flexibel auf die Spezifika der jeweiligen Hardware reagieren zu k"onnen, was
 auch das ebenfalls in OpenGL vorhandene Extension-System beinhaltet. Vor allem f"ur
 % TODO: Hier ebenfalls, ich würde OpenGL gar nicht erst erwähnen, sondern ganz
@@ -385,6 +370,7 @@ Datatypes:
 
 \noindent Zu einzelnen Punkten aus dem Codebeispiel hier eine kurze Erl"auterung:
 
+
 \begin{description}
  \item [Version] Implementierte bzw. Unterst"utzte OpenCL Version
  \item [Profile] \texttt{full} oder \texttt{embedded} (in OpenCL 1.2)
@@ -394,47 +380,90 @@ Datatypes:
  \item [Max work group size] Maximale Anzahl Work Items in einer Work Group
  \item [Max work item dim.] Maximale direkt im Work Item bearbeitbare Dimensionen, minimal 1, maximal 3
  \item [Max work item size] Maximale Anzahl von Work Items in einer Work Group nach
-                 Dimensionen (Ist je nach Ger"at unterschiedlich je nach
-                 Dimension)
- \item [Preferred vector size] (Nach Datentyp) Vektorgr"osse, die von der Hardware 
-                 f"ur den jeweiligen Typ direkt (in einer Instruktion) verarbeitet
-                 werden kann.
+                 Dimensionen (Ist je nach Ger"at unterschiedlich in den verschiedenen
+                 Dimensionen)
+ \item [Preferred vector size] (F"ur jeden unterst"utzten Datentyp) Vektorgr"osse, 
+                 die von der Hardware f"ur den jeweiligen Typ direkt (also sprich in einer 
+                 Instruktion) verarbeitet werden kann.
  
 \end{description}
 
 
-\noindent Dabei gelten anhand der im Code gezeigten Zahlen gem"ass
+\noindent Dabei gelten anhand der R"uckgabewerte und gem"ass der OpenCL
 Spezifikation\cite{crypto:opencl_ref} folgende Regeln:
 
 \begin{itemize}
- \item Eine Work Group wird nur auf einer Compute Unit aufgef"uhrt (1 Work Group = 1 
-       Compute Device) 
- \item Die Anzahl der Work-Items pro Work-Group darf insgesamt 8192 nicht "ubersteigen (global work size)
+ \item Eine Work Group wird nur auf einer Compute Unit ausgef"uhrt (1 Workgrooup = 1 
+       Compute Device). Das heisst, pro Compute Unit muss eine Workgroup erstellt werden.
+ \item Die Anzahl der Work-Items pro Workgroup darf insgesamt 8192 nicht "ubersteigen (global work size)
  \item Dabei d"urfen die in ``Max work item size'' angegebenen Werte in der jeweiligen 
        Dimension nicht "uberstiegen werden (local work size $[x,y,z,\ldots]$).
-			 Die Summe $x + y + z$ darf dabei aber nicht gr"osser werden als ``Max work group size''.
+			 Die Summe $x + y + z$ darf dabei insgesamt nicht gr"osser werden als ``Max work group size''.
  \item Die Anzahl effektiv verwendeter Work Item Dimensionen darf im Bereich von 1 bis
        ``Max work item dim.'' liegen.
 \end{itemize}
 
 
-\subparagraph{Maximale Problemgr"osse an einem Beispiel}
+\subsubsection{Maximale Problemgr"osse an einem Beispiel}
 
-Das heisst nun f"ur unser Beispiel folgendes:
+Am Beispiel des MD5-Crackings soll mit einer kurzen Beispielrechnung 
+gezeigt werden, wie man die maximal m"ogliche Grösse eines Problems 
+für die spezifische Hardware errechnen kann, die gleichzeitig der
+Hardware übergeben werden kann.
+
+Dazu treffen wir folgende Annahmen:
 
 \begin{itemize}
- \item asdg
+ \item Wir arbeiten auf einem Device und mit einer Workgroup
+ \item Der Zeichensatz soll auf [a-z] beschr"ankt sein
 \end{itemize}
 
+Die Fragestellung f"ur dieses konkrete Beispiel ist: ``Wie 
+lange kann unser String werden, bevor wir weitere Massnahmen
+ergreifen m"ussten?''
 
+F"ur den Keyspace erhalten wir somit folgende Werte:
+\begin{tabular}
+  Stellenzahl & Keyspace \\
+  5 & 1.188 * 10^7 \\
+  6 & 3.089 * 10^8 \\
+  7 & 8.031 * 10^9 \\
+  8 & 2.088 * 10^{11} \\
+  9 & 5.429 * 10^{12} 
+\end{tabular}
 
+Demgegen"uber stehen die maximale Anzahl Workitems pro Workgroup, f"ur
+den bereits vorgestellten Intel Core i5 sind dies 8192. Angenommen es
+wird die Dimension verwendet um den String zu berechnen (Details siehe
+im n"achsten Kapitel), so ergibt sich bei 3 verwendbaren Dimensionen die 
+folgende in einer Workgroup durchsuchbare Anzahl Strings:
 
+\[
+  N_{Strings} = 8192^3 = 5.498*10^{9}
+\]
 
+Das heisst, die MD5-Berechnung eines Strings mit dem (zugegeben eher 
+praxisfernen) Zeichensatz [a-z] ist bereits nach einer L"ange von nur
+7 Zeichen ein Problem, welches so gross ist, dass man sich "uberlegen
+muss, wie man es weiter aufteilen kann. Bei einer Zeichensatzgr"osse
+von $[a-zA-Z0-9] = 62$ Zeichen "ubersteigt das Problem bereits bei
+$62^6 = 5.680 * 10^{10}$ die Gr"osse, die mit einer einzelnen 
+Workgroup berechnet werden kann.
 
+Beim gew"ahlten Ansatz muss zudem auch die Dimensionsgr"osse im Auge
+behalten werden. Denn der zu bearbeitende String wird aus der 
+Dimensionszahl berechnet wird (Details siehe im n"achsten Kapitel).
+Dabei "ubersteigt bereits $26^3 = 17'576$ die Maximal zul"assige
+Dimensionsgr"osse von $8192$. Das heisst effektiv kann durch diese
+Beschr"ankung sogar nur ein $[26^2, 26^2, 26^2] = 6 Zeichen$ langer
+String in einer Workgroup gepr"uft werden.
 
-
-- Wo stossen wir an unsere Grenzen?
-- Bezug/Referenz auf Einleitung ("Uberlegungen zum Keyspace)
+Jetzt gibt es aber durchaus Unterschiede in der Behandlung von ``zu
+grossen Problem'' durch die verschiedenen Implementationen. W"ahrend
+die Intel Implementation Dimensionen gr"osser als die deklarierten
+8192 pro Dimension zul"asst, verabschiedet sich die Nvidia Implementation
+mit einem ``Out-of-Resources'' Fehler, sobald in einer Dimension die 
+Maximalanzahl von 8192 "uberschritten wird.
 
 \subsection{Aufteilung von grossen Problemen}
 
@@ -456,7 +485,7 @@ L"osungsansatz entschieden:
 	\item Das Eingabe-Wort wird innerhalb des Kernels aus der mehrdimensionalen
 		Global ID hergeleitet.
 	\item Der errechnete Hash wird innerhalb des Kernels mit dem Ziel-Hash
-		verglichen. Sofern die zwei WErte "ubereinstimmen, wird das Wort in den
+		verglichen. Sofern die zwei Werte "ubereinstimmen, wird das Wort in den
 		Result-Buffer geschrieben.
 	\item Der Einfachheit halber wird im Erfolgsfall kein vorzeitiger Abbruch
 		durchgef"uhrt, stattdessen wird der ganze Keyspace durchprobiert.
