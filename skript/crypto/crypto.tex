@@ -582,7 +582,41 @@ for (int i = 0; i < 3; i++) {
 
 \subsection{Berechnen des MD5-Wertes}
 
-- Wie wird der MD5-Hash berechnet?
+Zur effektiven Berechnung des MD5-Wertes haben wir eine bereits bestehende
+C-Implementierung des MD5-Algorithmus
+verwendet\footnote{\url{http://openwall.info/wiki/people/solar/software/public-domain-source-code/md5}},
+welche im Jahr 2001 von \textit{RSA Data Security, Inc.} geschrieben und dann
+als gemeinfrei ver"offentlich wurde.
+
+Die Library musste geringf"ugig angepasst werden, um innerhalb eines OpenCL
+Kernels lauff"ahig zu sein. Beispielsweise mussten alle dynamischen
+Memory-Manipulationen wie \texttt{memcpy} und \texttt{memset} durch
+entsprechende statischen Loops ersetzt werden, da OpenCL keine dynamische
+Memory-Al\-lo\-ka\-ti\-on erlaubt. Auch mussten Address Space Qualifier (wie
+\texttt{\_\_constant}, \texttt{\_\_private}, etc) erg"anzt werden.
+
+Nach erfolgten Anpassungen kann ein MD5-Hash innerhalb des OpenCL Kernels
+folgendermassen errechnet werden:
+
+\begin{small}
+\begin{verbatim}
+__private MD5_CTX context;
+__constant unsigned char len;
+__private char string[MAX_PW_LEN];
+__private unsigned char digest[16];
+
+MD5_Init(&context);
+MD5_Update(&context, (const void *)string, len);
+MD5_Final(digest, &context);
+\end{verbatim}
+\end{small}
+
+Im Rahmen dieser Arbeit haben wir keinerlei Optimierungen innerhalb der
+MD5-Implementation vorgenommen. Eine Parallelisierung ist zwar aufgrund der
+rundenbasierten Natur von MD5 nicht m"oglich, jedoch bietet die Implementation
+selbst viel Raum f"ur Performance-Optimierungen. Wie gross die Welt der
+m"oglichen Optimierungen ist, sieht man beispielsweise eindr"ucklich am
+\citetitle{crypto:nvidia_bestpractices} \cite{crypto:nvidia_bestpractices}.
 
 \subsection{Init, Collect}
 
