@@ -580,9 +580,9 @@ for (int i = 0; i < 3; i++) {
 \end{verbatim}
 \end{small}
 
-\section{Implementationseigenheiten}
+\section{Implementationsdetails}
 
-\subsection{Berechnen des MD5-Wertes}
+\subsection{Berechnung des MD5-Wertes}
 
 Zur effektiven Berechnung des MD5-Wertes haben wir eine bereits bestehende
 C-Implementierung des MD5-Algorithmus
@@ -620,10 +620,123 @@ selbst viel Raum f"ur Performance-Optimierungen. Wie gross die Welt der
 m"oglichen Optimierungen ist, sieht man beispielsweise eindr"ucklich am
 \citetitle{crypto:nvidia_bestpractices} \cite{crypto:nvidia_bestpractices}.
 
-\subsection{Init, Collect}
+\subsection{Verifikation des Resultates}
+\label{crypto:verifikation}
 
-- Wie werden die Kernel initialisiert? Wie wird der R"uckgabewert entgegen
-genommen?
+In jedem Kernel wird der berechnete MD5-Hash mit dem Ziel-Hash verglichen.
+Stimmen sie "uberein, so wird das verwendete Eingabewort in den Result-Buffer im
+Global Memory geschrieben.
+
+\begin{small}
+\begin{verbatim}
+// Copy matching string from private to global memory
+if (compare(hash, digest, 16) == 0) {
+  for (int i = 0; i < len; i++) {
+    result[i] = string[i];
+  }
+}
+\end{verbatim}
+\end{small}
+
+\subsection{Init \& Collect}
+
+\subsubsection{Init}
+
+Die Aufgabe der Initialisierungsphase ist es, das gew"unschte OpenCL Device
+auszuw"ahlen, die Kernel zu konfigurieren und zu initialisieren und dann zu
+starten.
+
+Wir haben im Rahmen dieser Arbeit nicht direkt mit den OpenCL C Libraries
+gearbeitet, sondern eine Wrapper-Library namens
+PyOpenCL\footnote{\url{http://documen.tician.de/pyopencl/}} f"ur die
+Programmiersprache Python\footnote{\url{https://www.python.org/}} verwendet. Im
+direkten Vergleich mit C ist es so viel einfacher OpenCL zu initialisieren und
+zu konfigurieren (wobei nat"urlich Python-Kenntnisse n"otig sind). Auf die
+Syntax von Python und die Implementations-Details der Library wird hier nicht
+n"aher eingegangen.
+
+Als Erstes muss ein OpenCL-Kontext und eine Command Queue eingerichtet werden:
+
+\begin{small}
+\begin{verbatim}
+ctx = cl.create_some_context()
+queue = cl.CommandQueue(ctx)
+\end{verbatim}
+\end{small}
+
+\noindent Danach muss man die ganzen Buffer- und Result-Objekte vorbereiten:
+
+\begin{small}
+\begin{verbatim}
+result = bytearray(MAX_PW_LEN)
+result_string = bytearray(MAX_PW_LEN)
+
+mf = cl.mem_flags
+hash_buf = cl.Buffer(ctx, mf.READ_ONLY | mf.COPY_HOST_PTR, hostbuf=input_hash)
+result_buf = cl.Buffer(ctx, mf.WRITE_ONLY | mf.COPY_HOST_PTR, hostbuf=result)
+\end{verbatim}
+\end{small}
+
+\noindent Anschliessend wird der Kernel-Code aus der Datei \texttt{md5.cl}
+geladen.
+
+\begin{small}
+\begin{verbatim}
+with open('md5.cl', 'r') as f:
+    fstr = ''.join(f.readlines())
+    prg = cl.Program(ctx, fstr).build()
+\end{verbatim}
+\end{small}
+
+\noindent Nun werden in $n$ Runden jeweils alle m"oglichen Eingabeworte der
+L"ange $i$ berechnet, wobei $n$ der Maximall"ange des Eingabewortes entspricht
+und $i$ die jeweilige Wortl"ange zwischen 1 und $n$ ist.
+
+\begin{small}
+\begin{verbatim}
+for i in range(1, MAX_PW_LEN + 1):
+
+    # Define work sizes
+    global_worksize = []
+    for j in range(i):
+        if j < 3:
+            global_worksize.append(ALPHABET_SIZE)
+        else:
+            global_worksize[j % 3] *= ALPHABET_SIZE
+    local_worksize = None  # Let OpenCL figure out the best value
+
+    # Run kernel!
+    prg.crack(queue, global_worksize, local_worksize, hash_buf, result_buf, np.int8(i))
+
+    # Copy result back to device
+    cl.enqueue_read_buffer(queue, result_buf, result_string).wait()
+\end{verbatim}
+\end{small}
+
+\noindent Der gesamte Code (inkl. aller Variablen- und Konstantendefinitionen
+sowie aller Imports und Debug-Output) findet sich im Github-Repository (TODO URL
+TO REPO).
+
+\subsubsection{Collect}
+
+In der Collection-Phase werden die Ergebnisse der Kernel entgegengenommen und
+verarbeitet. Da das korrekte Resultat im Erfolgsfall immer in den Result-Buffer
+geschrieben wird (vgl. Kapitel \ref{crypto:verifikation}), muss nun lediglich
+dieser Buffer ausgelesen werden. Da Python nicht mit null-terminierten
+Bytestrings sondern mit Unicode-Objekten arbeitet, m"ussen in unserem Fall
+zus"atzlich noch diese Null-Bytes entfernt werden.
+
+\begin{small}
+\begin{verbatim}
+# Strip null bytes, convert to unicode
+plaintext = result_string.strip(b'\x00').decode('ascii')
+if plaintext:
+    print('Result is "%s"!' % plaintext)
+else:
+    print('Did not find a result.')
+\end{verbatim}
+\end{small}
+
 
 \subsection{Limitationen der gew"ahlten L"osung}
 
