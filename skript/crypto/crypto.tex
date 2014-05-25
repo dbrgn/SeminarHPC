@@ -13,6 +13,7 @@
 %- Zielsetzung
 
 \subsection{Hashfunktionen}
+\index{Hashfunktion}
 
 Hashfunktionen (zu Deutsch \textit{Streuwertfunktionen}) sind in der Informatik
 allgegenw"artig. Die Aufgabe einer Hashfunktion ist es, eine beliebig grosse
@@ -63,6 +64,7 @@ tats"achlich vorkommen.
 
 \subsubsection{Kollisionsresistenz}
 \label{crypto:kollisionsresistenz}
+\index{Kollisionsresistenz}
 
 Eine Kollisionsresistente Hashfunktion sollte es erschweren, zwei Eingabewerte
 zu finden die den selben Ausgabewert ergeben. Daf"ur sollten die Ausgabewerte
@@ -92,6 +94,7 @@ Passw"orter vorberechnet, m"ochte man eine Funktion welche aufw"andig und
 ressourcenintensiv zu berechnen ist.
 
 \subsection{MD5}
+\index{MD5}
 
 Der MD5 Algorithmus (Message-Digest Algorithm 5) wurde im Jahr 1991 vom
 Kryptologen Ronald L. Rivest entwickelt. MD5 erzeugt zu einer beliebigen
@@ -154,6 +157,7 @@ Der MD5-Algorithmus ist also h"ochstens schwach kollisionsresistent
 nicht mehr eingesetzt werden.
 
 \subsection{Brute-Force Angriff auf MD5}
+\index{Brute-Force}
 
 W"ahrend Kollisionen f"ur frei gew"ahlte Eingabewerte wie im letzten Abschnitt
 beschrieben heute problemlos berechenbar sind, ist bisher noch kein praktischer
@@ -175,6 +179,8 @@ for word in keyspace:
     break
 \end{verbatim}
 
+\label{crypto:keyspace}
+\index{Keyspace}
 Die Eingabemenge nennt man auch ``Keyspace''. Will man beispielsweise f"ur alle
 Passw"orter bestehend aus den Klein- und Grossbuchstaben a-z / A-Z sowie den
 Zahlen 0-9 mit einer L"ange von bis zu 6 Zeichen die Hashes berechnen, ergibt
@@ -452,15 +458,18 @@ Um den Brute-Force-Knacker zu implementieren haben wir uns f"ur folgenden
 L"osungsansatz entschieden:
 
 \begin{itemize}
-	\item Jedes m"ogliche Eingabe-Wort wird einem Kernel zugewiesen
-	\item Jeder Kernel berechnet den MD5-Hash f"ur genau ein Wort
-	\item Das Eingabe-Wort wird innerhalb des Kernels aus der mehrdimensionalen
-		Global ID hergeleitet.
+	\item Jedes m"ogliche Eingabewort (siehe "Uberlegungen zum Keyspace in Kapitel
+		\ref{crypto:keyspace}) wird einem Kernel zugewiesen.
+	\item Jeder Kernel berechnet den MD5-Hash f"ur genau ein Wort.
+	\item Das Eingabewort wird innerhalb des Kernels aus der Global ID
+		hergeleitet.
 	\item Der errechnete Hash wird innerhalb des Kernels mit dem Ziel-Hash
-		verglichen. Sofern die zwei WErte "ubereinstimmen, wird das Wort in den
+		verglichen. Sofern die zwei Werte "ubereinstimmen, wird das Wort in den
 		Result-Buffer geschrieben.
 	\item Der Einfachheit halber wird im Erfolgsfall kein vorzeitiger Abbruch
-		durchgef"uhrt, stattdessen wird der ganze Keyspace durchprobiert.
+		durchgef"uhrt, stattdessen wird der ganze Keyspace durchprobiert. Dies
+		erm"oglicht auch einfache Performance-Vergleiche auf verschiedenen
+		Plattformen.
 	\item Nachdem alle m"oglichen Hash-Werte berechnet wurden, wird der
 		Result-Buffer vom Hauptprogramm ausgelesen und angezeigt.
 \end{itemize}
@@ -470,32 +479,33 @@ Calculate (GPU), Collect (CPU).
 
 \begin{figure}[H]
 	\centering
-	\input{crypto/programm-struktur}
+	\input{crypto/tikz/programm-struktur}
 	\caption{L"osungsansatz Programmstruktur}
 	\label{img:crypto:programm-struktur}
 \end{figure}
 
 \subsection{Herleitung Wort aus Global ID}
+\index{Global ID}
 
 Irgendwie muss nun jeder Kernel herausfinden, welches Wort er hashen soll. Eine
 "Ubergabe des zu hashenden Wortes vom Hauptprogramm an jeden Kernel via Shared
 Memory w"are ineffizient und w"urde nur unn"otigen I/O verursachen. Es muss also
 eine bessere L"osung gefunden werden.
 
-Der Vorteil an unserem Problem ist, dass der Keyspace f"ur die m"oglichen
+Ein Vorteil des gegebenen Problemes ist, dass der Keyspace f"ur die m"oglichen
 Eingabewerte einen Linearen Raum darstellt. Es liegt also nahe, das Wort aus der
 Global ID herzuleiten. Die Global ID ist eine $n$-Dimensionale nat"urliche Zahl,
 welche jedem Kernel von OpenCL zugewiesen wird. Der Wertebereich bewegt sich
-dabei in Einerschritten von $(0, ..., 0)$ bis $(n, ..., n)$. Dabei ist $n$ die
-\textit{Work Size} f"ur die entsprechende Dimension.
+dabei in Einerschritten von $(0, ..., 0)$ bis $(s_1, ..., s_n)$. Dabei ist $s_n$
+die \textit{Work Size} f"ur die entsprechende Dimension $n$.
 
 \subsubsection{Naiver Ansatz}
 
 Ein naiver Ansatz w"are nun, dass die jede Dimension der Global ID einem
 m"oglichen Zeichen des Eingabewortes entspricht. Die Dimensionszahl entspricht
 dann der Anzahl Zeichen im Eingabewort. Um diesen Ansatz zu verdeutlichen,
-nachfolgend ein Beispiel f"ur ein Eingabewort mit der L"ange 3 und a-z als
-m"ogliches Alphabet:
+nachfolgend ein Pseudocode-Beispiel f"ur ein Eingabewort mit der L"ange 3 und
+dem Alphabet a-z:
 
 \begin{small}
 \begin{verbatim}
@@ -507,12 +517,12 @@ wtf
 \end{verbatim}
 \end{small}
 
-\noindent Das sieht zwar auf den ersten Blick nach einem guten Ansatz aus, jedoch ergibt
-sich dabei das erste Problem: Die Anzahl m"oglicher Dimensionen darf gem"ass
-OpenCL Standard\cite{crypto:stephan2011kryptographie} maximal 3 sein. Das
-bedeutet, dass man mit diesem Ansatz nur W"orter mit einer L"ange von bis zu 3
-Zeichen knacken kann. Man muss also einen Weg finden, diese Dimensionen
-irgendwie zu vergr"ossern.
+\noindent Das sieht zwar auf den ersten Blick nach einem guten Ansatz aus,
+jedoch ergibt sich dabei das erste Problem: Die Anzahl Dimensionen der Global ID
+(Work Size Dimension) darf gem"ass OpenCL Standard\cite{crypto:opencl_ref}
+maximal 3 sein. Das bedeutet, dass man mit diesem Ansatz nur W"orter mit einer
+L"ange von bis zu 3 Zeichen knacken kann. Man muss also einen Weg finden, diese
+Dimensionen irgendwie zu vergr"ossern.
 
 \subsubsection{Virtuelle Dimensionen}
 
@@ -528,25 +538,26 @@ mehrere Dimensionen durch Multiplikation der Keyspace-Gr"osse in eine einzelne
 \end{itemize}
 
 \noindent Aus diesen Werten kann dann der Buchstabe $c_n$ an Position $n$ mithilfe von
-Modulo-Arithmetik aus der Work Size $d$abgeleitet werden:
+Modulo-Arithmetik aus der jeweiligen Work Size $d$ abgeleitet werden:
 \[
-	c_n = \frac{d}{26^n} \enskip\%\enskip 26
+	c_n = \frac{d}{26^n} \mod\enskip 26
 \]
 Um nun den entsprechenden ASCII-Buchstaben zu erhalten, muss man lediglich
-diesen Wert $c_n$ um 97 erh"ohen.
+diesen Wert $c_n$ um 97 (ASCII-Position des Kleinbuchstabens \texttt{a})
+erh"ohen.
 
-Damit das ganze etwas einfacher zu implementieren ist, f"uhren wir zus"atzlich
+Damit das Ganze etwas einfacher zu implementieren ist, f"uhren wir zus"atzlich
 das Konzept eines ``Triplets'' ein. Die Triplet-ID ergibt sich, wenn man die
 Buchstaben des Wortes in Dreiergruppen aufteilt (Sliding Window Algorithmus).
 
 \begin{figure}[H]
 	\centering
-	\input{crypto/triplets}
+	\input{crypto/tikz/triplets}
 	\caption{Aufteilung des Wortes in Triplets}
 	\label{img:crypto:triplets}
 \end{figure}
 
-\noindent In OpenCL C sieht das Ganze folgendermassen aus:
+\noindent In OpenCL C sieht das folgendermassen aus:
 
 \begin{small}
 \begin{verbatim}
@@ -575,7 +586,7 @@ for (int i = 0; i < 3; i++) {
 
 \subsection{Init, Collect}
 
-- Wie werden die Kernel initialisiert? Wie wird der Rückgabewert entgegen
+- Wie werden die Kernel initialisiert? Wie wird der R"uckgabewert entgegen
 genommen?
 
 \section{Implementationseigenheiten}
