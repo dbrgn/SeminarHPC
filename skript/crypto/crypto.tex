@@ -36,9 +36,10 @@ Algorithm (Kryptologie).
 
 Die Anforderungen an eine ``gute'' Hashfunktion sind Abh"angig vom
 Anwendungsbereich. Bei der ISBN-10 ist beispielsweise lediglich eine
-Plausibilit"atspr"ufung in Form einer Pr"ufsumme n"otig. Bei Anwendungsf"allen
-in der Kryptologie (zum Beispiel beim Hashen von Passw"ortern) sind jedoch viele
-weitere Kriterien relevant. Nachfolgend werden einige davon vorgestellt.
+Plausibilit"atspr"ufung in Form einer Pr"ufsumme notwendig. Bei
+Anwendungsf"allen in der Kryptologie (zum Beispiel beim Hashen von Passw"ortern)
+sind jedoch viele weitere Kriterien relevant. Nachfolgend werden einige davon
+vorgestellt.
 
 \subsection{Eigenschaften von Hashfunktionen}
 
@@ -68,9 +69,8 @@ tats"achlich vorkommen.
 
 Eine Kollisionsresistente Hashfunktion sollte es erschweren, zwei Eingabewerte
 zu finden die den selben Ausgabewert ergeben. Daf"ur sollten die Ausgabewerte
-m"oglichst gleichverteilt auftreten.
-
-In der Kryptologie wird zwischen schwacher und starker Kollisionsresistenz
+m"oglichst gleichverteilt auftreten. In der Kryptologie wird zwischen schwacher
+und starker Kollisionsresistenz
 unterschieden\cite{crypto:stephan2011kryptographie}:
 
 \begin{itemize}
@@ -87,17 +87,17 @@ unterschieden\cite{crypto:stephan2011kryptographie}:
 Je nach Anwendungsfall m"ochte man effiziente oder ineffiziente Berechnungen
 eines Hashwertes erzielen. W"ahrend ersteres logisch erscheint -- man m"ochte
 den Algorithmus in Hard- und Software m"oglichst einfach und schnell
-implementieren k"onnen -- ist letzteres auf den ersten Blick ein merkw"Urdiges
+implementieren k"onnen -- ist letzteres auf den ersten Blick ein merkw"urdiges
 Ziel. Die Eigenschaft ist jedoch vor allem f"ur Passwort-Hash-Funktionen
 relevant. Um zu verhindern dass ein Angreifer m"oglichst schnell alle m"oglichen
-Passw"orter vorberechnet, m"ochte man eine Funktion welche aufw"andig und
-ressourcenintensiv zu berechnen ist.
+Passw"orter vorberechnet (wie wir es in dieser Arbeit tun), m"ochte man eine
+Funktion welche aufw"andig und ressourcenintensiv zu berechnen ist.
 
 \subsection{MD5}
 \index{MD5}
 
 Der MD5 Algorithmus (Message-Digest Algorithm 5) wurde im Jahr 1991 vom
-Kryptologen Ronald L. Rivest entwickelt. MD5 erzeugt zu einer beliebigen
+Kryptologen Ronald L. Rivest entwickelt. MD5 erzeugt zu einer beliebig langen
 Nachricht einen 128-Bit Hashwert.
 
 Unter Unix-basierten Betriebssystemen kann man MD5-Werte ganz einfach auf der
@@ -119,10 +119,10 @@ $ echo -n "Mathematisches Saminar" | md5sum
 625a5fb1280f153aa06709d70b38dfb8
 \end{verbatim}
 
-MD5 war (und ist) weit verbreitet und wurde in der Vergangenheit neben der
-Integrit"atspr"ufung auch h"aufig zum Verschleiern von Passw"ortern verwendet.
-Wie dies funktioniert, l"asst sich einfach an einem Praxisbeispiel
-demonstrieren:
+MD5 war (und ist) ein weit verbreiteter Algorithmus und wurde in der
+Vergangenheit neben der Integrit"atspr"ufung auch h"aufig zum Verschleiern von
+Passw"ortern verwendet.  Wie dies funktioniert, l"asst sich einfach an einem
+Praxisbeispiel demonstrieren:
 
 \begin{enumerate}
 		\item Ein Benutzer registriert sich mit Benutzername und Passwort auf einer
@@ -142,9 +142,9 @@ und die Kollisionsresistenz f"ur kryptologische Hashfunktionen ist. Sollte
 n"amlich ein Passwort-Hash an die "Offentlichkeit gelangen (beispielsweise durch
 ein Datenleck, wie sie in den letzten Jahren -- zuletzt bei Adobe -- immer
 wieder geschehen sind), sollte es f"ur einen Angreifer mit praktischem Aufwand
-nicht m"oglich sein, ausgehend vom Hashwert das urspr"ungliche Passwort zu
-errechnen. Ebensowenig sollte es m"oglich sein, ein anderes Passwort zu finden
-welches den selben Hashwert ergibt. In beiden F"allen w"are das Benutzerpasswort
+nicht m"oglich sein, ausgehend vom Hashwert an das urspr"ungliche Passwort zu
+gelangen. Ebensowenig sollte es m"oglich sein, ein anderes Passwort zu finden
+welches den selben Hashwert ergibt. In beiden F"allen w"are der Benutzeraccount
 dadurch kompromittiert.
 
 MD5 gilt inzwischen als unsicher, weil erfolgreiche Angriffe auf die
@@ -152,9 +152,9 @@ Kollisionsresistenz des Algorithmus gefunden wurden. Bereits im Jahr 2006 gelang
 es Forschern, MD5-Kollisionen auf einem Pentium 4 Rechner im Durchschnitt
 innerhalb einer Minute zu finden\cite{crypto:stevens2006fast}. Inzwischen sind
 Kollisionen auf markt"ublicher Hardware innerhalb weniger Sekunden berechenbar.
-Der MD5-Algorithmus ist also h"ochstens schwach kollisionsresistent
-(\ref{crypto:kollisionsresistenz}) und sollte f"ur kryptologische Anwendungen
-nicht mehr eingesetzt werden.
+Der MD5-Algorithmus ist also h"ochstens schwach kollisionsresistent (vgl.
+Kapitel \ref{crypto:kollisionsresistenz}) und sollte f"ur kryptologische
+Anwendungen nicht mehr eingesetzt werden.
 
 \subsection{Brute-Force Angriff auf MD5}
 \index{Brute-Force}
@@ -164,8 +164,8 @@ beschrieben heute problemlos berechenbar sind, ist bisher noch kein praktischer
 Preimage-Angriff auf MD5 bekannt. Ein Preimage-Angriff bedeutet, dass der
 Ausgabewert nicht frei gew"ahlt werden kann, sondern festgelegt ist (ein Angriff
 auf die schwache Kollisionsresistenz). Wenn man nun einen Passwort-Hash
-zur"uckrechnen will, ist bei einer "uberschaubaren Eingabemenge ein Brute-Force
-Angriff die einfachste M"oglichkeit.
+zur"uckrechnen will, ist daher bei einer "uberschaubaren Eingabemenge ein
+Brute-Force Angriff die simpelste M"oglichkeit.
 
 Bei einem Brute Force Angriff wird f"ur jeden Wert einer bestimmten
 Eingabemenge der Hash\-wert berechnet und mit dem Zielwert verglichen. In
@@ -190,7 +190,7 @@ dies "uber 57 Milliarden M"oglichkeiten.
 \]
 Hier sieht man auch schon die Schwierigkeit an der Sache, denn der Keyspace
 w"achst exponentiell. Bei Erh"ohung der Maximall"ange auf 8 Zeichen sind wir schon
-in der Gr"ossenordnung von ~200 Billionen.
+in der Gr"ossenordnung von $\sim$200 Billionen.
 \[
 	\sum_{i=1}^{8} \left(26 + 26 + 10\right)^i = 221'919'451'578'090
 \]
@@ -207,7 +207,7 @@ MD5-Hashwerten dasjenige Eingabewort zu finden, dessen MD5-Hashwert einem zuvor
 festgelegten Hashwert entspricht. Der Keyspace besteht dabei aus den
 Kleinbuchstaben a-z mit einer variablen L"ange von bis zu 6 Zeichen.
 
-Konkret haben wir uns als Ziel gesetzt in m"oglichst kurzer Zeit den MD5-Hash
+Konkret haben wir uns als Ziel gesetzt, in m"oglichst kurzer Zeit den MD5-Hash
 des Wortes ``monkey'' (Platz 6 auf der Liste der am h"aufigsten verwendeten
 Passw"orter 2012 \cite{crypto:splash2012}) zu knacken.
 
@@ -220,9 +220,9 @@ d0763edaa9d9bd2a9516280e9044d885
 
 Wenn man einen MD5-Hash brute-forcen will, ben"otigt man eine massive Anzahl
 komplett unabh"angiger paralleler Tasks. Die MD5-Berechnung selbst ist nicht
-unabh"angig und wird deshalb nicht parallelisiert, aber mehrere MD5-Berechnungen
-k"onnen nebeneinander ausgef"uhrt werden und ben"otigen keinerlei
-Interprozess-Kommunikation. OpenCL ist hierf"ur also bestens geeignet.
+unabh"angig und kann deshalb nicht parallelisiert werden, aber mehrere
+MD5-Berechnungen k"onnen nebeneinander ausgef"uhrt werden und ben"otigen
+keinerlei Interprozess-Kommunikation. OpenCL ist hierf"ur also bestens geeignet.
 
 \section{Probleme mit grossen Problemen}
 \label{crypto:grosse_probleme}
