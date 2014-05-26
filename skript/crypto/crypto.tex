@@ -197,7 +197,10 @@ in der Gr"ossenordnung von ~200 Billionen.
 Im Rahmen dieser Arbeit beschr"ankten wir daher sowohl die Anzahl der m"oglichen
 Zeichen wie auch die maximale L"ange der zu knackenden Passw"orter.
 
+% TODO danilo: ev eine line-grafik?
+
 \subsection{Zielsetzung}
+\label{crypto:zielsetzung}
 
 Unser Ziel im Rahmen dieser Arbeit war es, durch massiv parallele Berechnung von
 MD5-Hashwerten dasjenige Eingabewort zu finden, dessen MD5-Hashwert einem zuvor
@@ -808,11 +811,81 @@ OpenCL-Kerneloptimierungen ist, sieht man beispielsweise eindr"ucklich im
 \citetitle{crypto:nvidia_bestpractices} \cite{crypto:nvidia_bestpractices}.
 
 
-
 \section{Resultate}
 
-- Performancemessungen
-- Bedeutung f"ur Umgang mit Passw"ortern
+Unsere Implementation kann das gesetzte Ziel aus Kapitel
+\ref{crypto:zielsetzung} -- das Knacken des Wortes ``monkey'' innerhalb
+m"oglichst kurzer Zeit -- erreichen:
+
+\begin{small}
+\begin{verbatim}
+$ echo -n "monkey" | md5sum
+d0763edaa9d9bd2a9516280e9044d885
+$ python crack_md5.py d0763edaa9d9bd2a9516280e9044d885
+Starting round with length 1...
+Work size: [26]
+Starting round with length 2...
+Work size: [26, 26]
+Starting round with length 3...
+Work size: [26, 26, 26]
+Starting round with length 4...
+Work size: [676, 26, 26]
+Starting round with length 5...
+Work size: [676, 676, 26]
+Starting round with length 6...
+Work size: [676, 676, 676]
+Result is "monkey"!
+
+Stats
+-----
+
+- Elapsed total time: 1.204507s
+- Length 1: Finished in 0.000510s
+- Length 2: Finished in 0.000458s
+- Length 3: Finished in 0.000330s
+- Length 4: Finished in 0.002104s
+- Length 5: Finished in 0.049636s
+- Length 6: Finished in 1.151242s
+- Length 7: Projected time would be 29.932286s
+- Length 8: Projected time would be 778.239443s
+- Keyspace: 308915776
+\end{verbatim}
+\end{small}
+
+Man sieht also, dass unser Programm auf einer Nvidia GeForce GTX 760 Grafikkarte
+den Keyspace von 308'915'776 m"oglichen Eingabeworten innerhalb von 1.15s
+durchsuchen kann.
+
+Bei den anschliessend ausgegebenen Laufzeiten (sowohl effektiv wie auch
+extrapoliert) sieht man sehr gut die in Kapitel \ref{crypto:keyspace}
+vorhergesagte exponentielle Entwicklung:
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=.9\textwidth]{crypto/graphs/runtime.pdf}
+	\caption{Entwicklung der Laufzeit abh"angig von der Wortl"ange}
+	\label{img:crypto:triplets}
+\end{figure}
+
+\subsection{Performancevergleich}
+
+Wir haben unsere Implementation auf verschiedenen CPU- und GPU-Platformen
+getestet. Nachfolgend ein Vergleich der Laufzeit (tiefer ist besser) auf 3 CPUs
+(Blau) und 3 GPUs (Gr"un):
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=.9\textwidth]{crypto/graphs/speed_comparison_v1.pdf}
+	\caption{Performance-Vergleich (TODO danilo: verbessern)}
+	\label{img:crypto:speed_comparison_v1}
+\end{figure}
+
+TODO: Vergleich inkl. single-threaded
+
+\subsection{Bedeutung f"ur Umgang mit Passw"ortern}
+
+TODO
+
 
 \printbibliography[heading=subbibliography]
 \end{refsection}
