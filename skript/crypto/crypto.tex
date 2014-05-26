@@ -222,6 +222,7 @@ k"onnen nebeneinander ausgef"uhrt werden und ben"otigen keinerlei
 Interprozess-Kommunikation. OpenCL ist hierf"ur also bestens geeignet.
 
 \section{Probleme mit grossen Problemen}
+\label{crypto:grosse_probleme}
 
 \subsection{Einf"uhrung}
 
@@ -583,6 +584,7 @@ for (int i = 0; i < 3; i++) {
 \section{Implementationsdetails}
 
 \subsection{Berechnung des MD5-Wertes}
+\label{crypto:md5lib}
 
 Zur effektiven Berechnung des MD5-Wertes haben wir eine bereits bestehende
 C-Implementierung des MD5-Algorithmus
@@ -612,13 +614,6 @@ MD5_Update(&context, (const void *)string, len);
 MD5_Final(digest, &context);
 \end{verbatim}
 \end{small}
-
-Im Rahmen dieser Arbeit haben wir keinerlei Optimierungen innerhalb der
-MD5-Implementation vorgenommen. Eine Parallelisierung ist zwar aufgrund der
-rundenbasierten Natur von MD5 nicht m"oglich, jedoch bietet die Implementation
-selbst viel Raum f"ur Performance-Optimierungen. Wie gross die Welt der
-m"oglichen Optimierungen ist, sieht man beispielsweise eindr"ucklich am
-\citetitle{crypto:nvidia_bestpractices} \cite{crypto:nvidia_bestpractices}.
 
 \subsection{Verifikation des Resultates}
 \label{crypto:verifikation}
@@ -740,9 +735,79 @@ else:
 
 \subsection{Limitationen der gew"ahlten L"osung}
 
-- Limitationen der gew"ahlten L"osung
-- Was k"onnte man verbessern?
-- ...
+\subsubsection{Ressourcen-Limits}
+\label{crypto:resourcenlimits}
+
+Abh"angig von der gew"ahlten Platform st"osst man mit diesem L"osungsansatz
+relativ schnell an Ressourcen-Limits. Mit einer Nvidia GeForce GTX 760
+Grafikkarte war bereits ab einer L"ange von 7 Zeichen Schluss:
+
+\begin{small}
+\begin{verbatim}
+(...)
+Starting round with length 7...
+Work size: [17576, 676, 676]
+Traceback (most recent call last):
+  File "crack_md5.py", line 58, in <module>
+    cl.enqueue_read_buffer(queue, result_buf, result_string).wait()
+  File "/usr/lib/python3.4/site-packages/pyopencl/__init__.py", line 860, in new_func
+    return func(*args, **kwargs)
+pyopencl.RuntimeError: clEnqueueReadBuffer failed: out of resources
+\end{verbatim}
+\end{small}
+
+Wir haben nicht genauer nachverfolgt ob diese Fehlermeldung durch einen Fehler
+in der Library-Implementation verursacht wurde oder ob ein effektives
+Hardware-Limit erreicht wurde, aber es ist offensichtlich dass man nicht
+beliebig viele Kernel parallel laufen lassen kann (vgl. Kapitel
+\ref{crypto:grosse_probleme}).
+
+Ein m"oglicher L"osungsansatz w"are das Einf"uhren von Kernel-Gruppen mit einer
+fixen Anzahl parallel ausf"uhrbarer Kernel. Diese Zahl k"onnte dann jeweils an
+die verwendete Hardware angepasst werden. Die optimale Wahl dieses Parameters
+k"onnte durch algorithmische Optimierungsverfahren (optionale ``Kalibrierung''
+zu Beginn des Programms) automatisiert in Erfahrung gebracht werden.
+
+\subsubsection{Vorzeitiger Abbruch}
+
+Aktuell wird die Ausf"uhrung des Programms nicht vorzeitig abgebrochen, wenn ein
+Kernel das Resultat gefunden hat. Dies w"are allerdings mit einem \textit{Result
+Found} Flag, welches durch den erfolgreichen Thread im Globalen Memory gesetzt
+wird, relativ einfach implementierbar. Jeder Kernel m"usste zu Beginn der
+Ausf"uhrung dieses Flag "uberpr"ufen. Ist es gesetzt, wird die MD5-Berechnung im
+Kernel gar nicht erst ausgef"uhrt. Zu bestimmten Zeitpunkten im Programm-Ablauf
+(zB nach Beendigung einer Kernel-Gruppe gem"ass Kapitel
+\ref{crypto:resourcenlimits}) k"onnte auch das Hauptprogramm dieses Flag
+"uberpr"ufen und im Erfolgsfall das Erzeugen neuer Kernel abbrechen.
+
+Da das korrekte Resultat durchschnittlich nach 50\% der Versuche gefunden wird
+(vorausgesetzt nat"urlich dass sich die korrekte L"osung im Keyspace befindet),
+w"urde ein vorzeitiger Abbruch die Programm-Laufzeit (abz"uglich des dadurch
+eingef"uhrten Overheads) im Schnitt halbieren.
+
+\subsubsection{Performance-Einbussen durch Python}
+
+Die Wahl der Programmiersprache Python zur Implementierung des Hauptprogramms
+verursacht nat"urlich leicht h"ohere Laufzeit w"ahrend der Init- und
+Collection-Phase, da Python eine interpretierte High-Level Programmiersprache
+mit Garbage-Collection ist. Da jedoch sowohl die PyOpenCL Library wie auch der
+Kernel-Code in C geschrieben sind, sind diese Performance-Einbussen in der Regel
+vernachl"assigbar, solange der Hauptteil der Arbeit im Kernel-Code geschieht.
+
+\subsubsection{Optimierung der MD5-Implementation}
+
+Wie schon im Kapitel \ref{crypto:md5lib} beschrieben, haben wir innerhalb
+unseres Kernels eine bestehende MD5-Implementation verwendet. Diese
+Implementation wurde mit dem Fokus auf Einfachheit entwickelt und nicht im
+Hinblick auf maximale Performance. Im Rahmen dieser Arbeit haben wir keinerlei
+Optimierungen innerhalb dieser Library vorgenommen. Eine Parallelisierung des
+Algorithmus ist zwar aufgrund der rundenbasierten Natur von MD5 nicht m"oglich,
+jedoch bietet die Implementation selbst viel Raum f"ur
+Performance-Optimierungen. Wie gross die Welt der m"oglichen
+OpenCL-Kerneloptimierungen ist, sieht man beispielsweise eindr"ucklich im
+\citetitle{crypto:nvidia_bestpractices} \cite{crypto:nvidia_bestpractices}.
+
+
 
 \section{Resultate}
 
