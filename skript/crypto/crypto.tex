@@ -437,14 +437,19 @@ lange kann unser String werden, bevor wir weitere Massnahmen
 ergreifen m"ussten?''
 
 F"ur den Keyspace erhalten wir somit folgende Werte:
-\begin{tabular}
-  Stellenzahl & Keyspace \\
+\begin{center}
+\begin{tabular}{|>{$}c<{$}|>{$}c<{$}|}
+\hline
+ \text{Stellenzahl}&\text{Keyspace}\\
+\hline
   5 & 1.188 * 10^7 \\
   6 & 3.089 * 10^8 \\
   7 & 8.031 * 10^9 \\
   8 & 2.088 * 10^{11} \\
-  9 & 5.429 * 10^{12} 
+  9 & 5.429 * 10^{12} \\
+\hline
 \end{tabular}
+\end{center}
 
 Demgegen"uber stehen die maximale Anzahl Workitems pro Workgroup, f"ur
 den bereits vorgestellten Intel Core i5 sind dies 8192. Angenommen es
@@ -469,9 +474,9 @@ behalten werden. Denn der zu bearbeitende String wird aus der
 Dimensionszahl berechnet wird (Details siehe im n"achsten Kapitel).
 Dabei "ubersteigt bereits $26^3 = 17'576$ die Maximal zul"assige
 Dimensionsgr"osse von $8192$. Das heisst effektiv kann durch diese
-Beschr"ankung sogar nur ein $[26^2, 26^2, 26^2] = 6 Zeichen$ langer
+Beschr"ankung sogar nur ein $[26^2, 26^2, 26^2] = 6$ Zeichen langer
 String in einer Workgroup gepr"uft werden (beziehungsweise bei 
-Verwendung von nur einer Dimension sogar nur $26^2 = 2 Zeichen$. 
+Verwendung von nur einer Dimension sogar nur $26^2 = 2$ Zeichen. 
 Dieser Fall wurde aber aus wohl verst"andlichen Gr"unden gar nicht
 speziell behandelt).
 
@@ -599,28 +604,31 @@ Wird davon ausgegangen, dass in unserem speziellen Beispiel die Dimensionen
 zur "Ubergabe des zu bearbeitenden Strings verwendet wird, w"are eigentlich
 bei einem String mit 3 Zeichen bereits schluss (bei einer maximalen Dimension
 von 3). Da aber bei der Dimension und einer Alphabetgr"osse effektiv nur die 
-Ziffern 1..26 verwendet werden, wären \[ 8192 - 26 = 8156 \] m"ogliche 
+Ziffern 1..26 verwendet werden, w"aren $ 8192 - 26 = 8156 $ m"ogliche 
 Punkte im Gitter quasi verschwendet worden. Hier kann eine Virtuelle 
 Dimensionsvergr"osserung helfen, indem zur Berechnung des Problempunktes 
-nach der Formel \[ B^{n} \] vorgegangen wird, wobei \[ B \] die Gr"osse der
-ben"otigten Dimension darstellt (in unserem Fall \[ 26 \]) und \[ n \] die
+nach der Formel $ B^{n} $ vorgegangen wird, wobei $ B $ die Gr"osse der
+ben"otigten Dimension darstellt (in unserem Fall $ 26 $) und $ n $ die
 Anzahl der virtuell ben"otigten Dimensionen. Wir haben vorg"angig in diesem
 Skript bereits implizit mit dieser Technik gearbietet, um auch mit realen
 Stringl"angen rechnen zu k"onnen.
 
 Im Kernel selbst kann man bei gegebenem Punkt die Dimensionen mit 
 Modulo-Arithmetik wie folgt berechnen:
-
-\begin{tabular}{2}
-  \[n\]   & \[dim \% B \] \\
-  \[n-1\] & \[(dim/B) \% B\] \\
-  \[n-2\] & \[(dim/B^{2}) \% B\] \\
-  \vdots  & \ldots
+\begin{center}
+\begin{tabular}{|>{$}c<{$}|>{$}c<{$}|}
+\hline
+  n   & dim \% B  \\
+  n-1 & (dim/B) \% B  \\
+  n-2 & (dim/B^{2}) \% B   \\
+  \vdots  & \ldots \\
+\hline
 \end{tabular}
+\end{center}
 
 Hierzu ist zusagen, dass Divisonen und auch die Modulo-Bildung auch auf
 modernen Floating-Point Units sehr rechenintensiv ist (Anzahl ben"otigte 
-Taktzyklen immer \[ >> 1 \]). Trotzdem kann dieses Vorgehen bei einer 
+Taktzyklen immer $ >> 1 $). Trotzdem kann dieses Vorgehen bei einer 
 begrenzten Dimensionsgr"osse des Problems aber vielen potentiellen 
 Dimensionen sinn machen, insbesondere wenn eine Dimensionsberechnung mit
 Modulo-Arithmetik f"ur mehrere Berechnungen verwendet werden kann
@@ -628,8 +636,8 @@ Modulo-Arithmetik f"ur mehrere Berechnungen verwendet werden kann
 
 Sollte die Hardware eine gr"ossere Dimensionensanzahl unterst"utzen als 
 3, was vor allem wegen der Verwendung von OpenCL in 3D-Simulationen
-mehr oder weniger Standard ist, oder falls \[ B < n \] sein sollte, 
-kann man sich auch "uberlegen, ob \[ n \] und \[ B \] allenfalls vertauscht
+mehr oder weniger Standard ist, oder falls $ B < n $ sein sollte, 
+kann man sich auch "uberlegen, ob $ n $ und $ B $ allenfalls vertauscht
 werden k"onnten.
 
 Zusammengefasst gilt f"ur die virtuelle Dimensionsvergr"osserung:
