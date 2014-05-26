@@ -404,7 +404,11 @@ Spezifikation\cite{crypto:opencl_ref} folgende Regeln:
 \end{itemize}
 
 
-\subsubsection{Maximale Problemgr"osse an einem Beispiel}
+\subsubsection {Maximale Problemgr"osse einer Partikelsimulation}
+
+% TODO luc: Aufzeigen anhand einer Partikelsimulation, 1 Pixel pro mm
+
+\subsubsection{Maximale Problemgr"osse am Beispiel MD5 Cracking}
 
 Am Beispiel des MD5-Crackings soll mit einer kurzen Beispielrechnung 
 gezeigt werden, wie man die maximal m"ogliche Grösse eines Problems 
@@ -456,19 +460,291 @@ Dimensionszahl berechnet wird (Details siehe im n"achsten Kapitel).
 Dabei "ubersteigt bereits $26^3 = 17'576$ die Maximal zul"assige
 Dimensionsgr"osse von $8192$. Das heisst effektiv kann durch diese
 Beschr"ankung sogar nur ein $[26^2, 26^2, 26^2] = 6 Zeichen$ langer
-String in einer Workgroup gepr"uft werden.
+String in einer Workgroup gepr"uft werden (beziehungsweise bei 
+Verwendung von nur einer Dimension sogar nur $26^2 = 2 Zeichen$. 
+Dieser Fall wurde aber aus wohl verst"andlichen Gr"unden gar nicht
+speziell behandelt).
+
+Dieses Tandem aus Dimensionsgr"ossen und der Gesamtzahl der Workitems
+muss immer zusammen betrachtet werden. In diesem Fall war die maximale
+Gr"osse einer Dimension der limitierende Faktor. Es kann aber 
+durchaus auch sein, dass die Maximalgr"osse der Dimension nicht 
+"uberschritten wird, aber bereits zu viele Workitems vorhanden sind
+(siehe dazu die Beschreibung zu den Hardwaremerkmalen).
 
 Jetzt gibt es aber durchaus Unterschiede in der Behandlung von ``zu
 grossen Problem'' durch die verschiedenen Implementationen. W"ahrend
 die Intel Implementation Dimensionen gr"osser als die deklarierten
 8192 pro Dimension zul"asst, verabschiedet sich die Nvidia Implementation
 mit einem ``Out-of-Resources'' Fehler, sobald in einer Dimension die 
-Maximalanzahl von 8192 "uberschritten wird.
+Maximalanzahl von 8192 "uberschritten wird. Das genaue Verhalten der
+jeweils verwendeten Implementation sollte vorg"angig abgekl"art oder
+einfach mal ausprobiert werden. Trotzdem kann es lohnenswert sein, sich
+bei solch umfangreichen Problemen ein wenig mehr Gedanken zur Aufteilung
+des Problems zu machen, nicht zuletzt, weil das, wie wir im n"achsten
+Kapitel sehen werden, einen grossen Einfluss auf die Geschwindigkeit des
+Totals der Rechnungen haben kann.
 
 \subsection{Aufteilung von grossen Problemen}
 
-- Was gibt es f"ur L"osungsans"atze?
+In diesem Kapitel werden einige Techniken beschrieben, mit denen ein 
+grosses Problem weiter portioniert werden kann, so dass es in die 
+Hardware und die Implementierung ``passt''. 
+Denn wie im letzten Kapitel aufgezeigt wurde sollte man sp"atestens dann
+beginnen sich Gedanken zur Problemgr"osse zu machen, wenn man an die 
+Grenzen der Hardware st"osst. Es lohnt sich aber auch, wie in diesem 
+Kapitel auch gezeigt werden soll, bereits vorg"angig mal anzuschauen
+wo man an die Grenzen der Hardware st"osst, beziehungsweise wie das
+Problem besser aufgeteilt werden kann, um nicht zuletzt auch die 
+Hardware optimal ausn"utzen zu k"onnen.
 
+Speziell soll dabei auf die folgenden Techniken eingegangen werden:
+
+\begin{itemize}
+ \item Mehrere Workgroups verwenden
+ \item Virtuelle Dimensionsvergr"osserung
+ \item Mehr als eine Berechnung pro Kernel
+ \item Mehrfacher, parametrisierter ``Anwurf'' der OpenCL Maschine
+\end{itemize}
+
+Dazu ist anzumerken, dass hier auf diejenigen Techniken eingegangen
+wird, die auch im Zuge der Implementierung des MD5-Cracking Projekts
+ausprobiert oder evaluiert wurden. Das heisst, die Liste erhebt weder
+die den Anspruch auf Vollst"andigkeit noch auf die Brauchbarkeit f"ur
+ein spezielles Problem. Wir hoffen aber, dem Leser ein paar Ideen
+in die Hand zu geben, mit denen er seine eigene Anwendung hoffentlich
+weiter optimieren kann.
+
+
+\subsubsection{Mehrere Workgroups verwenden}
+
+Im gemachten Beispiel im vorherigen Abschnitt wurde davon ausgegangen,
+dass nur eine Workgroup verwendet wird. Diese Vorgabe wurde zum einen
+der Anschaulichkeit halber gemacht, um die Komplexit"at nicht h"oher zu
+treiben als sowieso schon notwendig, zum anderen besitzt besagtes Ger"at
+mit dem Intel Core i5 Prozessor nur ein von OpenCL direkt ansprechbares
+Compute Device (Implementierungsspezifisch). Im Normalfall besitzt jeder
+moderne Desktop Computer und die meisten Notebooks mindestens zwei 
+OpenCL f"ahige Ger"ate, namentlich die CPU und die Grafikkarte. 
+Vorausgesetzt die entsprechenden Treiber sind installiert, k"onnen alle
+diese Ger"ate f"ur die Berechnungen verwendet werden.
+
+Genau hier kommt auch das Thema ``Mehrere Workgroups'' ins Spiel, denn
+eine Workgroup kann jeweils nur ein Ger"at ansprechen. Will man also
+nicht nur die CPU \textit{oder} die Grafikkarte verwenden, sondern die 
+CPU \textit{und} die Grafikkarte parallel verwenden, m"ussen unabh"angig
+von der Problemgr"osse mehrere Workgroups erzeugt werden.
+
+Zugegeben, das hat nun nicht unbedingt direkt etwas mit der weiteren 
+Aufteilung des Problems zu tun, trotzdem kann diese Technik auch bei
+Problemen verwendet werden, welche die Grenzen einer Workgroup sprengen.
+Das kann aber als Variante des Punktes ``Mehrfacher, parametrisierter
+``Anwurf'' der OpenCL Maschine'' gesehen werden. Wirklich Sinn macht 
+diese Variante vor allem wenn mehrere Compute Devices zur Verf"ugung
+stehen. Hier ist anzumerken, dass je nach Implementation und 
+verwendeter Frameworks die Aufteilung in Workgroups auch automatisch
+vorgenommen wird, wenn nichts explizit angegeben wird. Aus den im
+n"achsten Absatz genannten Problem der unterschiedlichen Laufzeiten
+sollte um das Optimum aus der Hardware zu holen wenn m"oglich selbst
+aufgeteilt werden.
+
+Denn insbesondere unterschiedliche Ger"ate rechnen
+auch unterschiedlich schnell. Es wird nicht einfach sein, 
+beim ersten Versuch die Problem-``H"appchen'' so zu portionieren, dass
+die Berechnungen auf beiden Compute Devices ungef"ahr "ahnlich lang 
+laufen. Dabei geht es nicht um Minuten, es kann durchaus sein, dass 
+die Portion welche auf der GPU gerechnet wurde, nach 30 Minuten bereits
+fertig ist, diejenige, welche die CPU "ubernimmt aber 3 Stunden dauert.
+Somit ist die GPU also 2.5 Stunden unbesch"aftigt rumgestanden. Hier
+empfiehlt es sich bei unbekannter Hardware mit kleinen Portionen zu 
+beginnen, die Durchlaufzeiten zu messen und erst dann zu Entscheiden,
+wie die weitere Aufteilung aussehen soll. Um eine gute Aussagekraft
+zu erhalten, sollten die ersten Portionen auch nicht zu klein sein,
+irgendwo zwischen 10-100 Berechnungen sollten die meisten Unw"agbarkeiten
+ausb"ugeln. Dabei kann durchaus auch Iterativ vorgegangen werden, um
+eine m"oglichst optimale Aufteilung zu erreichen und der Ansatz ist
+auch leicht automatisierbar.
+
+Zusammengefasst gilt f"ur die Erh"ohung der Anzahl Workgroups:
+
+\begin{itemize}
+ \item Zur Ausn"utzung von mehreren Compute Devices auf einer Plattform
+       muss zwingend mit mindestens einer Workgroup pro Compute Device
+       gearbeitet werden. So kann die Geschwindigkeit grunds"atzlich
+       erh"oht werden.
+ \item Synchronisation / Abbruch "uber Workgroup-Grenzen hinweg ist 
+       nicht direkt m"oglich.
+ \item Als Konsequenz k"onnen unterschiedliche Laufzeiten in den 
+       verschiedenen Compute Devices unter Umst"anden zu 
+       ungewollten Idle-Zeiten f"ur die schnelleren Compute Devices 
+       f"uhren. Eine sorgf"altige, an die Geschwindigkeit der 
+       Compute Devices angepasste Aufteilung der Workitems ist n"otig.
+\end{itemize}
+
+
+
+\subsubsection{Virtuelle Dimensionsvergr"osserung}
+
+Wird davon ausgegangen, dass in unserem speziellen Beispiel die Dimensionen
+zur "Ubergabe des zu bearbeitenden Strings verwendet wird, w"are eigentlich
+bei einem String mit 3 Zeichen bereits schluss (bei einer maximalen Dimension
+von 3). Da aber bei der Dimension und einer Alphabetgr"osse effektiv nur die 
+Ziffern 1..26 verwendet werden, wären \[ 8192 - 26 = 8156 \] m"ogliche 
+Punkte im Gitter quasi verschwendet worden. Hier kann eine Virtuelle 
+Dimensionsvergr"osserung helfen, indem zur Berechnung des Problempunktes 
+nach der Formel \[ B^{n} \] vorgegangen wird, wobei \[ B \] die Gr"osse der
+ben"otigten Dimension darstellt (in unserem Fall \[ 26 \]) und \[ n \] die
+Anzahl der virtuell ben"otigten Dimensionen. Wir haben vorg"angig in diesem
+Skript bereits implizit mit dieser Technik gearbietet, um auch mit realen
+Stringl"angen rechnen zu k"onnen.
+
+Im Kernel selbst kann man bei gegebenem Punkt die Dimensionen mit 
+Modulo-Arithmetik wie folgt berechnen:
+
+\begin{tabular}{2}
+  \[n\]   & \[dim \% B \] \\
+  \[n-1\] & \[(dim/B) \% B\] \\
+  \[n-2\] & \[(dim/B^{2}) \% B\] \\
+  \vdots  & \ldots
+\end{tabular}
+
+Hierzu ist zusagen, dass Divisonen und auch die Modulo-Bildung auch auf
+modernen Floating-Point Units sehr rechenintensiv ist (Anzahl ben"otigte 
+Taktzyklen immer \[ >> 1 \]). Trotzdem kann dieses Vorgehen bei einer 
+begrenzten Dimensionsgr"osse des Problems aber vielen potentiellen 
+Dimensionen sinn machen, insbesondere wenn eine Dimensionsberechnung mit
+Modulo-Arithmetik f"ur mehrere Berechnungen verwendet werden kann
+(siehe n"achsten Abschnitt).
+
+Sollte die Hardware eine gr"ossere Dimensionensanzahl unterst"utzen als 
+3, was vor allem wegen der Verwendung von OpenCL in 3D-Simulationen
+mehr oder weniger Standard ist, oder falls \[ B < n \] sein sollte, 
+kann man sich auch "uberlegen, ob \[ n \] und \[ B \] allenfalls vertauscht
+werden k"onnten.
+
+Zusammengefasst gilt f"ur die virtuelle Dimensionsvergr"osserung:
+
+\begin{itemize}
+ \item Bei einem Problem, welches nur eine kleine Anzahl Punkte pro 
+       Dimension ben"otigt, aber viele Dimensionen hat, kann mit der
+       virtuellen Dimensionsvergr"osserung eine ``Verschwendung'' von
+       m"oglichen Workitems in einer Workgroup verhindert werden.
+ \item Die Berechnung der einzelnen Punkte in den virtuellen 
+       Dimensionen ist aber sehr kostspielig im Bezug auf daf"ur notwendige
+       Rechenzeit.
+ \item Diesem Problem kann begegnet werden, indem pro Dimensionsrechnung
+       mehrere Rechnungen ausgef"uhrt werden. (siehe n"achster Abschnitt)
+\end{itemize}
+
+
+\subsubsection{Mehr als eine Berechnung pro Kernel}
+
+Ist der Initialisierungsaufwand in einem Kernel verglichen mit der eigentlichen
+Berechnung relativ gross und zeitaufwendig, so kann es sich lohnen, mehr als 
+eine Berechnung pro Kernel durchf"uhren zu lassen. Speziell dann wenn der 
+Arbeitsbereich zum Beispiel in einer Schleife abgearbeitet werden kann, kann
+mit dieser Technik sehr viel Performance rausgeholt werden.
+
+Denn das Vorgehen, dass ein Kernel nur jeweils eine einzelne Rechnung macht, 
+ist zwar von der Systematik in der Problemaufteilung wohl durchaus sinnvoll 
+und auch einfach zu verstehen. Zudem muss man sich bei der Aufteilung der
+Arbeitspakete deutlich mehr Gedanken machen, um zu verhindern, dass keine
+L"ucken entstehen.
+
+Doch gerade bei nicht sehr aufw"andigen Berechnungen pro Kernel, was wohl 
+eher die Regel sein wird, ist die Initialisierung im Vergleich zum eigentlichen
+Rechenvorgang sehr zeitintensiv, und ``stielt'' so einen Teil der m"oglichen
+Rechenkapazit"at. Macht zum Beispiel die Initialisierung 20 \% der gesamten
+Rechenzeit aus, so ist ein Optimierungspotential von nahezu demselben Faktor
+m"oglich, wenn statt einer 10 Berechnungen in einem Kernel durchgef"uhrt 
+werden. Gerade bei der im vorherigen Absatz vorgestellten Methode k"onnen
+durchaus auch deutlich gr"ossere Geschwndigkeitsvorteile herausschauen, denn
+Modulo und Divisons Operationen f"uhren die Listen der kostspieligsten 
+Instruktionen im Sinne von Rechenzeitverbrauch deutlich an.
+
+Im aktuellen Beispiel des MD5-Cracking konnte durch die Einf"uhrung zweier
+Schleifen, welche f"ur die letzten zwei Zeichen des Strings insgesamt 
+\[ 26^2 = 676 \] Berechnungen und Stringpr"ufungen durchf"uhrten, die 
+maximale L"ange des berechenbaren Strings ohne gross sp"urbare zus"atzliche
+Rechenzeit erweitert werden.
+
+\begin{itemize}
+ \item Ist die Initialisierung eines Kernels "anhlich rechenintensiv wie die
+       tats"achliche Berechnung selber (bis ca. Faktor 1 : 10) und das 
+       Arbeitspaket durch einfache Schleifen ``erweiterbar'', so lohnt
+       es sich dar"uber Gedanken zu machen, ob man mehr als eine Berechnung
+       im Kernel machen soll.
+ \item Doch steigen die Anforderungen an die Aufteilung der Arbeitspakete:
+       Soll nur in eine Dimension erweitert werden? Und in welche? Was 
+       passiert an den Grenzen, wenn die Anzahl Berechnungen im Kernel die 
+       noch zu berechnende Anzahl Punkte "ubersteigt?
+ \item Auf unterschiedlicher Hardware kann das Verh"altnis Initialisierung : 
+       Rechenzeit durchaus deutliche Unterschiede zeigen. Die Aufteilung
+       lohnt sich nicht in jedem Fall und muss auf die jeweilige Hardware
+       zugeschnitten werden.
+\end{itemize}
+
+
+
+
+\subsubsection{Mehrfacher parametrisierter ``Anwurf'' der OpenCL Maschine}
+
+St"osst man trotz der in den vorherigen Abschnitten betrachteten Techniken
+an die Grenzen einer Workgroup oder sogar der Gesamtzahl der verf"ugbaren
+Workgroups, oder will man vor allem bei Verwendung mehrerer Workgroups 
+nach einer gewissen Anzahl von Berechnungen pr"ufen ob das Ergebnis schon
+vorliegt, so muss man die OpenCL Maschine mehrmals aufrufen. Dabei kann 
+ein Offset definiert werden, der dann bei der Berechnung des Arbeitspakets
+im Kernel zu der Dimensionszahl hinzu gez"ahlt wird.
+
+"Ubergeben werden kann dieser Offset mit einer globalen Variable, die vom
+Rahmenprogramm direkt gesetzt wird, welches auch die Workgroups vorbereitet 
+und die Kernel startet. Damit kann das Programm beliebig weiter ausgebaut
+werden, jedoch kostet der ``Anwurf'' der OpenCL Maschine auch Rechenzeit.
+F"ur eine kleine Menge von Workitems mit jeweils kurzer Rechenzeit pro Kernel
+lohnt sich der Aufwand somit im Normalfall kaum. 
+
+Anders sieht die 
+Ausgangslage aus, wenn die Berechnungen je Kernel sehr aufw"andig oder
+die Workgroup sehr gross wird, insbesondere dann, wenn nicht einfach von 
+A bis Z durchgerechnet werden soll, sondern gelegentlich auf eine 
+(Workgroup "ubergreifende) Abbruchbedingung gepr"uft werden soll. Denn
+"uber die Workgroup hinaus kann kein Abbruch (und auch keine anderen 
+Signale) signalisiert werden. Es muss gewartet werden, bis die restlichen
+Workgroups fertig sind mit ihrem Arbeitspaket, und erst dann kann "uber
+die ganze ``Maschine'' hinaus gepr"uft werden, ob das Abbruchkriterium
+erf"ullt ist und anschliessend die Maschine weitergelaufen lassen 
+beziehungsweise definitiv angehalten werden.
+
+Wie im letzten Abschnitt anget"ont kann es sich vor allem bei heterogenen 
+Umgebungen von Compute Devices auch lohnen, schon relativ fr"uh die 
+Berechnungen nochmals anzuhalten, diesmal aber nicht mit dem Ziel auf eine
+Abbruchbedingung zu pr"ufen, sondern die Workitems anhand der gemessenen
+Laufzeiten der Workgroups m"oglichst effizient auf die Compute Devices
+aufzuteilen.
+
+\begin{itemize}
+ \item Die OpenCL-Maschine mehrfach anzuhalten und wieder anzuwerfen 
+       kann aus unterschiedlichen Gr"unden Sinn machen: Zum einen
+       wenn das Problem so gross wird, dass es nicht mehr sinnvoll auf 
+       die verf"ugbare Menge von Workgroups und Workitems je Workgroup
+       aufgeteilt werden kann; Wenn das Problem eine definierte 
+       Abbruchbedingung hat, die man regelm"assig und Workgroup-
+       "Ubergreifend pr"ufen m"ochte; Und w"ahrend dem Einmessvorgang
+       zur m"oglichst optimalen Aufteilung der Arbeitspakete f"ur die 
+       jeweilige Performance des Compute Devices.
+ \item Der Overhead f"ur den Anwurf der OpenCL Maschine kann aber im 
+       vergleich zur Arbeitszeit eines Kernels sehr gross sein. Es soll
+       also von dieser Technik trotz der genannten Vorteile und 
+       M"oglichkeiten nur mit Bedacht gebrauch gemacht werden, und 
+       (ausser allenfalls bei der Einmessung) die OpenCL Maschine
+       m"oglichst lange selbst rechnen lassen.
+\end{itemize}
+
+
+
+
+% TODO Lukas: Codebeispiel für Globale OpenCL Variable
 
 
 
