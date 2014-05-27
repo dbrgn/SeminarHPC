@@ -22,17 +22,18 @@ MapReduce-Frameworks.  Eines der Bekanntesten ist zum Beispiel hadoop
 \cite{apache:hadoop}.  Es sorgt selbsst"andig f"ur die Aufteilung der
 Map-Prozesse und bemerkt verlorene Tasks.
 
-Das MapReduce Konzept arbeitet mit zwei separate Abl"aufe.
+Das MapReduce Konzept arbeitet mit zwei separaten Abl"aufe.
 Einerseits gibt es einen parallelen Map Teil und andererseits gibt es
 einen nicht parallelen Reduce Teil.  In der Abbildung \ref{MapReduce}
 ist der Datenfluss dargestellt, welcher im Folgenden beschrieben wird.
 
 \subsection{Map}
 Unstrukturierte Daten werden den parallel laufenden Map Prozessen
-"ubergeben.  Daraus werden die Schl"ussel-Werte-Paare generiert und anschliessend zwischengespeichert.
+"ubergeben.  Daraus werden die Schl"ussel-Werte-Paare generiert und
+anschliessend zwischengespeichert.
 
 Diese strukturierten Daten-Paare entsprechen noch nicht dem
-Resultat. Sie wird erst durch den nachgeschalteten Reduce Prozess
+Resultat. Es wird erst durch den nachgeschalteten Reduce Prozess
 berechnet.
 
 \subsection{Reduce}
@@ -43,8 +44,9 @@ berechnet wird.  Es k"onnen aber mehrere Reduce Prozesse gestartet
 werden, pro gesuchtes Ergebnis einen.
 
 Man kann also aus den gewonnen Schl"ussel-Werte-Paaren verschiedene
-Ergebnisse erzeugen.  Und muss den Map Prozess nicht f"ur jedes
-Ergebnis neu durchlaufen.  Ein Beispiel, soll dies verdeutlichen.
+Ergebnisse erzeugen.  Dadurch muss man den Map Prozess nicht f"ur
+jedes Ergebnis neu durchlaufen.  Ein Beispiel, soll dies
+verdeutlichen.
 
 \begin{figure}
   \begin{center}
@@ -147,11 +149,11 @@ dem Map Teil und dem Reduce Teil noch einen Shuffle Prozess.  Dieser
 sorgt daf"ur, dass alle gleichen Schl"ussel zusammengefasst werden.
 
 Im Beispiel w"urden nun alle 2013 Schl"ussel zusammengefasst:
-  \begin{center}
+\begin{center}
   \begin{tabular}{lrrr}
    (2013, &-7.2, &22, & -11)
   \end{tabular}
-  \end{center}
+\end{center}
 
 Dabei k"onnen beide Reduce Prozesse von der Arbeit des Shuffle
 Prozesses profitieren. Da das Zusammensuchen der \enquote{Jahre}
@@ -162,23 +164,19 @@ werden muss, sondern nur einmal f"ur alle Reduce Prozesse.
 
 
 
-%%% Local Variables: 
-%%% mode: latex
-%%% TeX-master: "skript"
-%%% End: 
-
-
-
-
-
 
 
 \section{Eigenwertberechnung}
-MapReduce eignet sich nicht direkt f"ur  die  Programmierung
-numerischer  Algorithmen, da es f"ur die Verarbeitung unstrukturierter Daten ausgelegt  ist,  die  sich  mit  Schl"ussel-Wert-Paaren
-beschreiben  lassen.  Die Idee von MapReduce, eine Aufgabe in abwechselende, parallele und nicht parallele Teilschritte  zu  zerlegen,  l"asst sich durchaus auch in numerischen Problem anwenden.
-Wir zeigen in diesem Kapitel, wie die  Berechnung  des  PageRank,
-der  nat"urlich ebenfalls mit der Google Suchmaschine in Zusammenhang steht, mit diesem Konzept parallelisiert werden kann.
+MapReduce eignet sich nicht direkt f"ur die Programmierung numerischer
+Algorithmen, da es f"ur die Verarbeitung unstrukturierter Daten
+ausgelegt ist, die sich mit Schl"ussel-Wert-Paaren beschreiben lassen.
+Die Idee von MapReduce, eine Aufgabe in abwechselende, parallele und
+nicht parallele Teilschritte zu zerlegen, l"asst sich durchaus auch in
+numerischen Problem anwenden.  Wir zeigen in diesem Kapitel, wie die
+Berechnung des PageRank, der nat"urlich ebenfalls mit der Google
+Suchmaschine in Zusammenhang steht, mit diesem Konzept parallelisiert
+werden kann.
+
 \subsection{Google Matrix und Page Rank}
 Die Google Matrix wird verwendet, um die Beliebtheit der verschiedenen
 Internetseiten in die Suchabfrage einzubeziehen.  Dieser so genannte
@@ -188,8 +186,9 @@ Spaltensumme in der Google Matrix 1.
 
 Ein Beispiel soll die Funktionsweise zeigen \cite{mueller:linAlg}
 \begin{beispiel}
-  In unserem Internet gibt es acht verschiedene Internetseiten:
-  \begin{figure}[H]
+  In unserem Internet gibt es acht verschiedene Internetseiten (siehe
+  Abbildung \ref{bspInternet}):
+  \begin{figure}
   \begin{center}
   \begin{tikzpicture}
     [page/.style={circle,draw,semithick},
@@ -234,13 +233,14 @@ Ein Beispiel soll die Funktionsweise zeigen \cite{mueller:linAlg}
   \end{tikzpicture}
   \end{center}
   \caption{Beispiel-Internet}
+	\label{bspInternet}
   \end{figure}
   
   Daraus l"asst sich eine Matrix $H$ erstellen, welche die
   Wahrscheinlichkeit beschreibt, von einer Internetseite zu einer
   Anderen zu kommen (die so genannte Google Matrix).
 
-$$
+\[
     H =
     \begin{pmatrix}
       0 & 0 & 0 & 0 & 0 & 0 & \frac{1}{3} & 0\\
@@ -253,7 +253,7 @@ $$
       0 & 0 & 0 & 0 & \frac{1}{3} & 0 & 0 & \frac{1}{2}\\
       0 & 0 & 0 & 0 & \frac{1}{3} & 1 & \frac{1}{3} & 0
     \end{pmatrix}
-$$
+\]
 
   Von der ersten Internetseite f"uhren Links zur zweiten und dritten
   Internetseite.  Beide Links besitzen die gleiche Wahrscheinlichkeit.
@@ -267,9 +267,10 @@ $$
   die Matrix l"osen und erh"alt den gr"ossten Eigenvektor $u$,
   welcher dem Page Rank entspricht.
 \end{beispiel}
+
 \subsection{Potenzmethode}
 Als Berechnungsgrundlage benutzen wir die Potenzmethode:
-$$
+\[
 \begin{bmatrix}
 u_1 \\
 u_2 \\
@@ -302,29 +303,40 @@ u_6 \\
 u_7 \\
 u_8 \\
 \end{bmatrix}
-$$
+\]
 
 
 
 
 \[
-\textsl{Eigenvektor}(u)=\dfrac{\textsl{Eigenvektor} \cdot \textsl{Matrix}}{\text{norm}(Eigenvektor\cdot Matrix)}
+\textsl{Eigenvektor}(u)=\dfrac{\textsl{Eigenvektor} \cdot \textsl{Matrix}}{\text{norm}(\textsl{Eigenvektor} \cdot \textsl{Matrix})}
 \]
 \[
 \textsl{Eigenwert}\footnote{Betragsm"assig gr"osster Eigenwert} = \textsl{Eigenvektor}^T \cdot \textsl{Matrix} \cdot \textsl{Eigenvektor}
 \]
-Die Potenzmethode wurde in einem vorherigen Kapitel behandelt. Darum wird hier nicht n"aher darauf eingegangen.
+
+Die Potenzmethode wurde in einem vorherigen Kapitel behandelt. Darum
+wird hier nicht n"aher darauf eingegangen.
 
 
 
 \subsection{Grundidee}
+Bei der Berechnung grosser Matrizen ist zu beachten, dass der
+Berechnungsaufwand mit der Gr"osse exponentiell ansteigt und
+erhebliche Teile der Berechnungszeit f"ur die Iterationen verwendet
+wird.
 
-Bei der Berechnung grosser Matrizen ist zu beachten, dass der Berechnungsaufwand mit der Gr"osse exponentiell ansteigt und erhebliche Teile der Berechnungszeit f"ur die Iterationen verwendet wird. \\
-Die Grundidee ist, eine Bandmatrix diagonal aufzuteilen und den Potenzalgorithmus auf die
-Teilmatrizen anzuwenden. Dadurch werden die Eigenvektoren der Teilmatrizen bestimmt, welche anschliessend in den gesamten Eigenvektor eingesetzt werden, wie auf Abbildung \ref{1} ersichtlich ist. Dadurch wird erwartet, dass die Berechnung "uber die gesamte Matrix mit diesem angepassten Eigenvektor viel weniger Iterationsschritte ben"otigt als die originale Berechnung ohne Aufteilung.
+Die Grundidee ist, eine Bandmatrix diagonal aufzuteilen und den
+Potenzalgorithmus auf die Teilmatrizen anzuwenden. Dadurch werden die
+Eigenvektoren der Teilmatrizen bestimmt, welche anschliessend in den
+gesamten Eigenvektor eingesetzt werden, wie auf Abbildung \ref{1}
+ersichtlich ist. Dadurch wird erwartet, dass die Berechnung "uber die
+gesamte Matrix mit diesem angepassten Eigenvektor viel weniger
+Iterationsschritte ben"otigt als die originale Berechnung ohne
+Aufteilung.
 
 
-\begin{figure}[H]
+\begin{figure}
 \begin{center}
 \begin{tikzpicture}[scale = 0.5]
 \draw[thick] (0,10) -- (0,-0.5);
@@ -377,10 +389,15 @@ Teilmatrizen anzuwenden. Dadurch werden die Eigenvektoren der Teilmatrizen besti
 \end{figure}
 
 \subsection{Anf"angliche Versuche}
-Bei der ersten Implementation des Codes in Matlab/Octave gingen wird von der Aufteilung wie in Abbildung \ref{1} aus. Dies konfrontierte uns aber mit dem Problem, dass in Abbildung \ref{111} ersichtlich ist. Bei der Diagonalen Aufteilung ergeben sich die roten Dreiecke die nicht mit gerechnet werden. 
-\begin{figure}[H]
+Bei der ersten Implementation des Codes in Matlab/Octave gingen wird
+von der Aufteilung wie in Abbildung \ref{1} aus. Dies konfrontierte
+uns aber mit dem Problem, dass in Abbildung \ref{111} ersichtlich
+ist. Bei der Diagonalen Aufteilung ergeben sich die roten Dreiecke die
+nicht mit gerechnet werden.
+ 
+\begin{figure}
 \begin{center}
-\begin{tikzpicture}[scale = 0.4]
+\begin{tikzpicture}[scale = 0.5]
 \draw[thick] (0,10) -- (0,-0.5);
 \draw[thick] (0,10) -- (0.5,10);
 \draw[thick] (0,-0.5) -- (0.5,-0.5);
@@ -423,16 +440,26 @@ Bei der ersten Implementation des Codes in Matlab/Octave gingen wird von der Auf
 \draw[thick,red] (3.4,6.2) -- (3.4,4.7);
 \draw[thick,red] (3.4,6.2) -- (1.9,6.2);
 \draw[thick,red] (1.9,6.2) -- (3.4,4.7);
-
 \end{tikzpicture}
 \end{center}
 \caption{Dreiecksproblem bei der Aufteilung}
 \label{111}
 \end{figure}
-Dies brachte uns auf den zweiten Versuch, den wir mit der in Abbildung \ref{11} gezeigten Aufteilung realisiert. Dieser Code f"uhrte aber dazu, dass unsere Bearbeitung nur gleich schnell oder teilweise sogar langsamer war als die original Matrix. Das Problem war, dass die Aufteilung zu aufwendig war und so kein Zeitgewinn erreicht werden konnte. Da die Matrix jetzt fast zweimal aufgeteilt wird verdoppelt sich damit nat"urlich die ben"otigte Zeit. Nach mehreren misslungenen Versuchen mit und ohne dieser Aufteilung musste wir den L"osungsansatz fallen lassen, da auch noch ein Problem mit der Normierung vorhanden war.
-\begin{figure}[H]
+
+Dies brachte uns auf den zweiten Versuch, den wir mit der in Abbildung
+\ref{11} gezeigten Aufteilung realisierten. Dieser Code f"uhrte aber
+dazu, dass unsere Bearbeitung nur gleich schnell oder teilweise sogar
+langsamer war als die original Matrix. Das Problem war, dass die
+Aufteilung zu aufwendig war und so kein Zeitgewinn erreicht werden
+konnte. Da die Matrix jetzt fast zweimal aufgeteilt wird verdoppelt
+sich damit nat"urlich die ben"otigte Zeit. Nach mehreren misslungenen
+Versuchen mit und ohne dieser Aufteilung musste wir den L"osungsansatz
+fallen lassen, da auch noch ein Problem mit der Normierung vorhanden
+war.
+
+\begin{figure}
 \begin{center}
-\begin{tikzpicture}[scale = 0.4]
+\begin{tikzpicture}[scale = 0.5]
 \draw[thick] (0,10) -- (0,-0.5);
 \draw[thick] (0,10) -- (0.5,10);
 \draw[thick] (0,-0.5) -- (0.5,-0.5);
@@ -471,22 +498,23 @@ Dies brachte uns auf den zweiten Versuch, den wir mit der in Abbildung \ref{11} 
 \draw[dashed] (8.2,4.9) -- (8.2,1.9);
 \draw[dashed] (8.2,4.9) -- (7.7,4.9);
 \draw[dashed] (8.2,1.9) -- (7.7,1.9);
-
-
-
 \end{tikzpicture}
 \end{center}
 \caption{Erster Probleml"osungsversuch}
 \label{11}
 \end{figure}
+
 \subsection[Algorithmus]{Funktionierender Algorithmus}
-Wir wurden mit dem Problem konfrontiert, dass das Potenzverfahren versucht unbedeutende Vektorkomponenten klein zu machen. Durch die Renormierung in den Teilmatrizen werden die
-Teilvektoren auf eine bestimmte Gr"osse gebracht. Wobei unbedeutende  Teilvektoren  wieder  gross gemacht werden. Dadurch  bewirkt man also genau das
-Gegenteil dessen, was der Potenzalgorithmus anstrebt.
-Diesen Umstand liessen wir in den neuen L"osungsansatz einfliessen. Die Abbildung \ref{12} zeigt pr"azise die Funktion des neuen Algorithmus auf.
+Wir wurden mit dem Problem konfrontiert, dass das Potenzverfahren
+versucht unbedeutende Vektorkomponenten klein zu machen. Durch die
+Renormierung in den Teilmatrizen werden die Teilvektoren auf eine
+bestimmte Gr"osse gebracht. Wobei unbedeutende Teilvektoren wieder
+gross gemacht werden. Dadurch bewirkt man also genau das Gegenteil
+dessen, was der Potenzalgorithmus anstrebt.  Diesen Umstand liessen
+wir in den neuen L"osungsansatz einfliessen. Die Abbildung \ref{12}
+zeigt pr"azise die Funktion des neuen Algorithmus auf.
 
-
-\begin{figure}[H]
+\begin{figure}
 \begin{center}
  \begin{tikzpicture}
   \node[rectangle,fill=blue!20,draw=blue!50,ultra
@@ -547,19 +575,50 @@ Diesen Umstand liessen wir in den neuen L"osungsansatz einfliessen. Die Abbildun
 \label{12}
 \end{figure}
 
- 
-Zur Kontrolle wird die Matrix ganz normal mit der Potenzmethode berechnet bis die Genauigkeit von $10^{-4}$ erreicht wurde.\\
-  Die pseudo Google Matrix, eine Bandmatrix mit Spaltensumme 1, wird diagonal aufgeteilt und die Teilmatrizen werden zehn mal mit Potenzmethode ohne Normierung berechnet. Die Ergebnisse werden in den Eigenvektor der gesamt Matrix eingef"ugt. Danach wird die ganze Matrix mit diesem Eigenvektor berechnet. Dies geschieht mit Normierung und f"uhrt dazu, dass die komplette Matrix berechnet wird und somit die anf"anglich gezeigten roten Dreiecke auch einbezogen werden. Danach werden die Teilmatrizen nochmal berechnet, solange bis die Genauigkeit von $10^{-4}$ oder die maximale Iterationsanzahl von 10'000 Durchg"angen erreicht ist. Schlussendlich wir "uber die ganze Matrix iteriert bis die Genauigkeit erreicht ist. Die letzte Iteration ben"otigt einen Bruchteil der Iterationsschritte im Vergleich zur originalen Matrix. In Zahlen ausgedr"uckt bedeutet das, dass die original Matrix ($10^3\times10^3$) 9305 Schritte und die bearbeitete 27 Schritte ben"otigte. Aus dieser Reduktion der Iterationsschritten ergibt sich der relativ grosse Berechnungszeitgewinn. Da die Berechnungen "uber die gesamte Matrix sehr aufw"andig sind. 
+Zur Kontrolle wird die Matrix ganz normal mit der Potenzmethode
+berechnet bis die Genauigkeit von $10^{-4}$ erreicht wurde.
+
+Die pseudo Google Matrix, eine Bandmatrix mit Spaltensumme 1, wird
+diagonal aufgeteilt und die Teilmatrizen werden zehn mal mit der
+Potenzmethode ohne Normierung berechnet. Die Ergebnisse werden in den
+Eigenvektor der gesamt Matrix eingef"ugt. Danach wird die ganze Matrix
+mit diesem Eigenvektor berechnet. Dies geschieht mit Normierung und
+f"uhrt dazu, dass die komplette Matrix berechnet wird und somit die
+anf"anglich gezeigten roten Dreiecke auch einbezogen werden. Danach
+werden die Teilmatrizen nochmal berechnet, solange bis die Genauigkeit
+von $10^{-4}$ oder die maximale Iterationsanzahl von 10'000
+Durchg"angen erreicht ist. Schlussendlich wir "uber die ganze Matrix
+iteriert bis die Genauigkeit erreicht ist. Die letzte Iteration
+ben"otigt einen Bruchteil der Iterationsschritte im Vergleich zur
+originalen Matrix. In Zahlen ausgedr"uckt bedeutet das, dass die
+original Matrix ($10^3\times10^3$) 9305 Schritte und die bearbeitete
+27 Schritte ben"otigte. Aus dieser Reduktion der Iterationsschritten
+ergibt sich der relativ grosse Berechnungszeitgewinn. Da die
+Berechnungen "uber die gesamte Matrix sehr aufw"andig sind.
+
 \subsection[Auswertung]{Auswertung der Berechnungszeiten}
-Um eine Auswertung des erarbeiteten Algorithmus zu erreichen wollten wir denn Code 100 mal mit verschiedenen Teilmatrix-Gr"ossen durchlaufen lassen. Daraus ergeben sich relativ gute Durchschnittswerte, welche in den folgenden Plots ersichtlich sind. Die Plots mit $10^2\times10^2$ und $10^3\times10^3$ gingen 100 mal durch. Bei der Matrix mit $10^4\times10^4$ beschr"ankten wir uns Aufgrund des enormen Rechenaufwands auf nur 5 Durchg"ange.
+Um eine Auswertung des erarbeiteten Algorithmus zu erreichen wollten
+wir denn Code 100 mal mit verschiedenen Teilmatrix-Gr"ossen
+durchlaufen lassen. Daraus ergeben sich relativ gute
+Durchschnittswerte, welche in den folgenden Plots ersichtlich
+sind. Die Plots mit $10^2\times10^2$ und $10^3\times10^3$ gingen 100
+mal durch. Bei der Matrix mit $10^4\times10^4$ beschr"ankten wir uns
+Aufgrund des enormen Rechenaufwands auf nur 5 Durchg"ange.
+
 \begin{figure}
 \begin{center}
-\includegraphics[width=0.69\textwidth]{./mapreduce/PC100.pdf}
+\includegraphics[width=0.7\textwidth]{./mapreduce/PC100.pdf}
 \end{center}
 \caption{Auswertungs Plot $100\times100$}
 \label{q}
 \end{figure}
-Aus der Abbildung \ref{q} ist ersichtlich, dass die $10^2\times10^2$ Matrix nicht f"ur die Parallelisierung mit unserer Methode geeignet ist. Dies ist einfach mit der gr"osse der Matrix zu erkl"aren. Da die Aufteilung mehr Zeit ben"otigt als die Berechnung "uber die gesamte Matrix.
+
+Aus der Abbildung \ref{q} ist ersichtlich, dass die $10^2\times10^2$
+Matrix nicht f"ur die Parallelisierung mit unserer Methode geeignet
+ist. Dies ist einfach mit der Gr"osse der Matrix zu erkl"aren. Da die
+Aufteilung mehr Zeit ben"otigt als die Berechnung "uber die gesamte
+Matrix.
+
 \begin{figure}
 \begin{center}
 \includegraphics[width=0.7\textwidth]{./mapreduce/PC1000.pdf}
@@ -567,7 +626,16 @@ Aus der Abbildung \ref{q} ist ersichtlich, dass die $10^2\times10^2$ Matrix nich
 \caption{Auswertungs Plot $1000\times1000$}
 \label{qq}
 \end{figure}
-Bei der $10^3\times10^3$ Matrix sieht das Ergebnis schon besser aus (Abbildung \ref{qq}). Der Aufteilungsaufwand rechnet sich und ergibt Geschwindigkeitsfortschritte. Die schnellste Aufteilung ergibt sich bei einer Teilmatrizen-Gr"osse von $250\times250$. Bei dieser Gr"osse k"onnen wir die ben"otigte Berechnungszeit halbieren (50.68\% der Originalzeit). Die verl"angerte Berechnungszeit bei kleineren Teilmatrizen-Gr"ossen sehen wir in Verbindung mit dem erh"oten Aufteilungsaufwand.
+
+Bei der $10^3\times10^3$ Matrix sieht das Ergebnis schon besser aus
+(Abbildung \ref{qq}). Der Aufteilungsaufwand rechnet sich und ergibt
+Geschwindigkeitsfortschritte. Die schnellste Aufteilung ergibt sich
+bei einer Teilmatrizen-Gr"osse von $250\times250$. Bei dieser Gr"osse
+k"onnen wir die ben"otigte Berechnungszeit halbieren (50.68\% der
+Originalzeit). Die verl"angerte Berechnungszeit bei kleineren
+Teilmatrizen-Gr"ossen sehen wir in Verbindung mit dem erh"ohten
+Aufteilungsaufwand.
+
 \begin{figure}
 \begin{center}
 \includegraphics[width=0.7\textwidth]{./mapreduce/PC10000.pdf}
@@ -575,18 +643,39 @@ Bei der $10^3\times10^3$ Matrix sieht das Ergebnis schon besser aus (Abbildung \
 \caption{Auswertungs Plot $10000\times10000$}
 \label{qqq}
 \end{figure}
-Der Plot in der Abbildung \ref{qqq} der $10^4\times10^4$ Matrix zeigt auch ein erfolgreiches Verfahren. Die Aufteilung mit den $1000\times1000$ Teilmatrizen l"asst die Berechnungszeit auf $\frac{1}{4}$ schrumpfen.
-An der Berechnungszeit der Originalmatirx (ca. 27 min) l"asst sich der Rechnungsaufwand erahnen. Trotzdem w"are unser Algorithmus in realen Verh"altnissen nicht einsetzbar, da er zu langsam ist. Aber es handelt sich bei unserem Code auch nur um eine Umsetzung in Matlab/Octave. Eine Implementation in C++ w"are ein n"achstes Ziel gewesen.
+
+Der Plot in der Abbildung \ref{qqq} der $10^4\times10^4$ Matrix zeigt
+auch ein erfolgreiches Verfahren. Die Aufteilung mit den
+$1000\times1000$ Teilmatrizen l"asst die Berechnungszeit auf
+$\frac{1}{4}$ schrumpfen.  An der Berechnungszeit der Originalmatirx
+(ca. 27 min) l"asst sich der Rechnungsaufwand erahnen. Trotzdem w"are
+unser Algorithmus in realen Verh"altnissen nicht einsetzbar, da er zu
+langsam ist. Aber es handelt sich bei unserem Code auch nur um eine
+Umsetzung in Matlab/Octave. Eine Implementation in C++ w"are ein
+n"achstes Ziel gewesen.
+
 \subsection[Iterationsschritte]{Einfluss der Iterationsschritte}
-Im Code werden die Iterationen mit einer maximal Anzahl von Durchg"angen (10'000) oder bei erreichen der Genauigkeit von $10^{-4}$ abgebrochen. Bei der Anpassung dieser maximalen Iterationsgrenze ist auch mit einer Beeinflussung der Geschwindigkeit zu rechnen. In den folgenden Plots wurde genau dies "uberpr"uft.
-\begin{figure}[H]
+Im Code werden die Iterationen mit einer maximal Anzahl von
+Durchg"angen (10'000) oder bei erreichen der Genauigkeit von $10^{-4}$
+abgebrochen. Bei der Anpassung dieser maximalen Iterationsgrenze ist
+auch mit einer Beeinflussung der Geschwindigkeit zu rechnen. In den
+folgenden Plots wurde genau dies "uberpr"uft.
+
+\begin{figure}
 \begin{center}
 \includegraphics[width=0.7\textwidth]{./mapreduce/PC1000spec25.pdf}
 \end{center}
 \caption{Reduktion der maximalen Iterationsschritte ($25\times25$ Teilmatrizen)}
 \label{w}
 \end{figure}
-Wie man beim Plot \ref{w} sehr gut sehen kann, bewirkt die Herabsetzung der Grenze auf 5'000 einen Geschwindigkeitsgewinn. Eine weiter Herabsetzung f"uhrt jedoch dazu, dass mehr zeitintensive Iterationen "uber die gesamte Matrix am Schluss berechnet werden m"ussen, anstatt nur "uber die kleinen Teilmatrizen. Deshalb ist davon abzuraten die Grenze noch mehr zu verkleinern.
+
+Wie man beim Plot \ref{w} sehr gut sehen kann, bewirkt die
+Herabsetzung der Grenze auf 5'000 einen Geschwindigkeitsgewinn. Eine
+weiter Herabsetzung f"uhrt jedoch dazu, dass mehr zeitintensive
+Iterationen "uber die gesamte Matrix am Schluss berechnet werden
+m"ussen, anstatt nur "uber die kleinen Teilmatrizen. Deshalb ist davon
+abzuraten die Grenze noch mehr zu verkleinern.
+
 \begin{figure}
 \begin{center}
 \includegraphics[width=0.7\textwidth]{./mapreduce/PC1000spec250.pdf}
@@ -594,10 +683,23 @@ Wie man beim Plot \ref{w} sehr gut sehen kann, bewirkt die Herabsetzung der Gren
 \caption{Reduktion der maximalen Iterationsschritte ($250\times250$ Teilmatrizen)}
 \label{ww}
 \end{figure}
-Ein sehr "ahnliches Bild ist bei den $250\times250$ Teilmatrizen zu erkennen (Abbildung \ref{ww}). Auch hier f"uhrt eine Halbierung der Iterationen zu einem Geschwindigkeitsgewinn. Jedoch tritt das selbe Symptom wie vorher auf. Dennoch kann diese Art der Anpassung je nach Situation einen Zeitgewinn mit sich f"uhren.
+
+Ein sehr "ahnliches Bild ist bei den $250\times250$ Teilmatrizen zu
+erkennen (Abbildung \ref{ww}). Auch hier f"uhrt eine Halbierung der
+Iterationen zu einem Geschwindigkeitsgewinn. Jedoch tritt das selbe
+Symptom wie vorher auf. Dennoch kann diese Art der Anpassung je nach
+Situation einen Zeitgewinn mit sich f"uhren.
+
 \subsection{Fazit}
-Als Fazit aus unseren Versuchen mit dem Eigenwertproblem und MapReduce k"onnen wir sagen, dass wir es geschafft haben einen funktionierenden Algorithmus zu implementieren. Dieser ist jedoch in einem fr"uhen Stadium und noch ausbauf"ahig. Ein n"achster Schritt w"are die Implementation in einer Hochsprache. So w"aren auch bessere Parallelisierung m"oglich gewesen.\\
-Dennoch zeigt der Algorithmus sehr gut was alles m"oglich ist und wie die Funktionsweise von MapReduce ist.
+Als Fazit aus unseren Versuchen mit dem Eigenwertproblem und MapReduce
+k"onnen wir sagen, dass wir es geschafft haben einen funktionierenden
+Algorithmus zu implementieren. Dieser ist jedoch in einem fr"uhen
+Stadium und noch ausbauf"ahig. Ein n"achster Schritt w"are die
+Implementation in einer Hochsprache. So w"are auch eine bessere
+Parallelisierung m"oglich gewesen.
+
+Dennoch zeigt der Algorithmus sehr gut, was alles m"oglich ist und wie
+die Funktionsweise von MapReduce ist.
 
 \printbibliography[heading=subbibliography]
 \end{refsection}
