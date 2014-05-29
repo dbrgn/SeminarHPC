@@ -42,6 +42,15 @@ testimage2.fits:	testimage.fits
 povtest:	fits2pov testimage2.fits
 	./fits2pov -d -s 0.00392156862745098039 testimage2.fits
 
+fits2off:	fits2off.c
+	$(CC) $(CFLAGS) -o fits2off fits2off.c -lcfitsio -lm
+	
+offtest:	fits2off small.fits
+	./fits2off -d -o 1 -m 0.3 small.fits
+
+00025.off:	fits2off 00025.fits
+	./fits2off -a -m 0.2 -o 0.01 00025.fits
+
 # measurements
 results:	results-heat.pdf results-heat-mpi.pdf results-heat-threads.pdf
 

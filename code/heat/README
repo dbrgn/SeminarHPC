@@ -45,3 +45,17 @@ Common files:
 		write data to it.
 
 For invocation syntax, check the Makefile
+
+In addition, there are some utilities for visualization:
+
+fits2pov
+	converts FITS images to povray objects
+
+video
+	takes the computed FITS images, converts them to povray objects,
+	redners them using povray, and finally converts them into an MPEG
+	video
+
+fits2off
+	converts an image to an object file in OFF format, which can later
+	be converted to STL using meshlab and used for 3D-printing
