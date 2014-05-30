@@ -4,7 +4,7 @@
 #
 # (c) 2014 Prof Dr Andreas Mueller, Hochschule Rapperswil
 #
-all:	 potential_mpi fits2pov
+all:	 potential_mpi
 
 CFLAGS = -Wall -g -O2 -std=c99 -I../gauss/common -I/usr/include/cfitsio
 LDFLAGS = -L../gauss/common -lgauss -lnetcdf 
@@ -22,8 +22,3 @@ testmpi:	potential_mpi
 	time mpirun -n 4 ./potential_mpi -b images -h 0.1 -x 2 -y 2 -n 128 -a 2\
 		testimage_128_3.fits 2>&1 | tee test.log
 
-# measurements
-results:	results-potential-mpi.pdf results-potential-threads.pdf
-
-results-potential-mpi.pdf results-potential-threads.pdf:	results-mpi.csv results-mpi.R
-	R --vanilla --quiet < results-mpi.R
