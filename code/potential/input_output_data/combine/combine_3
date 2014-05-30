@@ -1,0 +1,6 @@
+#!/bin/sh
+#
+# Bilder zusammenkopieren
+#
+composite -gravity West $1 canvas.jpg temp.jpg
+composite -gravity Center $2 temp.jpg $3

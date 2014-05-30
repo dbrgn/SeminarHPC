@@ -16,6 +16,7 @@ SAMPLEFILES = sample/sample.tex sample/sample.bib
 HEATFILES = heat/heat.tex
 JULIAFILES = julia/julia.tex julia/julia.bib
 MAPREDUCEFILES = mapreduce/mapreduce.tex mapreduce/map.bib
+POTENTIALFILES = potential/potential.tex
 
 TEXFILES = vorwort.tex einleitung.tex maschinen.tex sprachen.tex \
 	daten.tex algorithm.tex \

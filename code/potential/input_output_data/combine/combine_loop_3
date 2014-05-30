@@ -1,0 +1,15 @@
+#!/bin/sh
+#
+# Bilder zusammenkopieren aus drei verschiedenen Ordner
+# anschliessen ausführen des Skriptes combine_3
+convert -size 384x128 xc:black canvas.jpg
+for f in {00000..00256}
+do
+		bash combine_3 west/$f.fits center/$f.fits $f.jpg
+		bash combine $f.jpg east/$f.fits $f.jpg	
+done
+
+
+
+jpeg2yuv -v 1 -I p -f 25 -j %05d.jpg | \
+	mpeg2enc --no-constraints -q 1 -b 8000 -l m -f 8 -o potential_combine.mpg
