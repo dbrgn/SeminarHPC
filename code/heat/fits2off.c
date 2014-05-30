@@ -3,6 +3,8 @@
  *
  * (c) 2014 Prof Dr Andreas Mueller, Hochschule Rapperswil
  */
+#define _SVID_SOURCE
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <getopt.h>
@@ -10,39 +12,41 @@
 #include <string.h>
 #include <math.h>
 #include <fitsio.h>
+#include "utils.h"
 
 #define	XSKIRT	1
 #define	YSKIRT	1
 #define	BOTTOM	1
 
 int	debug = 0;
-double	*data = NULL;
-double	scale = 1;
-double	maximum = -1;
-double	offset = 0;
-double	hx = -1;
-double	hy = -1;
 
+/**
+ * \brief Display usage message for the program
+ */
 void	usage(const char *progname) {
 	printf("usage: %s fitsfile povrayfile\n", progname);
 	printf("convert a FITS file into a povray structure\n");
+	printf("options:\n");
+	printf(" -a           preserve aspect ratio\n");
+	printf(" -d           enable debug mode\n");
+	printf(" -x hx        set x-axis step size\n");
+	printf(" -y hy        set y-axis step size\n");
+	printf(" -s scale     set z-axis scale factor\n");
+	printf(" -m maximum   scale the data so that the maximum is <maximum>\n");
+	printf("              incompatible with -s\n");
+	printf(" -o offset    add offset <offset> to all values\n");
+	printf(" -h,-?        show this help\n");
 }
 
-void	point(FILE *outfile, const double *p) {
-	fprintf(outfile, "<%.4f, %.4f, %.4f>", p[0], p[2], p[1]);
-}
-
-void	triangle(FILE *outfile, const double *t) {
-	fprintf(outfile, "triangle { ");
-	point(outfile, &t[0]);
-	fprintf(outfile, ", ");
-	point(outfile, &t[3]);
-	fprintf(outfile, ", ");
-	point(outfile, &t[6]);
-	fprintf(outfile, " }\n");
-}
-
+/**
+ * \brief Main function of the fits2off program
+ */
 int	main(int argc, char *argv[]) {
+	double	scale = 1;	/* scale factor to apply to all values */
+	double	maximum = -1;	/* maximum absolute value */
+	double	offset = 0;	/* offset to add to all values after scaling */
+	double	hx = -1;	/* step size in x-direction */
+	double	hy = -1;	/* step size in y-direction */
 	FILE	*outfile = NULL;
 	int	rc = EXIT_FAILURE;
 	int	c;
@@ -104,60 +108,22 @@ int	main(int argc, char *argv[]) {
 			__FILE__, __LINE__, fitsname, offname);
 	}
 
-	// read the FITS file
-	char	fitserrmsg[80];
-	int	status = 0;
-	fitsfile	*fits = NULL;
-	if (fits_open_file(&fits, fitsname, READONLY, &status)) {
-		fits_get_errstatus(status, fitserrmsg);
-		fprintf(stderr, "cannot open file %s: %s\n", fitsname,
-			fitserrmsg);
+	// read the image file
+	image_t	*image = readfits(fitsname);
+	if (NULL == image) {
 		goto cleanup;
 	}
 
-	int	igt;
-	int	naxis;
-	long	naxes[3];
-	if (fits_get_img_param(fits, 3, &igt, &naxis, naxes, &status)) {
-		fits_get_errstatus(status, fitserrmsg);
-		fprintf(stderr, "cannot read file info: %s\n", fitserrmsg);
-		goto cleanup;
-	}
-
-	long	width = naxes[0];
-	long	height = naxes[1];
-	if (debug) {
-		fprintf(stderr, "%s:%d: got %ld x %ld image\n",
-			__FILE__, __LINE__,  width, height);
-	}
-
-	long	firstpixel[3] = { 1, 1, 1 };
-	long	npixels = width * height;
-	data = (double *)malloc(npixels * sizeof(double));
-	if (debug) {
-		fprintf(stderr, "%s:%d: allocated %ld doubles\n",
-			__FILE__, __LINE__, npixels);
-	}
-	if (fits_read_pix(fits, TDOUBLE, firstpixel, npixels, NULL, data,
-		NULL, &status)) {
-		fits_get_errstatus(status, fitserrmsg);
-		fprintf(stderr, "cannot read pixel data: %s\n", fitserrmsg);
-		goto cleanup;
-	}
-
-	if (fits_close_file(fits, &status)) {
-		fits_get_errstatus(status, fitserrmsg);
-		fprintf(stderr, "cannot close FITS file: %s\n", fitserrmsg);
-		goto cleanup;
-	}
-
-	// complete the dimensions
+	// complete the scaling information
+	// by default, scale the image to a square of side 1
 	if (hx < 0) {
-		hx = 1. / width;
+		hx = 1. / image->width;
 	}
 	if (hy < 0) {
-		hy = 1. / height;
+		hy = 1. / image->height;
 	}
+	// if the -a option is given, set the scale factors so that the
+	// image rectangle fits inside a square of side 1
 	if (preserve_aspect) {
 		if (hx > hy) {
 			hx = hy;
@@ -173,13 +139,7 @@ int	main(int argc, char *argv[]) {
 	// if the maximum is set, we want to modify the scale so that
 	// we get the right maximum
 	if (maximum > 0) {
-		double	m = 0;
-		for (long i = 0; i < width * height; i++) {
-			if (data[i] > m) {
-				m = data[i];
-			}
-		}
-		scale = maximum / m;
+		scale = maximum / datamax(image);
 	}
 
 	// open the output file
@@ -192,30 +152,28 @@ int	main(int argc, char *argv[]) {
 
 	// write the header of the file, i. e. number of points and number
 	// of triangles
-#if 0
 	fprintf(outfile, "OFF\n%ld %ld 0\n\n",
-		width * height + 2 * (width + height - 2),
-		(width - 1) * (height - 1) + 4 * (width + height - 2) + 2);
-#endif
-	fprintf(outfile, "OFF\n%ld %ld 0\n\n",
-		width * height + 2 * width + 2 * (height - 2),
-		2 * (width - 1) * (height - 1)
+		image->width * image->height
+		+ 2 * image->width + 2 * (image->height - 2),
+		2 * (image->width - 1) * (image->height - 1)
 #if XSKIRT
-		+ 4 * (width - 1)
+		+ 4 * (image->width - 1)
 #endif /* XSKIRT */
 #if YSKIRT
-		+ 4 * (height - 1)
+		+ 4 * (image->height - 1)
 #endif /* YSKIRT */
 #if BOTTOM
 		+ 2
 #endif /* BOTTOM */
 		);
 
+	long	pointcounter = 0;
 #define	addpoint(X, Y, Z)						\
 	do {								\
-		if (debug) { fprintf(stderr, "%s:%d: %d (%f, %f, %f)\n",\
-			__FILE__, __LINE__, pointcounter,		\
-			X, Y, Z);					\
+		if (debug > 1) {					\
+			fprintf(stderr, "%s:%d: %ld (%f, %f, %f)\n",\
+				__FILE__, __LINE__, pointcounter,	\
+				X, Y, Z);				\
 		}							\
 		fprintf(outfile, "%g %g %g\n",				\
 			X, Y, Z);					\
@@ -223,49 +181,53 @@ int	main(int argc, char *argv[]) {
 	} while (0)
 
 	// write all points on individual lines
-	long	pointcounter = 0;
-	for (long y = 0; y < height; y++) {
-		for (long x = 0; x < width; x++) {
+	for (long y = 0; y < image->height; y++) {
+		for (long x = 0; x < image->width; x++) {
 			addpoint(x * hx, y * hy,
-				scale * data[x + width * y] + offset);
+				scale * value(image, x, y) + offset);
 		}
 	}
+
+	// add points at bottom, along x-axis
 	if (debug) {
-		fprintf(stderr, "%s:%d: xaxis points start at: %d\n",
+		fprintf(stderr, "%s:%d: xaxis points start at: %ld\n",
 			__FILE__, __LINE__, pointcounter);
 	}
 	long	xborder = pointcounter;
-	for (long x = 0; x < width; x++) {
+	for (long x = 0; x < image->width; x++) {
 		addpoint(x * hx, 0., 0.);
-		addpoint(x * hx, (height - 1) * hy, 0.);
+		addpoint(x * hx, (image->height - 1) * hy, 0.);
 	}
+
+	// add points at bottom, along y-axis
 	if (debug) {
-		fprintf(stderr, "%s:%d: yaxis points start at: %d\n",
+		fprintf(stderr, "%s:%d: yaxis points start at: %ld\n",
 			__FILE__, __LINE__, pointcounter);
 	}
 	long	yborder = pointcounter;
-	for (long y = 1; y < height - 1; y++) {
+	for (long y = 1; y < image->height - 1; y++) {
 		addpoint(0., y * hy, 0.);
-		addpoint((width - 1) * hx, y * hy, 0.);
+		addpoint((image->width - 1) * hx, y * hy, 0.);
 	}
 	if (debug) {
-		fprintf(stderr, "%s:%d: points: %d\n", __FILE__, __LINE__,
+		fprintf(stderr, "%s:%d: points: %ld\n", __FILE__, __LINE__,
 			pointcounter);
 	}
 
+	// start adding triangles
 	long	trianglecounter = 0;
 
 #define	addquad(a, b, c, d)						\
 	do {								\
-		if (debug) {						\
-			fprintf(stderr, "%s:%d: %d (%ld %ld %ld)\n",	\
+		if (debug > 1) {					\
+			fprintf(stderr, "%s:%d: %ld (%ld %ld %ld)\n",	\
 				__FILE__, __LINE__,			\
 				trianglecounter, a, b, c);		\
 		}							\
 		fprintf(outfile, "3 %ld %ld %ld\n", a, b, c);		\
 		trianglecounter++;					\
-		if (debug) {						\
-			fprintf(stderr, "%s:%d: %d (%ld %ld %ld)\n",	\
+		if (debug > 1) {					\
+			fprintf(stderr, "%s:%d: %ld (%ld %ld %ld)\n",	\
 				__FILE__, __LINE__,			\
 				trianglecounter, a, c, d);		\
 		}							\
@@ -278,12 +240,12 @@ int	main(int argc, char *argv[]) {
 		fprintf(stderr, "%s:%d: add surface triangles\n",
 			__FILE__, __LINE__);
 	}
-	for (long y = 0; y < height - 1; y++) {
-		for (long x = 0; x < width - 1; x++) {
-			addquad((x    ) + width * (y    ),
-				(x + 1) + width * (y    ),
-				(x + 1) + width * (y + 1),
-				(x    ) + width * (y + 1));
+	for (long y = 0; y < image->height - 1; y++) {
+		for (long x = 0; x < image->width - 1; x++) {
+			addquad((x    ) + image->width * (y    ),
+				(x + 1) + image->width * (y    ),
+				(x + 1) + image->width * (y + 1),
+				(x    ) + image->width * (y + 1));
 		}
 	}
 
@@ -293,14 +255,14 @@ int	main(int argc, char *argv[]) {
 		fprintf(stderr, "%s:%d: add X-skirt triangles\n",
 			__FILE__, __LINE__);
 	}
-	for (int x = 0; x < width - 1; x++) {
+	for (long x = 0; x < image->width - 1; x++) {
 		addquad(xborder + 2 * x,
 			xborder + 2 * x + 2,
 			x + 1,
 			x);
 		addquad(xborder + 2 * x + 1,
-			x + (height - 1) * width,
-			x + (height - 1) * width + 1,
+			x + (image->height - 1) * image->width,
+			x + (image->height - 1) * image->width + 1,
 			xborder + 2 * x + 3);
 	}
 #endif /* XSKIRT */
@@ -309,14 +271,14 @@ int	main(int argc, char *argv[]) {
 		fprintf(stderr, "%s:%d: adding Y-Skirt triangles\n",
 			__FILE__, __LINE__);
 	}
-	for (int y = 1; y < height - 2; y++) {
+	for (long y = 1; y < image->height - 2; y++) {
 		addquad(yborder + 2 * (y - 1),
-			y * width,
-			(y + 1) * width,
+			y * image->width,
+			(y + 1) * image->width,
 			yborder + 2 * y);
 		addquad(yborder + 2 * y + 1,
-			(y + 1) * width + width - 1,
-			y * width + width - 1,
+			(y + 1) * image->width + image->width - 1,
+			y * image->width + image->width - 1,
 			yborder + 2 * (y - 1) + 1);
 	}
 	if (debug) {
@@ -324,24 +286,24 @@ int	main(int argc, char *argv[]) {
 			__FILE__, __LINE__);
 	}
 	addquad(xborder,
-		0,
-		width,
+		(long)0,
+		image->width,
 		yborder);
 
 	addquad(yborder + 1,
-		2 * width - 1,
-		width - 1,
-		xborder + 2 * (width - 1));
+		2 * image->width - 1,
+		image->width - 1,
+		xborder + 2 * (image->width - 1));
 
-	addquad(yborder + 2 * (height - 3),
-		(height - 2) * width,
-		(height - 1) * width,
+	addquad(yborder + 2 * (image->height - 3),
+		(image->height - 2) * image->width,
+		(image->height - 1) * image->width,
 		xborder + 1);
 
-	addquad(xborder + 2 * width - 1,
-		height * width - 1,
-		(height - 1) * width - 1,
-		yborder + 2 * (height - 3) + 1);
+	addquad(xborder + 2 * image->width - 1,
+		image->height * image->width - 1,
+		(image->height - 1) * image->width - 1,
+		yborder + 2 * (image->height - 3) + 1);
 		
 #endif /* YSKIRT */
 
@@ -352,10 +314,11 @@ int	main(int argc, char *argv[]) {
 	}
 	addquad(xborder,
 		xborder + 1,
-		xborder + 2 * width - 1,
-		xborder + 2 * width - 2);
+		xborder + 2 * image->width - 1,
+		xborder + 2 * image->width - 2);
 #endif
 		
+	// ensure output file ends with a blank line
 	fprintf(outfile, "\n");
 
 	// cleanup
@@ -368,13 +331,9 @@ cleanup:
 		outfile = NULL;
 	}
 
-	if (data) {
-		free(data);
-		data = NULL;
-	}
-	if (fits) {
-		status = 0;
-		fits_close_file(fits, &status);
+	if (image) {
+		freeimage(image);
+		image = NULL;
 	}
 	free(offname); offname = NULL;
 

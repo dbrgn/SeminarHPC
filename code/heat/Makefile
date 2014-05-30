@@ -4,7 +4,7 @@
 #
 # (c) 2014 Prof Dr Andreas Mueller, Hochschule Rapperswil
 #
-all:	heat heat_mpi fits2pov
+all:	heat heat_mpi fits2pov fits2off
 
 CFLAGS = -Wall -g -O2 -std=c99 -I../gauss/common -I/usr/include/cfitsio
 LDFLAGS = -L../gauss/common -lgauss -lnetcdf 
@@ -33,8 +33,8 @@ testmpi:	heat_mpi
 		testimage.fits 2>&1 | tee test.log
 
 # convert fits files to povray structure
-fits2pov:	fits2pov.c
-	$(CC) $(CFLAGS) -o fits2pov fits2pov.c -lcfitsio -lm
+fits2pov:	fits2pov.c utils.c utils.h
+	$(CC) $(CFLAGS) -o fits2pov fits2pov.c utils.c -lcfitsio -lm
 
 testimage2.fits:	testimage.fits
 	convert testimage.fits -scale 25% testimage2.fits
@@ -42,8 +42,8 @@ testimage2.fits:	testimage.fits
 povtest:	fits2pov testimage2.fits
 	./fits2pov -d -s 0.00392156862745098039 testimage2.fits
 
-fits2off:	fits2off.c
-	$(CC) $(CFLAGS) -o fits2off fits2off.c -lcfitsio -lm
+fits2off:	fits2off.c utils.c utils.h
+	$(CC) $(CFLAGS) -o fits2off fits2off.c utils.c -lcfitsio -lm
 	
 offtest:	fits2off small.fits
 	./fits2off -d -o 1 -m 0.3 small.fits

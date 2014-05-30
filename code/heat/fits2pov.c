@@ -3,6 +3,7 @@
  *
  * (c) 2014 Prof Dr Andreas Mueller, Hochschule Rapperswil
  */
+#define _SVID_SOURCE
 #include <stdlib.h>
 #include <stdio.h>
 #include <getopt.h>
@@ -10,22 +11,35 @@
 #include <string.h>
 #include <math.h>
 #include <fitsio.h>
+#include "utils.h"
 
 int	debug = 0;
-double	*data = NULL;
-double	scale = 1;
-double	hx = -1;
-double	hy = -1;
 
+/**
+ * \brief Display a usage message
+ */
 void	usage(const char *progname) {
 	printf("usage: %s fitsfile povrayfile\n", progname);
 	printf("convert a FITS file into a povray structure\n");
+	printf("options:\n");
+	printf(" -a           preserve aspect ratio\n");
+	printf(" -d           increase debug level\n");
+	printf(" -h,-?        display this help message and exit\n");
+	printf(" -x <hx>      set x-axis step size to <hx>\n");
+	printf(" -y <hy>      set y-axis step size to <hy>\n");
+	printf(" -s <scale>   set vertical scale factor to <scale>\n");
 }
 
+/**
+ * \brief Output a point in povray format
+ */
 void	point(FILE *outfile, const double *p) {
 	fprintf(outfile, "<%.4f, %.4f, %.4f>", p[0], p[2], p[1]);
 }
 
+/**
+ * \brief Output a triangle in povray format
+ */
 void	triangle(FILE *outfile, const double *t) {
 	fprintf(outfile, "triangle { ");
 	point(outfile, &t[0]);
@@ -36,11 +50,17 @@ void	triangle(FILE *outfile, const double *t) {
 	fprintf(outfile, " }\n");
 }
 
+/**
+ * \brief main function for the fits2pov program
+ */
 int	main(int argc, char *argv[]) {
 	FILE	*outfile = NULL;
 	int	rc = EXIT_FAILURE;
 	int	c;
 	int	preserve_aspect = 0;
+	double	scale = 1;
+	double	hx = -1;
+	double	hy = -1;
 	while (EOF != (c = getopt(argc, argv, "adh?s:x:y:")))
 		switch (c) {
 		case 'a':
@@ -92,59 +112,18 @@ int	main(int argc, char *argv[]) {
 			__FILE__, __LINE__, fitsname, povname);
 	}
 
-	// read the FITS file
-	char	fitserrmsg[80];
-	int	status = 0;
-	fitsfile	*fits = NULL;
-	if (fits_open_file(&fits, fitsname, READONLY, &status)) {
-		fits_get_errstatus(status, fitserrmsg);
-		fprintf(stderr, "cannot open file %s: %s\n", fitsname,
-			fitserrmsg);
-		goto cleanup;
-	}
-
-	int	igt;
-	int	naxis;
-	long	naxes[3];
-	if (fits_get_img_param(fits, 3, &igt, &naxis, naxes, &status)) {
-		fits_get_errstatus(status, fitserrmsg);
-		fprintf(stderr, "cannot read file info: %s\n", fitserrmsg);
-		goto cleanup;
-	}
-
-	long	width = naxes[0];
-	long	height = naxes[1];
-	if (debug) {
-		fprintf(stderr, "%s:%d: got %ld x %ld image\n",
-			__FILE__, __LINE__,  width, height);
-	}
-
-	long	firstpixel[3] = { 1, 1, 1 };
-	long	npixels = width * height;
-	data = (double *)malloc(npixels * sizeof(double));
-	if (debug) {
-		fprintf(stderr, "%s:%d: allocated %ld doubles\n",
-			__FILE__, __LINE__, npixels);
-	}
-	if (fits_read_pix(fits, TDOUBLE, firstpixel, npixels, NULL, data,
-		NULL, &status)) {
-		fits_get_errstatus(status, fitserrmsg);
-		fprintf(stderr, "cannot read pixel data: %s\n", fitserrmsg);
-		goto cleanup;
-	}
-
-	if (fits_close_file(fits, &status)) {
-		fits_get_errstatus(status, fitserrmsg);
-		fprintf(stderr, "cannot close FITS file: %s\n", fitserrmsg);
+	// read the image
+	image_t	*image = readfits(fitsname);
+	if (NULL == image) {
 		goto cleanup;
 	}
 
 	// complete the dimensions
 	if (hx < 0) {
-		hx = 1. / width;
+		hx = 1. / image->width;
 	}
 	if (hy < 0) {
-		hy = 1. / height;
+		hy = 1. / image->height;
 	}
 	if (preserve_aspect) {
 		if (hx > hy) {
@@ -170,30 +149,28 @@ int	main(int argc, char *argv[]) {
 	fprintf(outfile, "mesh {\n");
 
 	// write the data as a povray structure
-	for (int x = 0; x < width - 1; x++) {
-		for (int y = 0; y < height - 1; y++) {
+	for (int x = 0; x < image->width - 1; x++) {
+		for (int y = 0; y < image->height - 1; y++) {
 			double	t[9];
 			t[0] = x * hx;
 			t[1] = y * hy;
-			t[2] = scale * data[x + width * y];
+			t[2] = scale * value(image, x, y);
 			t[3] = (x + 1) * hx;
 			t[4] = y * hy;
-			t[5] = scale * data[x + 1 + width * y];
+			t[5] = scale * value(image, x + 1, y); 
 			t[6] = x * hx;
 			t[7] = (y + 1) * hy;
-			t[8] = scale * data[x + width * (y + 1)];
+			t[8] = scale * value(image, x, y + 1);
 			triangle(outfile, t);
 			t[0] = (x + 1) * hx;
 			t[1] = (y + 1) * hy;
-			t[2] = scale * data[x + 1 + width * (y + 1)];
+			t[2] = scale * value(image, x + 1, y + 1);
 			triangle(outfile, t);
-#if 0
-			double	v = scale * data[x + width * y];
-			if (debug) {
+			if (debug > 1) {
+				double	v = scale * value(image, x, y);
 				fprintf(stderr, "data[%.4f,%.4f] = %16.12f\n",
 					x * hx, y * hy, v);
 			}
-#endif
 		}
 	}
 
@@ -210,13 +187,9 @@ cleanup:
 		outfile = NULL;
 	}
 
-	if (data) {
-		free(data);
-		data = NULL;
-	}
-	if (fits) {
-		status = 0;
-		fits_close_file(fits, &status);
+	if (image) {
+		freeimage(image);
+		image = NULL;
 	}
 	free(povname); povname = NULL;
 
