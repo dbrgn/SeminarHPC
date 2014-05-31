@@ -17,17 +17,19 @@ HEATFILES = heat/heat.tex
 JULIAFILES = julia/julia.tex julia/julia.bib
 MAPREDUCEFILES = mapreduce/mapreduce.tex mapreduce/map.bib
 POTENTIALFILES = potential/potential.tex
+GREENFILES = green/green.tex green/quellen.bib
 
 TEXFILES = vorwort.tex einleitung.tex maschinen.tex sprachen.tex \
 	daten.tex algorithm.tex \
-	$(SAMPLEFILES) $(HEATFILES) $(JULIAFILES) $(MAPREDUCEFILES)
+	$(SAMPLEFILES) $(HEATFILES) $(JULIAFILES) $(MAPREDUCEFILES) \
+	$(GREENFILES)
 
 BLXFILES = skript1-blx.bbl skript2-blx.bbl skript3-blx.bbl skript4-blx.bbl \
-	skript5-blx.bbl skript6-blx.bbl
+	skript5-blx.bbl skript6-blx.bbl skript7-blx.bbl
 
 IMAGES = graphics/cgresults.pdf
 
-skript.pdf:	skript.tex $(TEXFILES) skript.ind $(BLXFILES) $(IMAGES)
+skript.pdf:	skript.tex $(TEXFILES) skript.ind $(IMAGES) $(BLXFILES)
 	pdflatex skript.tex
 	bibtex skript
 
@@ -58,6 +60,9 @@ skript5-blx.bbl:	skript5-blx.aux
 
 skript6-blx.bbl:	skript6-blx.aux
 	bibtex skript6-blx
+
+skript7-blx.bbl:	skript7-blx.aux
+	bibtex skript7-blx
 
 # standalone compilation of a single article
 standalone.pdf:	standalone.tex $(TEXFILES)

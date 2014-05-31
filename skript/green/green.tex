@@ -3,66 +3,6 @@
 \begin{refsection}
 \chapterauthor{Andreas Linggi, Stefan Steiner}
 
-%------------------- C-Code ------------------- %
-\definecolor{colorkeywordstyle}{RGB}{127,0,127}
-\definecolor{colorcommentstyle}{RGB}{0,116,0}
-\definecolor{colorstringstyle}{RGB}{196,26,22}
-\definecolor{colorbackground}{RGB}{240,240,240}
-\definecolor{royalblue}{rgb}{0.15,0.25,0.55}
-\definecolor{black}{rgb}{0,0,0}
-
-\lstnewenvironment{code}[1][]
-  {\lstset{
-  	backgroundcolor =		\color{colorbackground},
-    language =				C++,			
-    basicstyle =    		\ttfamily,
-    breaklines = 			true,
-    frame = 				none,
-    columns =				flexible,
-    keepspaces = 			true,
-    keywordstyle=			\color{colorkeywordstyle},
-    identifierstyle	=\color{royalblue},
-    showstringspaces =		false,
-    extendedchars =			true,   
-    commentstyle = 			\color{colorcommentstyle},,
-    numbers = 				left,
-    numbersep = 			2pt,
-    numberstyle =			\tiny,
-    rulecolor=\color{black}, 
-    stepnumber =			1,
-    tabsize = 				4,
-  }}{\vspace{0em}}
-\lstset{
-  	backgroundcolor =		\color{colorbackground},
-    language =				C++,			
-    basicstyle =    		\ttfamily,
-    breaklines = 			true,
-    frame = 				none,
-    columns =				flexible,
-    keepspaces = 			true,
-    keywordstyle=			\color{colorkeywordstyle},
-    identifierstyle	=\color{royalblue},
-    showstringspaces =		false,
-    extendedchars =			true,   
-    commentstyle = 			\color{colorcommentstyle},,
-    numbers = 				left,
-    numbersep = 			2pt,
-    numberstyle =			\tiny,
-    rulecolor=\color{black}, 
-    stepnumber =			1,
-    tabsize = 				4,
-}
-%---------------------------------------------
-\newcommand{\dunderline}[1]{\underline{\underline{#1}}}
-
-%------------------- Graue Beispielboxen ------------------- %
-\definecolor{MyBoxColor}{rgb}{0.9,0.9,0.9}
-\newenvironment{shadedSmaller}{
-  \def\FrameCommand{\fboxsep=\FrameSep \colorbox{MyBoxColor}}
-  \MakeFramed {\advance\hsize-2\width\FrameRestore}}
-{\endMakeFramed}
-%----------------------------------------------------------- %
-
 \section{Aufgabenstellung}
 
 Um ein Problem der Mathematik besser zu verstehen, ist es oft sehr
@@ -114,11 +54,11 @@ George Green ist besonders bekannt f"ur das Greensche Theorem und
 die Greensche Funktion. Er besch"aftigte sich mit der L"osung von
 partiellen Differentialgleichungen und stellte damit unter anderem
 mathematische Hilfsmittel bereit, die sogar in der Quantenfeldtheorie
-im 20. Jahrhundert von Bedeutung waren.\cite{wiki:green}
+im 20. Jahrhundert von Bedeutung waren \cite{wiki:green}.
 	
 Neben vielen anderen Pers"onlichkeiten wie Maxwell, Dirac oder
 Newton ist er in der Westminster Abbey in London mit einer Gedenktafel
-verewigt\cite{wiki:westminster}. Der Grund, warum George Green nicht
+verewigt \cite{wiki:westminster}. Der Grund, warum George Green nicht
 so popul"ar ist wie Gauss oder Maxwell, liegt wahrscheinlich darin,
 dass von seiner Zeit, als er in seiner M"uhle gearbeitet hat, wenig
 bekannt ist. Auch war er nur f"ur sehr kurze Zeit in Cambridge
@@ -126,7 +66,7 @@ t"atig.
 
 \begin{figure}                    
 \centering 
-\includegraphics[width=8cm]{green/images/greens_windmill.jpg} 
+\includegraphics[width=\hsize]{green/images/greens_windmill.jpg} 
 \caption{Windm"uhle, in der Green f"ur lange Zeit gearbeitet hat} 
 \label{fig:abb1} 
 \end{figure} 
@@ -204,7 +144,7 @@ Die Matrix $A$ enth"alt die Koeffizienten f"ur die partielle
 Differentialgleichung der zweiten Ordnung. Sie hat die Gr"osse $n^2
 \times n^2$. Diese Matrix im Arbeitsspeicher abzuspeichern w"are
 f"ur mittelgrosse Matrizen schon nicht mehr
-m"oglich.\cite{mueller:hpcseminar}
+m"oglich \cite{mueller:hpcseminar}.
 	
 Der ben"otigte Speicher f"ur eine Platte mit der Gr"osse $500 \times
 500$ und \verb|float| Werten (4 Byte) w"are
@@ -213,14 +153,15 @@ Der ben"otigte Speicher f"ur eine Platte mit der Gr"osse $500 \times
 500^2 \times 500^2 \cdot 4\;\mathrm{Byte} = 232.8\;\mathrm{GByte}
 \end{equation}
 	
-Mit $n = 1000$ sogar 3.64\;TByte, also definitiv zu viel. Dies ist
+Mit $n = 1000$ sogar 3.64\,TByte, also definitiv zu viel. Dies ist
 aber auch gar nicht n"otig. Es m"ussen jeweils nur die Nachbarelemente
 von $u_{ij}$ addiert und durch einen konstanten Faktor geteilt
 werden, die Randelemente sind dabei Null zu setzen.
 
 \begin{eqnarray}
 %		f_{ij} = u_{i-i,j}+u_{i+1,j}+u_{i,j+1}+u_{i,j-1}-4u_{ij}\\
-	u_{ij} = \dfrac{u_{i-i,j}+u_{i+1,j}+u_{i,j+1}+u_{i,j-1}-f_{ij}}{4} \label{eq:gauss-seidel}
+u_{ij} = \dfrac{u_{i-i,j}+u_{i+1,j}+u_{i,j+1}+u_{i,j-1}-f_{ij}}{4}
+\label{eq:gauss-seidel}
 \end{eqnarray}
 	
 Da die diskretisierte partielle Ableitung jeweils nur die Elemente
@@ -241,12 +182,13 @@ wird aber durch die Parallelisierung schneller.
 Die Abweichung ist bei den ersten Schritten am gr"ossten, und wird
 bei jeder Iteration kleiner. Als wie die ersten Berechnungen durch
 gef"uhrt hatten, fiel uns auf, dass die einzelnen Threads am Anfang
-gut als Linien von Spitzen sichtbar sind (\fref{fig:201_1}).
+gut als Linien von Spitzen sichtbar sind (\ref{fig:201_1}).
 		
 \begin{figure}
 \centering
-\includegraphics[width = 15cm]{green/images/step001}
-\caption{Berechnung von einer $201 \times 201$ Fl"ache mit 32 Threads nach dem ersten Iterationsschritt}
+\includegraphics[width=\hsize]{green/images/step001}
+\caption{Berechnung von einer $201 \times 201$ Fl"ache mit 32 Threads
+nach dem ersten Iterationsschritt}
 \label{fig:201_1}
 \end{figure}
 		
@@ -278,7 +220,7 @@ L"osung entwickelt werden. Als Eingabedatei wurde ein Bild im FITS
 Format verwendet. Da es jedoch einfacher schien wurde w"ahrend des
 Programmes mit \texttt{.csv} Files gearbeitet. Dabei war der
 technische Aufwand gering und die Resultate konnten schnell
-kontrolliert werden. Aus diesen .csv Dateien kann mit GNU-Plot ein
+kontrolliert werden. Aus diesen \texttt{.csv} Dateien kann mit GNU-Plot ein
 Bild erstellt werden. Optional dienen diese als Vorlage f"ur einen
 kurzen Film.
 
@@ -289,7 +231,7 @@ kurzen Film.
 Ziel der Visualisierung ist, die einzelnen Schritte einer Berechnung
 mit der Greenschen Funktion zu zeigen. Bei jedem Schritt kommen
 zus"atzliche Werte zum vorherigen Schritt hinzu. Die Bilder aus
-\fref{fig:dreiSchritte} stellen drei solche Schritte dar, wie wir
+\ref{fig:dreiSchritte} stellen drei solche Schritte dar, wie wir
 sie in unserer Arbeit definiert haben.
 		
 W"urden wir jeweils die L"osungen f"ur alle Werte $u_{ij}$ einzeln
@@ -332,9 +274,9 @@ nach aussen zugehen.
 \begin{figure}
 \centering
 \begin{tabular}{ccc}
-\includegraphics[width=5.3cm]{green/images/resultate/grfl/step0057.png}
-& \includegraphics[width=5.3cm]{green/images/resultate/grfl/step0111.png}
-& \includegraphics[width=5.3cm]{green/images/resultate/grfl/step0144.png}
+\includegraphics[width=0.3\hsize]{green/images/resultate/grfl/step0057.png}
+& \includegraphics[width=0.3\hsize]{green/images/resultate/grfl/step0111.png}
+& \includegraphics[width=0.3\hsize]{green/images/resultate/grfl/step0144.png}
 \end{tabular}		
 \caption{Die Schritte 57, 111 und 144 auf einer Fl"ache, die durch
 $500 \times 500$ Werte dargestellt wird.}
@@ -353,10 +295,10 @@ repr"asentiert, so manipuliert, dass der helle "aussere Bereich
 gleich Null gesetzt wird. Danach wird die Berechnung, die in jedem
 Schritt identisch ist, durchgef"uhrt.
 		
-Wir speichern den berechneten Vektor $u$ als Matrix in einem .csv
+Wir speichern den berechneten Vektor $u$ als Matrix in einem \texttt{.csv}
 File mit einer Genauigkeit von vier Nachkommastellen ab, was f"ur
 eine Visualisierung gen"ugt. Anfangs benutzten wir MATLAB um aus
-dem .csv-File eine anst"andige Visualisierung zu erhalten. Der
+dem \texttt{.csv}-File eine anst"andige Visualisierung zu erhalten. Der
 Aufwand war gering und die Resultate waren schnell kontrollierbar.
 		
 \lstinputlisting{green/csvToMatrixAndPlot.m}
@@ -375,14 +317,14 @@ auch mit GUI erh"altlich ist.
 	
 Die Bilder werden nachdem alle Einzelschritte berechnet wurden, aus
 den Dateien wiederum parallelisiert in einer \verb|for|-Schleife
-zu .png Bilddateien verarbeitet. Da der letzte Schritt das Maximum
+zu \texttt{.png} Bilddateien verarbeitet. Da der letzte Schritt das Maximum
 bzw. Minimum aller Schritte enth"alt, sofern wir nur Potentiale mit
 gleichen Vorzeichen haben, wird die Skalierung der $z$-Achse direkt
 aus diesen Daten berechnet. Dies garantiert und eine optimale
 Darstellung.
 		
 Wir haben jeweils zwei verschiedene Ansichten erstellt: Eine normal
-Ansicht, d.h ein 3D-Plot wie er z.B. in \fref{fig:201_1} zusehen
+Ansicht, d.h ein 3D-Plot wie er z.~B.~in \ref{fig:201_1} zusehen
 ist und eine Ansicht von oben mit H"ohenlinien. Aus den Bilddateien
 wird am Schluss optional noch ein Video erstellt.
 		
@@ -439,15 +381,13 @@ Bei Platten mit feiner Diskreditierung mussten wir darauf achten,
 dass wir nicht zu viele Daten abspeichern. Wir mussten das Programm
 so umschreiben, dass wir einstellen konnten wie viele Bilder wir
 schlussendlich wollten. Anhand von diesem Einstellungen wurde nur
-die ben"otigten .csv und .png Dateien abgespeichert. Das Programm
-wurde dadurch automatisch auch gleich viel schneller.
+die ben"otigten \texttt{.csv} und \texttt{.png} Dateien abgespeichert.
+Das Programm wurde dadurch automatisch auch gleich viel schneller.
 		
-\begin{shadedSmaller}
-Als Beispiel:
-			
+\begin{beispiel}
 Wir wollen eine Platte mit  $40 \times 40$ Werten berechnen. Um die
 Konvergenz beobachten zu k"onnen, speichern wir nach jeder Iteration
-die Werte in eine .csv Datei ab. Es sind etwa 3000 bis 4000 Iterationen
+die Werte in eine \texttt{.csv} Datei ab. Es sind etwa 3000 bis 4000 Iterationen
 n"otig bis sich die Werte nicht mehr ver"andern. Das ist alles ohne
 Problem m"oglich.
 			
@@ -456,12 +396,12 @@ eine Konvergenz zu beobachten, sind etwa 160\,000 bis 180\,000
 Iterationen n"otig, wie wir sp"ater herausgefunden haben. Das Ganze
 ist nat"urlich stark vom Ausgangsbild abh"angig.
 
-Eine .csv Datei ist dann etwa 1.8\,MB gross, d.h. wir wollen ca.
-300\,GB abspeichern. Dies ist m"oglich sofern gen"ugen Platz vorhanden
+Eine .csv Datei ist dann etwa 1.8\,MB gross, d.~h.~wir wollen ca.~300\,GB
+abspeichern. Dies ist m"oglich sofern gen"ugen Platz vorhanden
 ist. Das eigentliche  Problem ist aber, dass das Programm nur noch
 mit Daten speichern besch"aftigt ist und kaum noch Zeit zum Rechnen
 hat.
-\end{shadedSmaller}
+\end{beispiel}
 	
 \subsection{geeigneter Vektor $f$ finden}\label{sec:geeignetesF}
 
@@ -480,23 +420,22 @@ Wir haben mehrere Platten mit unterschiedlichen Potentialverteilungen
 und mit unterschiedlicher Anzahl Diskretisierungspunkten berechnet.
 Je nach Ausgangsbild, welches unsere Potentialverteilung darstellt,
 ist die Superposition mehr oder weniger gut erkennbar. Wie in
-\fref{sec:geeignetesF} erw"ahnt, hat sich eine Spirale von Punkten
+\ref{sec:geeignetesF} erw"ahnt, hat sich eine Spirale von Punkten
 bew"ahrt, die wir hier anhand vier verschiedenen Schritten zeigen
 wollen. Das erste Bild ist jeweils die Fl"ache f"ur den jeweiligen
 Schritt. Alle Punkte haben das selbe Potential. Pro Bild f"uhrten
 wir 180\,000 Iterationen durch.
 
 \newlength\breite
-\setlength\breite{8cm}
 \begin{figure}
 \centering
 \begin{tabular}{cc}
-\includegraphics[width=\breite]{green/images/resultate/grfl/step0057.png}
-& \includegraphics[width=\breite]{green/images/resultate/grfl/step0111.png}\vspace{1cm}\\
-\includegraphics[width=\breite]{green/images/resultate/cp/step0057.png}
-& \includegraphics[width=\breite]{green/images/resultate/cp/step0111.png}\vspace{1cm}\\
-\includegraphics[width=\breite]{green/images/resultate/np/step0057.png}
-& \includegraphics[width=\breite]{green/images/resultate/np/step0111.png}
+\includegraphics[width=0.48\hsize]{green/images/resultate/grfl/step0057.png}
+& \includegraphics[width=0.48\hsize]{green/images/resultate/grfl/step0111.png}\vspace{1cm}\\
+\includegraphics[width=0.48\hsize]{green/images/resultate/cp/step0057.png}
+& \includegraphics[width=0.48\hsize]{green/images/resultate/cp/step0111.png}\vspace{1cm}\\
+\includegraphics[width=0.48\hsize]{green/images/resultate/np/step0057.png}
+& \includegraphics[width=0.48\hsize]{green/images/resultate/np/step0111.png}
 \end{tabular}		
 \caption{Visualisierung von Green's Function: Schritte 75 und 111 }
 \end{figure}
@@ -504,12 +443,12 @@ wir 180\,000 Iterationen durch.
 \begin{figure}
 \centering
 \begin{tabular}{cc}
-\includegraphics[width=\breite]{green/images/resultate/grfl/step0144.png}
-& \includegraphics[width=\breite]{green/images/resultate/grfl/step0175.png}\vspace{1cm}\\
-\includegraphics[width=\breite]{green/images/resultate/cp/step0144.png}
-& \includegraphics[width=\breite]{green/images/resultate/cp/step0175.png}\vspace{1cm}\\
-\includegraphics[width=\breite]{green/images/resultate/np/step0144.png}
-& \includegraphics[width=\breite]{green/images/resultate/np/step0175.png}
+\includegraphics[width=0.48\hsize]{green/images/resultate/grfl/step0144.png}
+& \includegraphics[width=0.48\hsize]{green/images/resultate/grfl/step0175.png}\vspace{1cm}\\
+\includegraphics[width=0.48\hsize]{green/images/resultate/cp/step0144.png}
+& \includegraphics[width=0.48\hsize]{green/images/resultate/cp/step0175.png}\vspace{1cm}\\
+\includegraphics[width=0.48\hsize]{green/images/resultate/np/step0144.png}
+& \includegraphics[width=0.48\hsize]{green/images/resultate/np/step0175.png}
 \end{tabular}		
 \caption{Visualisierung von Green's Function: Schritte 144 und 175 }
 \end{figure}

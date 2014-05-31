@@ -4,7 +4,8 @@ Eigentliche rechnerische L"osungen stehen hier neben mathematischen
 "Uberlegungen, wie man ein Problem der L"osung mit leistungsf"ahiger
 Rechnerhardware zug"anglich macht.
 
-{\em Marco Bassotti} und {\em Dario Tr"utsch} verwenden OpenCL, um die R"uckprojektion
+{\em Marco Bassotti} und {\em Dario Tr"utsch} verwenden OpenCL,
+um die R"uckprojektion zur Radon-Transformation
 auf paralleler Hardware zu berechnen, sie erreichen dabei eine erstaunliche
 Beschleunigung der Rechnung.
 Die R"uckprojektion ist ein wesentlicher Schritt, um mit einem
@@ -68,7 +69,8 @@ Modelle zum Beispiel in der numerischen Wetterprognose lernen.
 Damit schliesst sich der Kreis der Awendungen. Lewis Fry Richardson hat
 sich vor ziemlich genau hundert Jahren eine Methode zur Berechnung der
 Wetterentwicklung ausgedacht. Zu deren Durchf"uhrung stellte er sich
-eine {\em Forecast Fatory} vor, ein riesiges, Theaterartiges Geb"aude,
+eine {\em Forecast Fatory} vor (Abbildung~\ref{forecastfactory}),
+ein riesiges, Theaterartiges Geb"aude,
 wo viele Computer, als Arbeiter mit Rechenmaschinen an der
 Berechnung der Atmosph"arenentwicklung f"ur jeweils ein Teilgebiet arbeiten,
 und ihre Resultate an ihre Nachbar-Rechner weitergeben. 
@@ -76,4 +78,10 @@ Man kann also durchaus sagen, dass Richardson der erste war, der die Vision
 eines massiv parallelen Rechners zur L"osung eines HPC Problems hatte,
 wenngleich mit anderer ``Technologie'' als unsere heutigen HPC Cluster.
 
-
+\begin{figure}
+\begin{center}
+\includegraphics[width=\hsize]{images/forecast-factory-color.jpg}
+\end{center}
+\caption{Von Lewis Fry Richardson erdachte Vision einer Forecast-Factory
+\label{forecastfactory}}
+\end{figure}
