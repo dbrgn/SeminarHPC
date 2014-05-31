@@ -23,7 +23,7 @@ TEXFILES = vorwort.tex einleitung.tex maschinen.tex sprachen.tex \
 	$(SAMPLEFILES) $(HEATFILES) $(JULIAFILES) $(MAPREDUCEFILES)
 
 BLXFILES = skript1-blx.bbl skript2-blx.bbl skript3-blx.bbl skript4-blx.bbl \
-	skript5-blx.bbl
+	skript5-blx.bbl skript6-blx.bbl
 
 IMAGES = graphics/cgresults.pdf
 
@@ -55,6 +55,9 @@ skript4-blx.bbl:	skript4-blx.aux
 
 skript5-blx.bbl:	skript5-blx.aux
 	bibtex skript5-blx
+
+skript6-blx.bbl:	skript6-blx.aux
+	bibtex skript6-blx
 
 # standalone compilation of a single article
 standalone.pdf:	standalone.tex $(TEXFILES)
