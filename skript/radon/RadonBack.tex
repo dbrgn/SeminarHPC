@@ -1,0 +1,43 @@
+\chapter{Radonr"uckprojektion}
+\rhead{Radonr"uckprojektion}
+\begin{refsection}
+{
+	%define colors
+	\definecolor{radon_Grey}{gray}{0.9}
+	\definecolor{radon_Green}{RGB}{0,100,0}
+	
+	%define code style	
+	\lstset
+	{
+		language=c++,
+		basicstyle=\scriptsize\ttfamily,
+		keywordstyle=\color{red}\bfseries,
+		identifierstyle=\color{blue},
+		commentstyle=\color{radon_Green},
+		stringstyle=\ttfamily,
+		breaklines=true,
+		numbers=left,
+		numberstyle=\tiny,
+		frame=single,
+		backgroundcolor=\color{radon_Grey},
+		tabsize=2
+	}
+	
+	%autor
+	\def\chapterauthor#1{{\large #1}\bigskip\bigskip}	
+	\chapterauthor{Dario Tr"utsch, Marco Bassotti}
+
+	%including sections
+	\input{radon/sections/Einleitung}
+	\input{radon/sections/Rueckprojektion}		
+	\input{radon/sections/Problemstellung}	
+	\input{radon/sections/Loesungsansatz}		
+	\input{radon/sections/Implementation}		
+	\input{radon/sections/Resultate}
+	\input{radon/sections/Erweiterung}		
+
+\printbibliography[heading=subbibliography]
+
+}
+\end{refsection}
+

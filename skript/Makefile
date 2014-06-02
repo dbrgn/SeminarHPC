@@ -13,6 +13,11 @@ subdirs:
 
 
 SAMPLEFILES = sample/sample.tex sample/sample.bib
+RADONFILES = radon/RadonBack.bib radon/RadonBack.tex			\
+	radon/sections/Einleitung.tex radon/sections/Erweiterung.tex	\
+	radon/sections/Implementation.tex radon/sections/Loesungsansatz.tex \
+	radon/sections/Problemstellung.tex radon/sections/Resultate.tex	\
+	radon/sections/Rueckprojektion.tex
 HEATFILES = heat/heat.tex
 JULIAFILES = julia/julia.tex julia/julia.bib
 MAPREDUCEFILES = mapreduce/mapreduce.tex mapreduce/map.bib
@@ -21,7 +26,7 @@ GREENFILES = green/green.tex green/quellen.bib
 
 TEXFILES = vorwort.tex einleitung.tex maschinen.tex sprachen.tex \
 	daten.tex algorithm.tex \
-	$(SAMPLEFILES) $(HEATFILES) $(JULIAFILES) $(MAPREDUCEFILES) \
+	$(RADONFILES) $(HEATFILES) $(JULIAFILES) $(MAPREDUCEFILES) \
 	$(GREENFILES)
 
 BLXFILES = skript1-blx.bbl skript2-blx.bbl skript3-blx.bbl skript4-blx.bbl \
@@ -63,6 +68,9 @@ skript6-blx.bbl:	skript6-blx.aux
 
 skript7-blx.bbl:	skript7-blx.aux
 	bibtex skript7-blx
+
+skript8-blx.bbl:	skript8-blx.aux
+	bibtex skript8-blx
 
 # standalone compilation of a single article
 standalone.pdf:	standalone.tex $(TEXFILES)

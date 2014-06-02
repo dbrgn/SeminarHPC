@@ -1,0 +1,41 @@
+\section{Resultate}
+
+Im Vergleich der sequentiellen- und der paralellen Implementation
+zeigt sich ein deutlicher Unterschied. F"ur die Tests verwendeten wir
+abwechslungsweise eine CPU und eine GPU und liessen jeweils ein $512\times
+512$ Pixel Bild rechnen. 
+
+CPU: Intel Core i7 - 3610QM (4C/8T) 
+
+GPU: nVidia Tessla (Grafikkarte) 
+
+Die Tests brachten erstaunliche Ergebnisse. Die sequentielle Variante
+lastete einen Kern der CPU vollst"andig aus, die parallele Variante
+lastete alle 4 Kerne und alle 8 Treads der CPU aus, war dabei jedoch
+beinahe vier mal schneller. Die GPU war sogar beinahe 50 mal schneller
+als die sequentielle Implementation.
+
+Rechenzeit f"ur ein $512\times 512$ Pixel Bild:
+\begin{center}
+\begin{tabular}[b]{|c|c|c|c|}
+	\hline
+	Hardware & sequentiell & paralell \\
+	\hline \hline
+	CPU & 0.91 s / 1.1 fps & 0.25 s / 4 fps \\
+	\hline
+	GPU & NA & 0.02 s / 50 fps \\
+	\hline
+\end{tabular}
+\end{center}
+	
+Nach Analyse der Rechenoperationen und der Rechenzeiten, l"asst
+sich schliessen, dass die Rechenzeit vor allem von den vorhandenen
+Floatigpointunits abh"angt. Dies erkennt man sehr sch"on anhand der
+CPU Zeiten, denn der i7 besitzt vier FPU's. Diese Rechnung ist jedoch
+nicht allgemein g"ultig da immer auch ein gewisser Overhead mit jeder
+FPU in die Rechenzeit mit einfliesst. Aber dennoch gilt allgemein,
+je mehr FPU's desto schneller.
+
+
+
+  

@@ -1,0 +1,134 @@
+\section{Implementation}
+
+\subsection{Wahl des Dateiformates}
+
+Als Dateiformat w"ahlten wir FITS da diese Files auch als Bilder interpretiert werden k"onnen und auch \texttt{double}  Werte enthalten k"onnen. Der Punkt(0,0) befindet sich bei einem FITS File in der unteren linken Ecke. Dies ist wichtig im Bezug auf die richtige Darstellung, so dass die R"uckprojektion nicht gedreht und gespiegelt abgebildet wird. Bei den meisten anderen Dateiformaten befindet sich der Punkt(0,0) nicht in der unteren linken Ecke.
+
+\subsection{Sequentielle Implementation}
+
+Um einen Vergleich zu haben und das Prinzip besser zu verstehen
+starteten wir mit einer sequentiellen Implementation. Der grossteil
+der Implementation besteht aus einlesen und ausgeben von Files und der
+Aufbereitung der Daten. Die eigentliche "Ubersetzung findet auf ein paar
+wenigen Zeilen statt.
+
+Um Rechenaufwand zu sparen berechneten wir vor der Transformation
+die ben"otigten Sinus- und Cosinuswerte. Diese Werte speicherten
+wir anschliessend in je einem Array und "ubergaben diese der
+Transformationsfunktion.
+
+
+\lstset{caption={Kern der sequentiellen Implementation}}
+\begin{lstlisting}
+
+	// Transformation	
+	for(int i=0; i < anzPixel; ++i)
+	{
+		// Der Ursprung liegt im Zentrum des Outputbildes		
+		int y = wide/2 - i%wide;  // Y-Wert des Outputbildes
+		int x = i/wide - high/2;  // X-Wert des Outputbildes
+		
+		for(int angle=0; angle < high; ++angle)
+		{
+			// angle:  entspricht der Zeilennummer des Inputbildes			
+			// radius: entspricht der horizontalen abweichung vom 
+			// Zentrum des Inputbildes			
+			radius = int(((x)*cosinus[angle] + (y)*sinus[angle])/1.41);
+			output[i] += input[radius + wide/2 + angle*wide];
+		}
+	}
+	// Skalierung aller Punkte um 1/PI	
+	for(int i=0; i < anzPixel; ++i)
+	{
+		output[i] = output[i] * invPi;
+ 	}
+
+\end{lstlisting}
+
+\subsection{Parallele Implementation}
+
+Bei der parallelisierten Implementation haben wir uns f"ur eine
+OpenCL Implementation entschieden. Dies vor allem aus dem Grund, dass
+sich eine OpenCL Implementation sehr gut eignet um viele von einander
+unabh"angige Berechnungen auszuf"uren. Jeder Punkt in der R"uckprojektion
+ist unabh"angig von allen andern, daher kann f"ur jeden Bildpunkt ein
+eigenes Workitem erstellt werden. Die Adresse des Workitems eignet sich
+auch bestens um die absolute Position des Bildpunktes im Outputbild
+festzustellen.
+
+Ein weiteres grosses Problem ist die Berechnung von Sinus-
+und Cosinuswerten. Diese Funktionen sind schwer zu aproximieren,
+ben"otigen viele Rechenoperationen und sind daher langsam. In unserem
+Fall ben"otigen wir die Sinus- und Cosinuswerte in definierten und
+konstanten Winkelabst"and. In diesem Fall kann man aus den Sinus- und
+Cosinuswerten und den alten Werten die n"achsten Werte berechnen, dies
+reduziert die Berechnung auf vier Multiplikationen und zwei Aditionen.
+
+\begin{equation}
+	\alpha = \text{const}
+\end{equation}
+
+Ohne Vereinfachung\\
+\begin{equation}
+	\text{Sinus}_n = \sin(n\cdot\alpha) 
+\end{equation}
+\begin{equation}
+	\text{Cosinus}_n = \cos(n\cdot\alpha)
+\end{equation}
+
+Vereinfacht durch Iteration\\
+\begin{equation}
+	\text{Sinus}_{n+1} = \sin(\alpha)\cdot \text{Cosinus}_n + \cos(\alpha)\cdot \text{Sinus}_n
+\end{equation}
+\begin{equation}
+	\text{Cosinus}_{n+1} = \cos(\alpha)\cdot \text{Cosinus}_n - \sin(\alpha)\cdot \text{Sinus}_n
+\end{equation} \\
+
+
+Bei einer OpenCL-Implementation f"uhrt jedes Workitem einen sogenannten
+Kernel aus. Ein Kernel ist eine relativ kurze Codesequenz, welche einer
+Funktion "ahnelt. Sie enth"alt aber zus"atzliche Schl"usselw"ortern f"ur
+OpenCL. Der Kernel wird in C geschrieben und in einem separaten File
+gespeichert. Im main() wird OpenCL initialisiert, der Kernel eingebunden,
+die Hardware aquiriert und so weiter. Bei unserer Implementation ist
+die Initialisierung, gemessen an der Codel"ange, um Faktoren gr"osser
+als der Kernel.
+
+\lstset{caption={Kern des Kernels der parallelen Implementation}}
+\begin{lstlisting}
+
+	// Transformation
+	
+	// Index fuer dieses Workiten im Outputbild errechnen
+	__private int	index = get_global_id(0) + get_global_id(1) * get_global_size(0);	
+	// Sinus und Cosinus fuer winkel 0
+	__private double cosinus = 1;
+	__private double sinus = 0;
+	// x/y Koordinaten im Outputbild
+	__private int y = get_global_size(0)/2 - get_global_id(0);
+	__private int x = get_global_id(1) - get_global_size(1)/2;
+	// Laufwariable	
+	__private int	angleNr = 0;
+	// Index des Imputstrings
+	__private int	pixIndex = 0;
+	// Berechnung
+	while(angleNr < high)
+	{
+		// Koordinaten des Inputbildes		
+		radius = ((x)*cosinus + (y)*sinus)/1.4142;
+		pixIndex = (radius + offset) + angleNr*wide;
+		// Summation der Werte der gefundenen Punkte
+		temp += input[pixIndex];
+		// Berechnung der naechsten 
+		// Sinus und Cosinus Werte
+		sinus = sinA*cosinus + cosA*sinus;
+		cosinus = cosA*cosinus - sinA*sinus;
+		angleNr++;
+	}
+	// Skalierung
+	temp = temp * invPi;
+	// Rueckgabe eines Bildpunktes
+	output[index] = temp;
+
+\end{lstlisting}
+

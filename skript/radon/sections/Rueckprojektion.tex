@@ -1,0 +1,55 @@
+\section{Radontransformation und R"uckprojektion}
+
+Durch eine Funktion $f(x,y)$, welche die Absorbtion der R"ontgenstrahlen
+in einem bestimmten Punkt im K"orper darstellt, erhalten wir die gesuchte
+Dichte des K"orpers in diesem Punkt, da die Absorbtion direckt von der
+Dichte des K"orpers zusammenh"angt.
+Es ist jedoch nur m"oglich die Absorption entlang eines Strahles durch
+den K"orper zu messen. Die Absorbtion entlang des geradlinigen Strahles
+entspricht der Radontransformation $Rf(r,\vartheta)$ bei einem bestimmten
+Winkel.
+Der CAT-Scanner schiesst R"ontgenstrahlen aus allen Richtungen durch
+den K"orper und rechnet dann grundlegend die Linien-Integrale "uber
+jede einzelne Gerade aus. Die anfallenden Daten entsprechen der
+Radontransformation $g(r,\vartheta) = Rf(r,\vartheta)$. 
+
+Parameterdarstellung eines Strahls:
+\begin{equation}
+	r
+	\begin{pmatrix}
+		\cos{\vartheta} \\ \sin{\vartheta}
+	\end{pmatrix}
+	+ s
+	\begin{pmatrix}
+		-\sin{\vartheta} \\ \cos{\vartheta}
+	\end{pmatrix}
+\end{equation}
+
+Radontransformation:
+\begin{equation}
+	Rf(r,\vartheta) = \int\limits_{-\infty}^{\infty} f(r\cos{\vartheta}-s\sin{\vartheta},r\sin{\vartheta}+s\cos{\vartheta})ds.
+\end{equation}
+
+Das Ziel der Arbeit ist es nun, aus der Radontransformation
+$Rf(r,\vartheta)$ die Absortion $f(x,y)$ zur"uckzugewinnen.
+Eine erste Approximation f"ur $f(x,y)$ kann man ziemlich gut durch die
+Mittelwerte aller Geraden durch den Punkt $(x,y)$ bekommen.
+Um dies zu erreichen m"ussen alle Werte von $Rf$ verwenden werden,
+welche zur Geraden geh"oren, die durch den Punkt $(x,y)$ gehen. Wenn
+man "uber alle Werte von $Rf(r,\vartheta)$ welche zur Geraden geh"oren
+mittelt, dann werden sich die Werte von anderen Pixeln ausmitteln und zu
+einem mittleren Wert f"uhren. Daf"ur kann man sogar eine Formel angeben,
+die sogenannte R"uckprojektion.
+
+R"uckprojektion:
+\begin{equation}
+	Bg(x,y) = \cfrac{1}{\pi}\int\limits_0^\pi g(x\cos{\vartheta}+y\sin{\vartheta},\vartheta) d\vartheta
+\end{equation}
+
+Durch diese Formel erhalten wir eine erste N"ahrung der
+Radonr"ucktransformation. Wir k"onnen daraus das Orginalbild
+zur"uckgewinnen, es ist lediglich verschleiert und weisst um helle
+Stellen einen ebenfalls hellen Hof auf, auf welchen wir sp"ater noch
+etwas genauer eingehen werden. Die erzeugten Bilder k"onnen nach jeder
+Umdrehung zur"uckgerechnet und dargestellt werden.
+
