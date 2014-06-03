@@ -7,10 +7,10 @@
 \index{dynamisches System}
 In der Analyis lernt man "uber 
 gew"ohnliche Differentialgleichung, dass L"osungen f"ur eine gewisse
-Zeit existieren und eindeutig seien.
+Zeit existieren und eindeutig sein.
 Nur gerade f"ur lineare Differentialgleichungen lassen sich Aussagen 
 dar"uber machen, ob f"ur lange Zeit L"osungen existieren.
-Die elementare Theorie ist im wesentlichen eine lokale.
+Die elementare Theorie ist im Wesentlichen eine lokale.
 In den Anwendungen werden nicht lineare Differentialgleichungen immer
 wichtiger.
 Solche Probleme lassen sich manchmal linearisieren, womit ausreichend
@@ -29,7 +29,7 @@ Zeitintervalle.
 Wir betrachten ein dynamisches System, beschrieben durch eine
 gew"ohnliche Differentialgleichung $\dot x= f(t,x)$, welches eine
 periodische Bahn ausgehend vom Startwert $x_0$ hat.
-Ist $T$ die Bahnperiode, gilt also
+Sei $T$ die Bahnperiode, es gilt also
 $x(nT)=x_0$ f"ur $n\in\mathbb N$.
 Die Theorie der dynamischen Systeme interessiert sich f"ur das Verhalten
 der L"osung bei einer kleinen "Anderung von $x_0$.
@@ -53,7 +53,7 @@ f_a(x)=ax(1-x).
 \]
 Wir untersuchen Iterationsfolgen $x_{n+1}=f_a(x_n)$ der logistischen Abbildung
 ausgehend von Startpunkten in $[0,1]$.
-Die Funktion hat einen Fixpunk $f_a(0)=0$, und f"ur $a < 1$ f"uhren Iterationen
+Die Funktion hat einen Fixpunkt $f_a(0)=0$, und f"ur $a < 1$ f"uhren Iterationen
 immer wieder zum Punkt $0$ zur"uck.
 Sobald $a>1$ wird, "andert sich dieses Verhalten.
 Zun"achst tritt ein einzelner Fixpunkt bei $x=\frac{1-a}a$ auf.
@@ -269,8 +269,8 @@ Eine Initialisierung des Array ist nicht n"otig.
 \index{Inverse Iteration}
 Die hier beschriebene Methode zur Berechnung von Julia-Mengen wird in
 \cite{julia:peitgenrichter} als Inverse Iteration Method bezeichnet.
-F"ur die meisten Startpunkte konvergiert die Iterationen der Abbildung
-$z\mapsto f_c(z)$ konvergiert gegen $\infty$
+F"ur die meisten Startpunkte konvergiert die Folge der Iterationen
+der Abbildung $z\mapsto f_c(z)$ gegen $\infty$
 oder einen Zyklus, insbesondere entfernen sich die Punkte $z_n$ von der
 Julia-Menge.
 Verfolgt man die Iteration r"uckw"arts, also indem man eine Folge

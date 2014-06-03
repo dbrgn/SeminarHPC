@@ -30,11 +30,11 @@ einer $n\times n$-Matrix verwendet werden. Dabei ist das Ziel weniger,
 den letzten Rest Performance herauszuholen, sondern vielmehr zu
 illustrieren, welche Art von Konstrukten in einem API zur Verf"ugung
 gestellt werden muss, damit die parallele Implementierung effizient
-von Statten gehen kann.
+von statten gehen kann.
 
 \subsection{Der Gauss-Algorithmus}
 \index{Algorithmus!Gauss}
-Wir erinnern an den grundlegenden Gauss-Algorithmus.
+Wir erinnern an den grundlegenden Gauss-Algorithmus \cite{skript:linalg}.
 Gegeben ist eine regul"are
 $n\times n$-Matrix $A$, gesucht wird ihre Inverse $A^{-1}$.
 Der Gauss-Algorithmus formt ein Tableau der Form
@@ -49,7 +49,7 @@ a_{n1}&a_{n2}&\dots &a_{nn}&0     &0     &\dots &1\\
 \end{tabular}
 \label{starttableau}
 \end{equation}
-Mit Hilfe von Zeilenoperationen in ein Tableau der Form
+mit Hilfe von Zeilenoperationen in ein Tableau der Form
 \begin{equation}
 \begin{tabular}{|>{$}c<{$}>{$}c<{$}>{$}c<{$}>{$}c<{$}|>{$}c<{$}>{$}c<{$}>{$}c<{$}>{$}c<{$}|}
 \hline
@@ -61,6 +61,7 @@ Mit Hilfe von Zeilenoperationen in ein Tableau der Form
 \end{tabular}
 \label{targettableau}
 \end{equation}
+um.
 Die Matrix $C$ ist die gesuchte Inverse: $C=A^{-1}$.
 \index{Matrix!inverse}
 
@@ -69,9 +70,9 @@ werden muss.
 Die Wahl des Pivot-Elements kann die Genauigkeit des Resultates beeinflussen,
 entsprechend sind ausgekl"ugelte Strategien entwickelt worden, wie die
 Pivot-Elemente am Besten ausgew"ahlt werden sollen. Da dieser Aspekt in
-diesem Kapitel nicht wesentlich ist, verwenden wir als Pivot-Elemente die
+hier nicht wesentlich ist, verwenden wir als Pivot-Elemente die
 Diagonalelemente der Matrix. Es werden also der Reihe nach Zeilen-Operationen
-mit den Pivot-Elementen $a_{11}$, $a_{22}$ ,$\dots$ ,$a_{nn}$ 
+mit den Pivot-Elementen $a_{11}$, $a_{22}$, $\dots$, $a_{nn}$ 
 durchgef"uhrt.
 
 Die Pivot-Zeile wird zun"achst durch das
@@ -84,7 +85,8 @@ a_{ij}'=\frac{a_{ij}}{a_{ii}}
 ersetzt.
 An der Stelle des Pivot-Elements steht jetzt eine 1.
 
-In Zeile $k$ steht in der Pivot-Spalte $a_{ki}$. Dieses Element kann
+In der Pivot-Spalte steht in Zeile $k$ das Element $a_{ki}$.
+Dieses Element kann
 zu $0$ gemacht werden, indem das $a_{ki}$-fache der Pivot-Zeile
 subtrahiert wird. Die Elemente der Zeile $k$ werden also nach
 der Regel
@@ -187,13 +189,15 @@ daher m"ussen die Operationen (\ref{blue}) auf die Spalte gar nicht
 angewendet werden. Damit verschiendet auch das Problem.
 \end{enumerate}
 
-Jeder Gauss-Schritt hat eine kleinere Menge von Zeilen-Operationen auszuf"uhren,
+Je sp"ater im Algorithmus ein Gauss-Schritt ausgef"uhrt wird, desto
+weniger Zeilen-Operationen braucht er auszuf"uhren,
 da ja nur die Zeilen $k>i$ bearbeitet werden m"ussen.
 Beim R"uckw"artseinsetzen steht dann erst eine grosse Zahl von
-Zeilenoperationen an, deren Zahl laufend kleiner wird.
+Zeilenoperationen an, deren Zahl in den sp"ateren Schritten
+laufend kleiner wird.
 Wie auch immer
 man dies parallelisiert, steht mit zunehmendem Fortschritt immer
-weniger Arbeit zur Parallelisierung zur Verf"ugung.
+weniger Arbeit zur m"oglichen Parallelisierung zur Verf"ugung.
 
 Die Operationen des R"uckw"artseinsetzens werden erst nach vollst"andiger
 Vorw"artsreduktion ausgef"uhrt, weil sich damit die kleinstm"ogliche
@@ -244,7 +248,7 @@ Daher muss es m"oglich sein, die Zahl der Threads zu kontrollieren.
 Wann immer ein Code-Segment parallelisiert wird, muss unterschieden
 werden k"onnen zwischen Thread-spezifischen Variablen und globalen
 Variablen.
-Wir betrachten dazu das folgende Codebeispiel, der gleich mehrere Hindernisse
+Wir betrachten dazu das folgende Codebeispiel, das gleich mehrere Hindernisse
 illustriert: 
 \begin{verbatim}
 int     i, k;
@@ -267,7 +271,7 @@ fertig zu werden:
 Teilt man die Summe in einzelne Teile auf, die alle von verschiedenen
 Threads berechnet werden, dann braucht jeder Thread seine eigene 
 Schleifenvariable.
-Bei der Parallelisierung sind also mehrere Kopien Variable {\tt i} zu
+Bei der Parallelisierung sind also mehrere Kopien der Variable {\tt i} zu
 erstellen.
 \item
 Die Summe {\tt s} wird in jedem Schleifendurchgang aktualisiert.
@@ -284,14 +288,14 @@ blockiert.
 
 Alternativ kann man dies erreichen, indem f"ur jeden Thread eine eigene
 Kopie der Variable {\tt s} erzeugt wird, und die in jedem Thread
-gefunden summiert.
+gefunden Werte der Variablen {\tt s} aufsummiert werden.
 Der letzte Schritt hat keine Entsprechung im Code, nur durch unser
 Verst"andnis dessen, was der Code beabsichtigt, sind wir in der Lage
 zu erkennen, wie sich die Behandlung von {\tt s} von der Behandlung
-{\tt i} unterscheiden.
+von {\tt i} unterscheiden.
 \item
-Die Variable {\tt k} ist nochmals anders:  Nur einer der Threads kann den
-richtigen Wert finden.
+Die Variable {\tt k} verh"alt sich nochmals anders:
+Nur einer der Threads kann den richtigen Wert finden.
 Erst durch Vergleich des pro Thread gefundenen Maximums in {\tt m}
 kann entschieden werden, welches {\tt k} das Resultat der
 parallelisierten Version des Algorithmus sein soll.
@@ -417,6 +421,7 @@ pthread_attr_t  attr;
 pthread_attr_init(&attr);
 pthread_create(&info[i].thread, &attr, thread_main, &info[i]);
 \end{verbatim}
+gestartet werden k"onnen.
 Das Symbol \verb+thread_main+ ist die Funktion, die vom Thread
 ausgf"uhrt werden soll, das vierte Argument ist das Pointer-Argument,
 welches der Funktion "ubergeben wird.
@@ -470,8 +475,8 @@ pthread_barrier_wait(&common.barrier2);
 \end{verbatim}
 Hier wird eine Zeilen-Operation in allen Zeilen durchgef"uhrt.
 Jeder Thread arbeitet mit einem anderen $b$, da aber $b$ ohnehin
-eine lokale Variable ist, die auf dem Thread-Stack alloziert wird,
-entsteht kein Konflikt.
+eine lokale Variable des inneren Blockes ist, die auf dem Thread-Stack
+alloziert wird, entsteht kein Konflikt.
 
 Das Pthread API stellt auch einen Mechanismus zur Verwaltung von
 Thread-spezifischem Speicher zur Verf"ugung. Um solchen Speicher
@@ -490,7 +495,7 @@ jedoch nicht in allen Pthread-Implementationen tats"achlich vorhanden ist%
 \footnote{Barriers fehlen zum Beispiel in FreeBSD und Mac OS X.
 In der Beispiel-Implementation im Repository wird im File
 {\tt barrier.h} eine Ersatz-Implementation bereitgestellt, welche nur
-auf Mutexes und Conditiona variables basiert.}.
+auf Mutexes und Conditionvariables basiert.}.
 
 Die Verwendung der Barriers ist oben bereits dargestellt worden, es fehlt
 nur noch die Initialisierung:
@@ -518,7 +523,7 @@ Pthreads parallelisierte Algorithmus nicht sehr gut skaliert. Dies
 d"urfte folgende Ursachen haben:
 \begin{itemize}
 \item
-Die Threads laufen auf verschiedenen CPUs, aber der Speicher wurde
+Die Threads laufen auf verschiedenen CPUs, aber der Speicher wird
 h"ochstwahrscheinlich im ersten Prozess alloziert, die meisten
 Speicherzugriffe erfolgen also "uber eine ``fremde'' CPU, und sind
 daher langsamer.
@@ -528,8 +533,8 @@ zugreifen, werden den Cache in k"urzester Zeit umw"alzen.
 \item
 Die einzelnen Threads sind bis auf die Barriers v"ollig unabh"angig.
 Die von Ihnen erzeugten Cache-Zugriffe sind daher ungeordnet, jeder
-Threads greift ``wild'' durch den ganzen Cache hindurch, so dass
-der Performance-Gewinn durch den Cache zusammenbricht.
+Thread greift ``wild'' durch den ganzen Cache hindurch, so dass
+der Performance-Gewinn durch den Cache ausbleibt.
 \end{itemize}
 Ausserdem kann man ablesen, dass bei kleinen Problemgr"ossen 
 alle Threads zu starten und wieder zu beenden, einen wesentlichen 
@@ -612,7 +617,7 @@ einen grossen Overhead mitbringt, erst ab einer Problemgr"osse von
 einigen Tausend ist die OpenMP Implementation der Single Thread
 Implementation "uberlegen.
 
-Dann, bei einer Problemgr"osse deutlich ungef"ahr bei der Cache-Gr"osse,
+Dann, bei einer Problemgr"osse ungef"ahr bei der Cache-Gr"osse,
 bricht die Performance zusammen, die OpenMP Beschleunigung bringt
 keinen Gewinn mehr.
 
@@ -648,21 +653,21 @@ der gesamten durchzuf"uhrenden Berechnung.
 \subsubsection{Work-Items und Kernel}
 \index{Kernel}
 \index{Work-Item}
-Eine Berechnungsaufgabe wird in OpenCL in eine Anzahl Work-items
+Eine Berechnungsaufgabe wird in OpenCL in eine Anzahl Work-Items
 zerlegt.
-Eine Kernel ist ein OpenCL Programm, welches f"ur jedes Work-item
+Eine Kernel ist ein OpenCL Programm, welches f"ur jedes Work-Item
 ausgef"uhrt wird.
-In welcher Reihenfolge die einzelnen work-items abgearbeitet werden,
+In welcher Reihenfolge die einzelnen Work-Items abgearbeitet werden,
 ist der Implementation "uberlassen.
 Ein Work-Item kann beliebig kompliziert sein, in den meisten Beschleunigern
 steht jedoch nur sehr wenig Speicher f"ur lokale Variablen zur Verf"ugung.
 
 Die Work-Items bilden ein maximal dreidimensionales Gitter, jedes
-{\em work-item} l"asst sich also mittels maximal dreier ganzzahliger 
+Work-Item l"asst sich also mittels maximal dreier ganzzahliger 
 Indizes identifizieren.
 Bei der Konzeption einer L"osung f"ur OpenCL muss sich der
 Programmierer also vor allem mit der Frage befassen, wie er die
-gesamte Rechnung in {\em work-items} strukturieren kann. 
+gesamte Rechnung in Work-Items strukturieren kann. 
 
 Work-Items werden in Work-Groups zusammengefasst.
 \index{Work-Group}
@@ -676,9 +681,9 @@ wird durch die Implementation festgelegt.
 Mit Hilfe einer Reihe von Abfragefunktionen kann der Programmierer
 diese Informationen ermitteln, und die Gruppierung anpassen.
 
-Synchronisation mit Barrieren ist nur innerhalb einer Work-group
+Synchronisation mit Barrieren ist nur innerhalb einer Work-Group
 m"oglich.
-Die Work-group-Gr"osse ist also die maximale Zahl untereinander
+Die Work-Group-Gr"osse ist also die maximale Zahl untereinander
 synchronisierbarer Work-Items.
 
 Die Indizierung einzelner Work-Items ist sowohl innerhalb einer
@@ -688,11 +693,12 @@ dreidimensionale Fall ist sinngem"ass.
 
 Alle Work-Items bilden ein $G_x\times G_y$-Gitter. Die einzelnen
 Work-Items werden mit den globalen Indizes $(g_x,g_y)$ adressiert.
-Innerhalt einer Workgroup hat ein Work-Item die Koordinaten
+Innerhalb einer Workgroup hat ein Work-Item die Koordinaten
 $(s_x, s_y)$.
 Alle Work-Groups haben die gleichen Dimensionen $S_x\times S_y$.
 Die Work-Groups werden ebenfalls "uber ein Koordinatenpaar $(w_x,w_y)$
-indiziert. Der Zusammenhang zwischen globalen und lokalen Work-Item
+indiziert.
+Der Zusammenhang zwischen globalen und lokalen Work-Item
 Koordinaten ist daher
 \[
 (g_x, g_y)=(w_xS_x + s_x, w_yS_y+s_y).
@@ -700,6 +706,8 @@ Koordinaten ist daher
 Die Anzahl Work-Groups in jeder Koordinatenrichtung ist $G_x/S_x$
 bzw.~$G_y/S_y$.
 In Abbildung~\ref{opencl-workitems} ist der Zusammenhang zwischen
+Work-Group, den verschiedenen Dimensionen und den lokalen und globalen 
+Koordinaten (Ids) dargestellt.
 Tabelle~\ref{table-work} zeigt die API-Funktionen, mit denen
 die Dimensionen sowie die Koordinaten des zur Zeit ausgef"uhrten
 Work-Items erfragen kann.
@@ -808,9 +816,9 @@ C-Programms vergleichen:
 cl_kernel       kernel = clCreateKernel(program, "invert", &err);
 \end{verbatim}
 
-Damit der Kernel ausgef"uhrt werden kann, m"ussen zuerst die Daten
-als Memory-Objekte erzeugt und die zugeh"origen Daten an das Compute Device
-"ubermittelt werden:
+Damit der Kernel ausgef"uhrt werden kann, m"ussen zuerst 
+als Memory-Objekte als Handle f"ur die Daten erzeugt und die
+zugeh"origen Daten an das Compute Device "ubermittelt werden:
 \begin{verbatim}
 cl_mem input = clCreateBuffer(context, CL_MEM_READ_ONLY,
         sizeof(float) * n * n, NULL, NULL);
@@ -829,11 +837,11 @@ Zahl wird als drittes Argument "ubergeben.
 
 Die bisher verwendeten API-Funktionen sagen "uberhaupt nichts dar"uber
 aus, wie die Parallelisierung durchzuf"uhren ist. Dazu ist festzulegen,
-wie die einzelnen Work Items strukturiert werden sollen, welche Arbeit
+wie die einzelnen Work Items strukturiert werden sollen, und welche Arbeit
 innerhalb eines Work-Items auszuf"uhren ist.
 Dabei ist wichtig, dass vor jeder Pivot-Zeilen-Division die Threads
 synchronisiert werden m"ussen. Dazu stehen in OpenCL Barriers
-zur verf"ugung, diese k"onnen aber nur innerhalb einer Workgroup
+zur Verf"ugung, diese k"onnen aber nur innerhalb einer Workgroup
 synchronisieren. Daher muss dieses Problem von einer einzigen Workgroup
 gel"ost werden. Die maximale Gr"osse einer Workgroup kann mit
 \begin{verbatim}
@@ -879,7 +887,7 @@ __kernel void   invert(__global float *input, __global float *output,
 \index{kernel@\texttt{\_\_kernel}}
 Nach der Diskussion zur Aufteilung der Arbeit in Work-Groups wissen wir,
 welcher Bereich von Zeilen von jedem Work-Item bearbeitet werden muss.
-Diese Information beh"ort aber zu jedem Work-Item, muss also als 
+Diese Information geh"ort aber zu jedem Work-Item, muss also als 
 privat deklariert werden:
 \begin{verbatim}
 __private unsigned int  min_row;
@@ -1004,10 +1012,11 @@ Koprozessor unterst"utzen.}.
 Es ist daher nicht "uberraschend, dass die erreichte Geschwindigkeit
 vergleichbar ist, es "uberrascht aber doch, dass die Performance mit
 keiner anderen Parallelisierungstechnologie mithalten kann.
-Die Gr"unde daf"ur sind vielf"altig. AMD-OpenCL verwendet nur einen
-einzigen Thread f"ur jede Workgroup.
+Die Gr"unde daf"ur sind vielf"altig.
+
+AMD-OpenCL verwendet nur einen einzigen Thread f"ur jede Workgroup.
 Da der Algorithmus wegen der Synchronisationspunkte nur eine einzige Workgroup
-enthalten darf, l"auft er in AMD in nur einem Thread. Die einzige
+enthalten darf, l"auft er in nur einem Thread. Die einzige
 m"ogliche Beschleunigung kann also daher kommen, dass OpenCL Vektor-Operationen
 Verwenden kann und damit die SIMD-F"ahigkeiten der CPUs ausn"utzen kann.
 Abbildung~\ref{opencl-simd-amd} zeigt diese Abh"angigkeit.
@@ -1062,7 +1071,7 @@ Standardisierung wie in Abbildung \ref{opencl-simd-amd}.
 \index{OpenMPI}
 \index{Message Passing}
 In den Abschnitten~\ref{openmp-intro} und \ref{opencl-intro}
-hat sich gezeigt, dass sich damit nur Probleme effizient l"osen lassen,
+hat sich gezeigt, dass sich mit OpenMPI nur Probleme effizient l"osen lassen,
 die in einem einzigen Adressraum untergebracht werden k"onnen.
 Der Parallelisierung sind damit jedoch wegen des nicht gleichm"assigen
 Speicherzugriffs Grenzen gesetzt.
@@ -1121,7 +1130,7 @@ ierr = MPI_Comm_size(MPI_COMM_WORLD, &num_procs);
 \end{verbatim}
 Die Funktion \verb+MPI_Init+ initialisiert OpenMPI, danach kann mit
 den Funtionen \verb+MPI_Comm_size+ die Anzahl der Prozesse und mit
-\verb+MPI_Comm_rank+ der Rang, also die Nummer, des aktuellen Prozesses
+\verb+MPI_Comm_rank+ der Rang, also die Nummer des aktuellen Prozesses
 \index{Rang}
 ermittelt werden.
 
@@ -1168,9 +1177,9 @@ for (int r = 1; r < num_procs; r++) {
 }
 \end{verbatim}
 Der Prozess mit dem Rang $r$ (viertes Argument der Funktion
-\verb+MPI_Send+ empf"angt diese Daten mit Hilfe der Funktion
+\verb+MPI_Send+) empf"angt diese Daten mit Hilfe der Funktion
 \verb+MPI_Recv+, und ermittelt die Anzahl der tats"achlich erhaltenen
-Floats:
+\texttt{float}s:
 \begin{verbatim}
 ierr = MPI_Recv(buffer, height * n, MPI_FLOAT, 0, tag,
         MPI_COMM_WORLD, &status);

@@ -18,7 +18,7 @@ Eine hervorragende Referenz dazu ist das Buch von Hager und Wellein
 
 \section{Standardhardware}
 Moderne Computer sind praktisch immer Multiprozessor- oder mindestens
-Multicore-System mit geteiltem Hauptspeicher (Abbildung~\ref{numa}).
+Multicore-System mit aufgeteiltem Hauptspeicher (Abbildung~\ref{numa}).
 Es besteht jedoch eine Diskrepanz zwischen der Sicht des Programmierers
 auf ein solches System, und der Realit"at.
 
@@ -37,7 +37,7 @@ Dieser Speicherbereich ist von dieser CPU am schnellsten zu erreichen.
 Von einer anderen CPU aus ist der Zugriff dagegen langsamer, da er 
 "uber einen Interconnect zwischen den verschiedenen CPUs erfolgen muss.
 
-Wird so der Prozess sp"ater auf eine andere CPU migriert, kann er pl"otzlich
+Wird der Prozess sp"ater auf eine andere CPU migriert, kann er pl"otzlich
 langsamer laufen. Um diesem negativen Effekt vorzubeugen, m"ussen
 f"ur HPC geeignete Betreibssyteme daher dem Programmierer auch die
 Kontrolle dar"uber geben auszudr"ucken, auf welcher CPU der Prozess laufen
@@ -54,11 +54,13 @@ Auf der ersten Ebene (L1) verwendet
 jedes CPU-Core einen typischerweise sehr kleinen Cache von wenigen
 kB. Diese Cache unterscheidet zwischen Daten und Instruktionen.
 Dies lohnt sich, weil gerade auch im HPC-Bereich der Code, der die
-Hauptarbeit leistet, sehr kleine ist. Die Datenmenge dagegen ist oft
-viel gr"osser, als der Cache fassen kann.
+Hauptarbeit leistet, sehr klein ist.
+Die Datenmenge dagegen ist oft viel gr"osser, als der Cache fassen kann.
 Ein separater Instruktionscache
-stellt also sicher, dass die CPU nicht von Hauptspeicherzugriffen f"ur
-Code ausgebremst wird.
+verhindert, dass Datenzugriffe die gecachten Instruktionen aus dem
+Cache werfen, er
+stellt also sicher, dass Instruktionszugriffe nicht auf den
+Hauptspeicher warten m"ussen, selbst wenn Datenzugriffe warten m"ussen.
 
 Auf der zweiten Ebene (L2) finden wir einen Cache, den mehrere Cores eines
 Prozessors gemeinsam nutzen.
@@ -76,23 +78,23 @@ n"utzlichen Teil ihrer Daten und Instruktionen in diesem Cache finden
 k"onnen. 
 
 Ausserhalb des Prozessors findet man weitere Asymmetrien.
-Moderne Rechner verwenden meistens eine NUMA Architektur: non-uniform
-memory access.
-Jeder Prozessor kontrolliert einen Teil des Hauptspeichers.
+Moderne Rechner verwenden meistens eine NUMA Architektur:
+non-uniform memory access.
+Jeder Prozessor kontrolliert direkt einen Teil des Hauptspeichers.
 "Uber einen Interconnect ist zwar jeder Teil des Hauptspeichers
-von jedem Prozessor aus erreichbar, aber Zugriffe auf den
+auch von jedem Prozessor aus erreichbar, aber Zugriffe auf den
 Speicher eines anderen Prozessors dauern typischerweise l"anger.
 
 \subsection{Illusion 3: Alle Threads sind gleich}
 \index{Hyperthreading}
-Moderene CPUs verwenden Hyperthreading: ein Core kann zwei Instruktionsstr"ome
+Moderne CPUs verwenden Hyperthreading: ein Core kann zwei Instruktionsstr"ome
 ausf"uhren.
 Das bedeutet, dass die Resourcen eines Cores wie Integer und
 Floating Point Units je nach Bedarf den beiden Threads zugeteilt werden.
 Hat ein Prozessor nur eine Floating-Point Unit pro Core, wird die
 erreichbare Performance durch die Verf"ugbarkeit dieser einen FPU
 limitiert.
-Migriert man den Prozess auf ein anders Core, wo es nicht mit einem anderen
+Migriert man den Prozess auf ein anders Core, wo er nicht mit einem anderen
 FPU-Benutzer in Konkurrenz tritt, steigt die Floating Point Leistung.
 
 \subsection{Illusion 4: Alle IOs sind gleich}
@@ -105,7 +107,7 @@ Der Cache dieser CPU wird durch die Interrupts mit Daten "uberschrieben,
 bei der Wiederaufnahme des Prozesses muss der Cache erst wieder
 gef"ullt werden.
 Speicher von anderen CPUs ist ``weiter'' entfernt, IOs, die von anderen
-CPUs ausgel"ost worden sind, brauchen daher mehr l"anger.
+CPUs ausgel"ost worden sind, brauchen daher l"anger.
 
 In einem Cluster entstehen weitere IO-Asymmetrien dadurch, dass
 die Knoten m"oglicherweise gar kein gemeinsames Filesystem haben.
@@ -128,7 +130,7 @@ Die Pipeline stellt sicher, dass m"oglichst viele Einheiten eines
 Prozessors in jedem Taktzyklus genutzt werden k"onnen.
 
 Der Nutzen einer Pipeline bricht in dem Moment zusammen, wo eine Instruktion
-erst vollst"andig interpretiert werden kann, wenn die Resultate
+erst dann vollst"andig interpretiert werden kann, wenn die Resultate
 der unmittelbar vorangehenden Instruktionen bekannt sind.
 Typischerweise ist dies bei bedingten Spr"ungen der Fall, wo der
 Schaden am gr"ossten ist, weil bereits der erste Schritt der Pipeline,
@@ -174,7 +176,7 @@ Cache gar nicht mehr genutzt werden kann.
 Das Produkt $AB$ zweier $n\times n$-Matrizen $A$ und $B$ wird nach der Regel
 $\text{Zeilen}\times \text{Spalten}$ berechnet. F"ur jedes Element
 der Produktmatrix geht man also in Einerschritten durch eine Zeile
-von $A$ und in Einerschritten durch eine Zeile von $B$.
+von $A$ und in Einerschritten durch eine Spalte von $B$.
 Speichert man die Matrix $B$ Zeilenweise als Array, wie in C "ublich,
 dann bedeuten die Einerschritte durch die Spalten von $B$ 
 Schritte mit Schrittweite $n$ durch die Matrix $B$.
@@ -183,6 +185,11 @@ Ist $n$ gleich gross wie die Cache-Gr"osse, dann erfolgt jeder $B$-Zugriff
 
 Speichert man die Matrix $B$ transponiert ab, erfolgen beide Zugriffe
 in Einerschritten.
+Da ein Cache jeweils ganze Cache-Zeilen liest, die wesentlich l"anger 
+sind als ein einzelnes Wort oder eine einzelne Zahl, kann man davon
+ausgehen, dass auch der Zugriff auf das n"achste Element in $B$ 
+aus dem Cache befriedigt werden kann. 
+
 \end{beispiel}
 
 \subsection{Code-Komplexit"at}
@@ -221,8 +228,8 @@ zu rechnen.
 
 Nat"urlich hat dieser Code noch weitere Verbesserungsm"oglichkeiten.
 So wie er dasteht, verlangt er zwei Adressberechnungen f"ur jedes Byte.
-Durch verwendung von zwei Pointern kann man aus der Adressberechnung
-eine viel billigeren Increment-Operation machen:
+Durch Verwendung von zwei Pointern kann man aus der Adressberechnung
+eine viel billigere Increment-Operation machen:
 \begin{verbatim}
 char    *p = a;
 char    *q = b;
@@ -251,7 +258,8 @@ Dieses Beispiel illustriert, dass auch in einer einfachen Kopier-Operation
 viel Optimierungspotential steckt. Die beste L"osung  ist abh"angig von der
 Architektur der CPU. Daher sollte man solche Kopieroperationen m"oglichst
 nicht selbst programmieren, sondern wenn immer m"oglich optimierte
-Bibliotheksfunktionen daf"ur verwenden.
+Bibliotheksfunktionen daf"ur verwenden, oder sich auf Optimierungen durch
+einen Compiler verlassen.
 
 Das Betriebssystem Solaris treibt diese Idee auf die Spitze:
 Es verwendet f"ur jeden Prozessortyp optimierte
@@ -277,7 +285,7 @@ Umw"alzung des Cache nicht ins Gewicht f"allt.
 M"oglicherweise sind die Daten auch ung"unstig im Speicher angeordnet,
 so dass sie h"aufig aus dem Cache geworfen werden.
 
-\item Die Prozessor-Pipeline kann nicht laufend gef"ullt bleiben.
+\item Die Prozessor-Pipeline kann nicht permanent gef"ullt bleiben.
 
 {\bf Abhilfe:} Code so aufbauen, dass m"oglichst wenige Verzweigungen
 n"otig sind. Rechnen statt verzweigen. Loop unrolling.
@@ -309,12 +317,13 @@ Code unportable und schwer wartbar macht.
 OpenMP unterst"utzt SIMD einheiten mit den {\tt simd} Direktiven.
 \item 3D-Graphikkarten m"ussen f"ur die Darstellung einer dreidimensionalen
 \index{Graphikkarten}
-Szene eine grosse Zahle von Operationen mit 3D-Vektoren durchf"uhren. 
-Daher bestehen 3D-Graphikkarten aus einer grossen Zahl von SIMD Einheiten,
+Szene eine grosse Zahl von Operationen mit 3D-Vektoren durchf"uhren. 
+Daher bestehen 3D-Graphikkarten aus einer betr"achtlichen Zahl von
+SIMD Einheiten,
 die diese immer gleichen Operationen parallel durchf"uhren k"onnen. 
 Normalerweise sind die Resultate dieser Rechnung jedoch ausschliesslich
-als Pixel-Buffer zugreifbar, es ist also spezieller zus"atzlicher Aufwand
-n"otig, die Rechenresultate direkt zug"anglich zu machen.
+als Pixel-Buffer zugreifbar, es ist also zus"atzlicher Aufwand
+n"otig, die Rechenresultate zug"anglich zu machen.
 \item Einige Prozessoren besitzen spezielle Koprozessoren mit besonderer
 paralleler Rechenleistung. Der Cell-Prozessor basiert auf einem 64bit PowerPC
 Kern, der zusammen mit 8 4-fach SIMD-Einheiten auf einem Chip integriert ist, 

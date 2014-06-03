@@ -106,7 +106,7 @@ u_{i0}&=g_0(ih_t)&i&>0\\
 u_{i1}&=g_1(ih_t)&i&>0\\
 \end{align*}
 Die Diskretisation der Differentialgleichung verwendet die in
-Abschnitt~\ref{subsection-motivation} Methode verwenden.
+Abschnitt~\ref{section-motivation} Methode verwenden.
 Die zweite partielle Ableitung von $u$ nach $x$ im Punkt $(ih_t, jh_x)$ 
 kann durch
 \begin{equation}
@@ -141,9 +141,9 @@ n"amlich
 \frac1{h_t}(u_{i+1,j}-u_{ij})
 \label{heat:diskret}
 \end{align}
-Wir stellen die Gleichung um so, dass der linken Seite nur die 
+Wir stellen die Gleichung um, so dass der linken Seite nur die 
 Variablen f"ur die Zeit $(i+1)h_t$ stehen, und rechts nur die
-Varaiblen f"ur die Zeit $ih_t$:
+Variablen f"ur die Zeit $ih_t$:
 \begin{align}
 \frac1{2h_x^2}(u_{i+1,j-1}-2u_{i+1,j}+u_{i+1,j+1})-\frac1{h_t}u_{i+1,j}
 &=
@@ -159,7 +159,7 @@ Varaiblen f"ur die Zeit $ih_t$:
 -\frac1{2h_x^2} u_{i,j+1}
 \label{heat:gleichung}
 \end{align}
-Dies ist ein lineare Gleichung f"ur die Variablen $u_{i+1,j}$.
+Dies ist eine lineare Gleichung f"ur die Variablen $u_{i+1,j}$.
 Die rechte Seite wird berechnet aus den Werten von $u_{ij}$,
 f"ur $i=0$ steht dazu die Anfangsfunktion $f$ zur Verf"ugung.
 
@@ -196,8 +196,8 @@ versuchen, ein iteratives L"osungsverfahren anzuwenden.
 
 Die Matrix $A$ hat eine naheliegende Zerlegung $A=N+M$, so dass
 die allgemeine Theorie angewendet werden kann "uber iterative Verfahren,
-die zu zerlegbare Matrizen geh"oren.
-Schreiben wir $u^{(k)}_{i+}=u^{(k)}_{i+1,j}$ f"ur die $k$-te Iteration f"ur die
+die zu zerlegbaren Matrizen geh"oren.
+Schreiben wir $u^{(k)}_{i+1}=u^{(k)}_{i+1,j}$ f"ur die $k$-te Iteration f"ur die
 L"osung $u_{i+1,j}$ der Gleichung (\ref{heat:gleichung}).
 Die allgemeine Theorie besagt, dass der iterative Algorithmus mit
 Iterationsformel
@@ -228,7 +228,7 @@ Der Spektralradius ist
 =
 \frac{h_t}{2h_x^2}\varrho(\operatorname{tridiag}_n(1,-2,1)),
 \]
-wir haben den folgenden Satz bewiesen:
+wir haben damit den folgenden Satz bewiesen:
 
 \begin{satz}
 Das Iterationsverfahren (\ref{heat:iteration}) konvergiert, wenn 
@@ -572,20 +572,25 @@ der Definitionsbereich in $n_x$ Rechtecke in horizontaler Richtung
 und $n_y$ Rechtecke in vertikaler Richtung zerlegt werden
 (Abbildung~\ref{heat:domainpartition}).
 Alle Teilrechtecke haben jeweils ungef"ahr die gleiche Gr"osse.
-F"ur jedes Teilrechteck ist ein eigner OpenMPI Prozess zust"andig.
+F"ur jedes Teilrechteck ist ein eigener OpenMPI Prozess zust"andig.
 
 F"ur die Durchf"uhrung des Iterationsschrittes werden entlang des Randes
 eines Teilrechtecks jeweils
 die Variablen von den R"andern der Nachbarrechtecke ben"otigt.
 Nach jedem Iterationsschritt m"ussen diese Werte zwischen den einzelnen
 Prozessen ausgetauscht werden.
-Beim Austausch fliessen die Daten in beiden Richtungen. Die Funktion
+Beim Austausch fliessen die Daten in beiden Richtungen.
+Da alle Prozesse sowohl Daten versenden wie auch empfangen, besteht
+die Gefahr von Deadlocks: zwei Prozesse k"onnten beide auf Input warten.
+
+Die Funktion
 \verb+MPI_Send+ blockiert, bis die Daten im Zielprozess angekommen sind.
 Daher wurde in der Implementation die Funktion \verb+MPI_Isend+ verwendet,
-welche sofort zur"uckkommt. Alle Prozesse kopieren daher ihre Randdaten in
+welche sofort zur"uckkommt. Alle Prozesse kopieren ihre Randdaten in
 einen Sende-Puffer, und "ubermitteln ihn mit \verb+MPI_Isend+.
 Danach k"onnen alle Prozesse die Rand-Daten in beliebiger Reihenfolge
-empfangen. Wenn die Empfangs-Funktionen (\verb+MPI_Recv+) abgeschlossen sind,
+empfangen, womit Deadlocks vorgebeugt wird.
+Wenn die Empfangs-Funktionen (\verb+MPI_Recv+) abgeschlossen sind,
 dann sind auch die Sende-Operationen fertig.
 
 Abbildung \ref{heat:threadzahl} zeigt die Abh"angigkeit der Laufzeit von der

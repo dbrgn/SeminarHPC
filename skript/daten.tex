@@ -1,4 +1,6 @@
 \chapter{Umgang  mit der Datenflut}
+\lhead{Umgang mit der Datenflut}
+\rhead{Kennzahlen}
 High Performance Computing produziert mit h"ochstm"oglicher Geschwindigkeit
 gr"osstm"ogliche Datenmengen. Diese Daten m"ussen gespeichert, verarbeitet
 und visualisiert werden.
@@ -24,7 +26,7 @@ Gewschwindigkeit zweier
 Billiardkugeln den Zeitpunkt des n"achsten Zusammenstosses zu berechnen,
 falls dieser "uberhaupt vor dem Zusammenstoss mit der Bande stattfindet.
 Auf diese Weise kann man zu jeder belieibigen Zeit die Geschwindigkeit
-$v_i(t)$ jeder Billiardkugel $i$ angeben.
+$v_i(t)$ der Billiardkugel $i$ angeben.
 
 Die Werte $v_i(t)$ sind kaum von Interesse, es l"asst sich daraus nichts
 Interessantes ablesen.
@@ -46,7 +48,7 @@ solche makroskopische Gr"ossen zu bestimmen.
 Zum Beispiel ist der Druck der mittlere Impuls, in einer Zeiteinheit
 auf die Wand "ubertragen wird.
 Ein einfache Summe "uber die Normalkomponenten der Geschwindigkeiten
-derjenigen Teilchen, die in einem Zeitinterval mit der Wand zusammenstossen
+derjenigen Teilchen, die in einem Zeitinterval mit der Wand zusammenstossen,
 wir die Frage beantworten.
 
 Die Temperatur ist jedoch etwas schwieriger.
@@ -109,6 +111,7 @@ Plotten lassen, oder die ganz konkreten Gr"ossen in der simulierten
 Realit"at entsprechen, und damit die direkte Anwendung der
 Simulationsresultate erm"oglichen.
 
+\rhead{Datenspeicherung}
 \section{Datenspeicherung}
 Die Resultate einer Simulation k"onnen oft nicht vollst"andig gespeichert
 werden, die Datenmenge ist m"oglicherweise schlicht zu gross.
@@ -140,7 +143,7 @@ zu k"onnen.
 Wie speichert man die Daten in Files, wenn doch einmal alle Resultate
 gespeichert werden m"ussen.
 Nat"urlich kann man sich nach Bedarf irgendwelche Datenformate zurechtlegen,
-das bedeutet aber auch, dass man beliebige Software f"ur die
+das bedeutet aber auch, dass man geeignete Software f"ur die
 Weiterverarbeitung selber schreiben muss, was selten effizient ist.
 Ausserdem sollten die Datenformate plattformunabh"angig sein,
 sodass die Weiterarbeitung auf Maschinen beliebiger Architektur
@@ -187,7 +190,7 @@ Datenfile nicht "uberschrieben werden soll.
 Dies ist eine sinnvolle Vorsichtsmassnahme, um nicht versehentlich
 die wertvollen Output-Daten einer aufwendigen Simulation zu vernichten.
 
-Sobald ein File erstellt worden ist, befindet es sich im Defintions
+Sobald ein File erstellt worden ist, befindet es sich im Definition
 Mode, in dem Variablen und Dimensionen definiert werden k"onnen.
 Um zum Beispiel einen dreidimensionalen Array namens {\tt results}
 mit Dimensionen {\tt x} der L"ange 140, {\tt y} der L"ange 100 und 
@@ -247,7 +250,7 @@ die meteorologischen Organisationen der Welt ein Bed"urfnis,
 Daten "uber den Atmosph"arenzustand austauschen zu k"onnen.
 Auch diese Daten sind dreidimensional, decken jeweils einen Teil
 der Erdoberfl"ache ab, und enthalten viel verschiedenen Datentypen
-wie Druck, Feuchtigkeit, Bodenbeckung, Windgeschwindigkeit, Niederschlag
+wie Druck, Feuchtigkeit, Bodenbedeckung, Windgeschwindigkeit, Niederschlag
 und viele weitere.
 "Uber die Abk"urzung GRIB besteht keine Einigkeit.
 In den offiziellen Dokumenten der World Meteorological Union wird GRIB
@@ -268,10 +271,10 @@ FITS Files k"onnen Bilddaten mit jedem beliebigen Pixel-Datentyp
 enthalten, im Gegensatz zum Beispiel zu JPEG oder GIF, wo Pixeldaten
 immer nur 8bit sind. Wenn eine umfangreiche Simulation Bilddaten
 produziert, ist es oft zweckm"assig, diese Bilder als FITS Files
-abzuspeichern, um keine Aufl"osung zu verlieren. Sollte sich bei
+abzuspeichern, um keine Bittiefe zu verlieren. Sollte sich bei
 der Nachbearbeitung heraussstellen, dass Helligkeit oder Kontrast
 stark angepasst werden m"ussen, ist in den FITS Files immer noch die
-gesamt Aufl"osung vorhanden.
+gesamt Bittiefe vorhanden.
 Bildformate mit kleinen Pixeldatentypen machen eine Wiederholung
 der Simulation notwendig.
 
@@ -291,11 +294,12 @@ in der Astronomie und Astrophysik.
 Die Vatikanische Apostolische Bibliothek hat begonnen, ihren Bestand
 an alten Manuskripten im FITS Format zu digitalisieren.
 
-F"ur die Manipulation von FITS Files steht mit cfitsio eine effiziente
+F"ur die Manipulation von FITS Files steht mit \texttt{cfitsio} eine effiziente
 und leicht zu benutzende Bibliothek zur Verf"ugung, Source Code und
 Dokumentation k"onnen von \url{http://heasarc.nasa.gov/fitsio/fitsio.html}.
 
 \section{Visualisierung}
+\rhead{Visualisierung}
 Manchmal dienen Simulationen nicht der konkreten Berechnung einer
 makroskopischen Gr"osse, wie dem $C_w$-Wert f"ur den Prospekt eines
 Autoherstellers, sondern um Optimierungsm"oglichkeiten zu finden.
@@ -316,8 +320,8 @@ Es kann neben vielen anderen auch NetCDF Files lesen und visualisieren.
 \item Isofl"achen von Skalarfeldern.
 \item Erzeugung von Stromlinien von Vektorfeldern.
 \item Rechenoperationen auf verschiedenen Feldern.
-\item Ausschneiden von interessanten Gebieten .
-\item Scipting von erweiterten Auswertung mit Hilfe von Python, NumPy, SciPy.
+\item Ausschneiden von interessanten Gebieten.
+\item Scripting von erweiterten Auswertung mit Hilfe von Python, NumPy, SciPy.
 \item Extraktion von Daten entlang von Geraden und Ebenen.
 \item Datenfilter aus dem Visualisierungstoolkit.
 \end{itemize}
@@ -368,5 +372,6 @@ Aus den Daten in einem NetCDF File kann man oft auch mit einem
 einfachen Programm eine Folge von FITS Files machen, die dann von ImageMagick
 und MJPEG-Tools zu einem Video verarbeit werden k"onnen.
 Ein Beispiel f"ur ein solches Programm ist im Verzeichnis 
-{\tt data} des Sourcecode-Repositories zu finden.
+\texttt{data}
+des Sourcecode-Repositories zu finden.
 

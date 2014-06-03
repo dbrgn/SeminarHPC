@@ -106,6 +106,7 @@ gefunden werden.
 Die erste Ableitung in $x$-Richtung kann angen"ahert werden durch
 \begin{align*}
 \frac{\partial u}{\partial x}(ih,jh)&\simeq \frac{u_{i+1,j}-u_{ij}}h
+&&\text{und}
 &
 \frac{\partial u}{\partial y}(ih,jh)&\simeq \frac{u_{i,j+1}-u_{ij}}h.
 \end{align*}
@@ -139,7 +140,7 @@ Statt der Differentialgleichung (\ref{motivation-pdgl}) mit den Randbedingungen
 (\ref{motivation-randbedingung}) ist jetzt also das lineare Gleichungssystem
 f"ur die $u_{ij}$ bestehend aus den Gleichungen (\ref{motivation-lingl}) und
 (\ref{motivation-randwerte}) zu l"osen.
-Die Randwertgleichungen (\ref{motivation-randbedingungen})
+Die Randwertgleichungen (\ref{motivation-randbedingung})
 legen einen Teil der $u_{ij}$ bereits fest,
 man kann sie zur rechten Seite der Gleichungen schlagen,
 so dass nur noch die Werte $u_{ij}$ an inneren Knotenstellen $0<i,j<n$
@@ -215,7 +216,7 @@ E&T&E& &      & \\
 Alle leeren Felder sind dabei gleich $0$ zu setzen, $E$ bezeichnet
 eine $(n-1)\times(n-1)$-Einheitsmatrix.
 Die meisten Eintr"age der Matrix $A$ sind also $0$, 
-nur maximal 4 Eintr"age in jeder Zeile sind von $0$ verschieden.
+nur maximal 5 Eintr"age in jeder Zeile sind von $0$ verschieden.
 Man nennt Matrizen, die vor allem aus $0$-Eintr"agen bestehen,
 {\em d"unnbesetz} oder {\em schwachbesetzt}.
 
@@ -296,7 +297,7 @@ v^{(k)} =
 -1-\frac12x_1^{(k-1)}
 \end{pmatrix}
 \]
-Man findet folgende numerischen Resultate:
+Man findet die folgenden numerischen Resultate:
 \begin{center}
 \begin{tabular}{|>{$}r<{$}|>{$}r<{$}>{$}r<{$}|>{$}r<{$}|}
 \hline
@@ -405,9 +406,9 @@ x=M^{-1}(b-Nx).
 \label{aufteilung:iteration}
 \end{equation}
 Wenn $x$ noch nicht die L"osung ist, dann kann man versuchen, aus einer
-approximativen L"osung $x_i$ eine verbesserte L"osung zu bestimmen:
+approximativen L"osung $x^{(i)}$ eine verbesserte L"osung zu bestimmen:
 \[
-x_{i+1}=M^{-1}(b - Nx).
+x^{(i+1)}=M^{-1}(b - Nx^{(i)}).
 \]
 Ob das Verfahren konvergiert, werden wir sp"ater untersuchen.
 
@@ -422,14 +423,15 @@ a_{11}&     0&\dots &0\\
 \label{jacobi-aufteilung}
 \end{equation}
 denn (\ref{aufteilung:iteration}) bedeutet nichts anderes,
-als dass auf Zeile $i$ alle Variablen ausser $x_i$ auf die rechte
+als dass auf Zeile $i$ alle Variablen ausser $x^{(i)}$ auf die rechte
 Seite geschafft werden, das sind genau diejenigen Variablen, f"ur die
 auf Zeilen $i$ von $N$ nicht verschwindende Koeffizienten vorhanden sind.
 
 Die Zerlegung, die dem Gauss-Seidel-Algorithmus entspricht, ist etwas
 schwieriger.
 Bezeichnen wir die alten Variablen mit $x$ und die neuen mit $x'$, dann
-bedeutet Gauss Seidel, dass die Variablen $x'$ mit folgenden Gleichungen
+bedeutet der Gauss-Seidel Algorithmus, dass die Variablen $x'$ mit
+folgenden Gleichungen
 bestimmt werden:
 \begin{equation}
 \begin{linsys}{8}
@@ -475,8 +477,9 @@ Im Gauss-Seidel-Fall ist eine Dreicksmatrix zu invertieren,
 was durch die Formeln (\ref{gauss-seidel-iteration}) bereits
 erledigt ist.
 
-Nat"urlich kann man sich viele weitere Aufteilungen einer
-Matrix ausdenken:
+Nat"urlich kann man sich f"ur spezielle Anwendungen
+weitere Aufteilungen einer Matrix ausdenken, wie das folgende
+Beispiel zeigt.
 
 \begin{beispiel}
 Wir untersuchen die L"osung eines Gleichungssystems mit folgender
@@ -503,7 +506,7 @@ A=\begin{pmatrix}
 M=\frac52E
 \label{gauss-seidel-beispiel}
 \end{align*}
-Die Matrix $M$ ist leicht zu invertieren, es ist $M=\frac25E$.
+Die Matrix $M$ ist leicht zu invertieren, es ist $M^{-1}=\frac25E$.
 Die Iterationsformel (\ref{aufteilung:iteration}) wird damit zu
 \begin{equation}
 x=
@@ -526,7 +529,7 @@ erhalten wir die folgende Iterationsfolge:
 \begin{center}
 \begin{tabular}{|>{$}r<{$}|>{$}r<{$}>{$}r<{$}>{$}r<{$}|>{$}r<{$}|}
 \hline
-i&x_{i,0}&x_{i,1}&x_{i,2}&e_i\\
+i&x^{(i)}_{0}&x^{(i)}_{1}&x^{(i)}_{2}&e_i\\
 \hline
 1& 0.00000& 0.00000& 0.00000& 3.7417\\
 2& 0.40000& 0.80000& 1.20000& 2.0976\\
@@ -651,7 +654,7 @@ Um diese Frage zu entscheiden, muss der Spektralradius der
 Matrix $M^{-1}N$ bestimmt werden.
 F"ur das Jacobi-Verfahren ist dies die Matrix
 \[
-M=E,\quad = N\begin{pmatrix}0&2\\2&0\end{pmatrix}\quad
+M=E,\quad  N=\begin{pmatrix}0&2\\2&0\end{pmatrix}\quad
 \Rightarrow
 \quad
 M^{-1}N=N.
@@ -737,7 +740,7 @@ also mit Hilfe der Iteration
 \[
 \lim_{k\to\infty}\frac1{\lambda_1^k}A^ku=a_1v_1
 \]
-den Eigenvektor zum betragsgr"ossten Eigenwert bekommen.
+einen Eigenvektor zum betragsgr"ossten Eigenwert bekommen.
 
 Meistens wird man aber den Wert des betragsgr"ossten Eigenwerts
 gar nicht kennen, die Renormierung in (\ref{potenzverfahren}) 
@@ -758,18 +761,19 @@ $v_1$ normiert auf L"ange $1$.
 Der neue Algorithmus lautet also: man beginne mit irgend einem Vektor
 $u_0$, und konstruiere daraus die Folge
 \begin{equation}
-u_{k+1}=\frac{Au_k}{|Au_k|}, \quad k\ge 0
+u^{(k+1)}=\frac{Au^{(k)}}{|Au^{(k)}|}, \quad k\ge 0
 \label{potenz-iteration}
 \end{equation}
-Dann konvergiert die Folge gegen einen Eigenvektor des betragsgr"ossten
-Eigenwertes:
+Dann konvergiert die Folge gegen einen Eigenvektor zum betragsgr"ossten
+Eigenwerts:
 \[
-\lim_{k\to\infty} u_k=v_1.
+\lim_{k\to\infty} u^{(k)}=v_1.
 \]
 
 Allerdings funktioniert dies nur unter der Voraussetzung $\lambda_1 > 0$.
-Falls $\lambda_1$ nicht positiv, aber immer noch reell ist, dann
-wechselt $u_k$ bei jeder Iteration die Richtung, also ist $(-1)^ku_k\to v_1$.
+Falls $\lambda_1$ nicht positiv, aber immer noch reell ist,
+wechselt $u^{(k)}$ bei jeder Iteration die Richtung,
+also ist $(-1)^ku^{(k)}\to v_1$.
 
 \begin{beispiel}
 Bestimme den dominanten Eigenwert und den zugeh"origen Eigenvektor
@@ -784,7 +788,7 @@ Vektoren
 \begin{center}
 \begin{tabular}{|>{$}r<{$}|>{$}r<{$}>{$}r<{$}>{$}r<{$}|}
 \hline
- k&u_{k,1} &u_{k,2} &u_{k,3}\\
+ k&u^{(k)}_{1} &u^{(k)}_{2} &u^{(k)}_{3}\\
 \hline
  0& 1.00000& 0.00000& 0.00000\\
  1&-0.70711& 0.00000&-0.70711\\
@@ -801,7 +805,7 @@ Vektoren
 \end{center}
 Offenbar konvergiert die Vektorfolge gegen den Vektor
 \[
-u_1=\begin{pmatrix}-0.50000\\0.70711\\-0.50000\end{pmatrix}.
+u_1=\begin{pmatrix}-0.50000\\\phantom{-}0.70711\\-0.50000\end{pmatrix}.
 \]
 Allerdings wechselt der Vektor in jedem Schritt das Vorzeichen,
 was nat"urlich darauf zur"uckzuf"uhren ist, dass $\lambda_1<0$.
@@ -821,7 +825,7 @@ Das Argument $\arg z$ einer komplexen Zahl $z$ ist derjenige Winkel
 $\arg z=\varphi$, f"ur den $z=|z|e^{i\varphi}$.
 Ist $(Au_k)_1$ die erste Komponente des Vektors $Au_k$, dann ersetzen wir
 \begin{equation}
-u_{k+1}=e^{-i\arg (Au_k)_1}\frac{Au_k}{|Au_k|},\qquad k\ge 0.
+u^{(k+1)}=e^{-i\arg (Au^{(k)})_1}\frac{Au^{(k)}}{|Au^{(k)}|},\qquad k\ge 0.
 \label{potenz-komplex}
 \end{equation}
 Damit wird es m"oglich, auch f"ur komplexe Eigenwerte einen Eigenvektor
@@ -840,7 +844,7 @@ Die Iteration (\ref{potenz-komplex}) ergibt:
 \begin{center}
 \begin{tabular}{|>{$}r<{$}|>{$}r<{$}>{$}r<{$}>{$}r<{$}|}
 \hline
-k& (u_k)_1&(u_k)_2&(u_k)_3\\
+k& u^{(k)}_1&u^{(k)}_2&u^{(k)}_3\\
 \hline
  0& 1.00000&  1.00000 + 0.00000i&  1.00000 + 0.00000i\\
  1& 0.31623& -0.07107 + 0.00000i&  0.70353 + 0.63246i\\
@@ -995,7 +999,7 @@ die Matrix $Q$.
 Um einen Eigenvektor in der urspr"unglichen Basis zu finden, muss man ihn
 mit $Q$ r"ucktransformieren:
 \[
-v_2=Qv_1=\begin{pmatrix}
+v_2=Qv_2'=\begin{pmatrix}
           -0.49130\\
 \phantom{-}0.37436\\
 \phantom{-}0.78644
@@ -1033,9 +1037,8 @@ v_3=
 \]
 \end{beispiel}
 
-
-Dieses Verfahren ist offenbar etwas umst"andlich, und nicht unbedingt
-in dieser Form durchf"uhrbar.
+Dieses Verfahren ist offenbar etwas umst"andlich, und
+in dieser Form nicht unbedingt praktikabel.
 Das Potenzverfahren kann jedoch in einer Art formuliert werden, dass
 es mittels Iteration alle Eigenwerte und Eigenvektoren einer beliebigen
 Matrix bestimmen kann, selbst wenn die Eigenvektoren komplex sind.
@@ -1059,7 +1062,7 @@ ein Polynom $n$-ten Grades.
 
 Wir berechnen jetzt das charakteristische Polynom der Matrix
 \begin{equation}
-A=\begin{pmatrix}
+A_p=\begin{pmatrix}
 -a_{n-1}&-a_{n-2}&\dots         &  -a_1&  -a_0\\
        1&       0&              &      &      \\
         &       1&\smash{\ddots}&      &      \\
@@ -1088,7 +1091,7 @@ A_p=\begin{pmatrix}-a_0\end{pmatrix}
 Die Behauptung stimmt also f"ur $n=1$.
 
 Wir f"uhren jetzt einen Induktionsbeweis, und nehmen daher an, die
-Behaupt sei f"ur $n < k$ schon bewiesen.
+Behauptung sei f"ur $n < k$ schon bewiesen.
 Durch Entwicklung nach der letzten Spalte bekommt man
 \begin{align*}
 \chi_{A_p}(\lambda)
@@ -1143,12 +1146,12 @@ $A_p$ (\ref{polynomnullstellen:A}) bestimmen.
 Die Nullstellen des Polynoms $p(x)=x^4-10x^3+35x^2-50x+24$ sind die 
 Eigenwerte der Matrix
 \[
-A=\begin{pmatrix}
+A_p=\begin{pmatrix}
 10&-35&50&-24\\
  1&  0& 0&  0\\
  0&  1& 0&  0\\
  0&  0& 1&  0
-\end{pmatrix}
+\end{pmatrix}.
 \]
 Octave liefert daf"ur die Werte 
 \begin{verbatim}
@@ -1176,10 +1179,10 @@ Das Motivationsbeispiel hat eine Eigenschaft, welche bis jetzt noch
 nicht verwendet werden ist:
 Die zugeh"orige Matrix ist symmetrisch und positiv definit.
 Der Gauss-Algorithmus tr"agt der Symmetrie "uberhaupt nicht Rechnung,
-im Gegenteil: sie wird sofort zuerst"ort.
+im Gegenteil: sie wird sofort zerst"ort.
 Die bisher besprochenen iterativen Verfahren sind ebenfalls "uberhaupt
 nicht daf"ur geeignet, aus der Symmetrie einen Nutzen zu ziehen.
-Es ist jedoch bekannt, dass symmetrische positiv definite Matrizen
+Es ist jedoch bekannt, dass symmetrische, positiv definite Matrizen
 eine Reihe von besonderen Eigenschaften haben, sie haben zum Beispiel
 immer eine Cholesky-Zerlegung, und sie sind immer diagonalisierbar.
 Ziel dieses Abschnittes ist daher, nach iterativen Algorithmen zu
@@ -1200,7 +1203,7 @@ Das Einf"uhrungsbeispiel ist eine Beispiel f"ur ein solches Gleichungssystem.
 \subsection{Minimalprinzipien}
 Positiv definite Matrizen treten h"aufig bei der Diskretisation von 
 Problemen auf, die auch als Minimalproblem formuliert werden k"onnen.
-Umgekehrt k"onnen wir aus einem symmetrischen linearen Gleichungssystem
+Umgekehrt k"onnen wir aus einem symmetrischen, linearen Gleichungssystem
 wieder ein Minimalproblem gewinnen.
 Wir betrachten dazu die Gr"osse
 \[
@@ -1209,7 +1212,7 @@ J(x)=\frac12x^tAx-x^tb =
 \]
 L"asst man den Vektor $x$ anwachsen, zum Beispiel indem man ihn mit
 einem Skalenfaktor streckt, dann w"achst der erste Term von $J(sx)$
-quadratisch mit $x$ an, der zweite aber nur linear,
+quadratisch mit $x$ an, der zweite aber nur linear:
 \[
 J(sx)=s^2\cdot\frac12x^tAx - s\cdot x^tb.
 \]
@@ -1219,7 +1222,7 @@ Die Funktion $J(x)$ muss daher irgendwo ein absolutes Minimum
 haben.
 
 Sei jetzt also $x_0$ das Minimum von $J(x)$.
-Wir behaupten, dass dann $Ax_0=b$, $x_0$ also eine L"osung des
+Wir behaupten, dass dann $Ax_0=b$ ist, $x_0$ also eine L"osung des
 Gleichungssystems ist.
 F"ur ein Minimum gilt, dass dort der Gradient verschwinden muss,
 alle ersten partiellen Ableitungen sind $0$.
@@ -1376,7 +1379,7 @@ x_2&=\begin{pmatrix}2\\-2\end{pmatrix}&v&=0.
 In diesem speziellen Fall liefert der Algorithmus also die L"osung in einem
 Schritt, ein Gl"ucksfall, von dem wir im Allgemeinen nicht ausgehen d"urfen.
 Mit zuf"alligen Anfangswerten liefert
-die Iterationsformel (\ref{descent:main}) 
+die Iterationsformel (\ref{descent:main}):
 \begin{center}
 \begin{tabular}{|>{$}r<{$}|>{$}r<{$}|>{$}r<{$}|>{$}r<{$}|}
 \hline
@@ -1442,10 +1445,10 @@ Der Gradient an dieser Stelle ist die n"achste Abstiegsrichtung, und
 dieser steht senkrecht auf der Tangente.
 
 Insbesondere ist die Richtung des Gradienten beim dritten Schritt wieder
-die gleiche wie beim zweiten Schritt.
+die Gleiche wie beim zweiten Schritt.
 Dies ist nur m"oglich, wenn der Pfad ausgehend von $x_3$ durch
 zentrische Streckung aus dem Pfad ausgehend von $x_1$ hervorgeht.
-Sei $q$ der zugeh"orige Streckfaktor, $x_{i+2}=q^2x_i$.
+Sei $q$ der zugeh"orige Streckfaktor, dann gilt $x_{i+2}=q^2x_i$.
 In jeweils zwei Abstiegsschritten nimmt der Fehler daher ebenfalls um
 den Faktor $q$ ab. Man kann also die Konvergenzgeschwindigkeit im
 schlimmsten Fall absch"atzen, wenn man $q$ kennt.
@@ -1500,6 +1503,9 @@ Man k"onnte daher versuchen, zwar die Richtung des Abstiegs beizubehalten,
 aber nur bis zur n"achsten Koordinatenachse abzusteigen, statt bis zum
 Minimum.
 Das zweidimensionale Problem liesse sich so in zwei Schritten l"osen.
+Diese Situation k"onnte man auch erzwingen, indem man ein
+Koordinatensystem verwendet, genannt das Hauptachsensystem,
+dessen Achsen parallel zu den Hauptachsen des Ellipsoides sind. 
 
 Im mehrdimensionalen Fall k"onnte man entlang des Gradienten bis zur
 n"achsten Koordinaten-Hyperebene absteigen.
@@ -1542,7 +1548,7 @@ W"ahlt man also nacheinander $e_{i_1}$, $e_{i_2},\dots$, dann werden
 nacheinander die Koordinaten $i_i$, $i_2,\dots$ zu Null gemacht.
 Durch geeignete Wahl der Folge $i_1,i_2,\dots$ zum Beispiel so,
 dass die Komponenten $x_{i_1},x_{i_2},\dots$ die absteigend sortierten
-Komponenten von $x$ sind, erhalten wir eine Folge Vektoren, die schnelle
+Komponenten von $x$ sind, erhalten wir eine Folge Vektoren, die schnell
 gegen $0$ konvergiert, und in genau $n$ Schritten den Nullpunkt exakt
 erreicht (Abbildung~\ref{descent3d}).
 
@@ -1867,7 +1873,8 @@ werden kann.
 
 \subsubsection{Geometrische Eigenschaften des CG-Algorithmus}
 Im vorangegangenen Abschnitt haben wir die Bestimmung der Abstiegsrichtung
-formal beschrieben. Es ist n"utzlich, die geometrische Bedeutung nochmals
+formal beschrieben.
+Es ist n"utzlich, sich die geometrische Bedeutung nochmals
 vor Augen zu f"uhren. 
 
 Die Bestimmung der n"achsten Abstiegsrichtung beginnt damit, den Gradienten
@@ -1982,7 +1989,7 @@ Da nur ein Eigenwert $\lambda$ existiert, ist
 \]
 Der Fehler nach einem Schritt ist als
 \[
-|f_1|_A=\bigl(\min_{a\in\mathbb R}|1+a\lambda|\bigr)\,|f_0|_A
+|f_1|_A=\bigl(\min_{a\in\mathbb R}|1+a\lambda|\bigr)\,|f_0|_A.
 \]
 Mit der Wahl $a=-1/\lambda$ wird $|1+a\lambda|=0$, und es folgt, dass
 $|f_1|_A=0$.
