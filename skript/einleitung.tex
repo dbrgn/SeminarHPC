@@ -8,7 +8,7 @@ Ein eigenes Studienfach ``Computational Science'' ist geschaffen worden,
 um der gewachsenen Bedeutung von Computer-Simulationen Rechnung zu
 tragen. Und die Konsequenzen sind vielfach sp"urbar.
 Numerische Simulation von Str"omungen hat aerodynamische Messungen
-im Windkanal ersetzt.
+im Windkanal weitgehend ersetzt.
 
 Um ein gegebenes numerisches Problem zu l"osen, ist eine bestimmte
 Anzahl von Gleit\-komma-Operationen durchzuf"uhren.
@@ -17,7 +17,7 @@ die Gleitkommaoperationen die "ubrigen Instruktionen.
 Zu Beginn der Computer-"Ara mussten Gleitkomma-Operationen in Software
 implementiert werden, weil Prozessoren nur Ganzzahloperationen 
 beherrschten. Mit der Entwicklung von Hardware-Gleitkommaprozessoren
-und deren Integration in Standardprozessoren war die Auf"uhrungszeit
+und deren Integration in Standardprozessoren war die Ausf"uhrungszeit
 f"ur Gleitkomma-Operationen an die Prozessor-Taktrate gekoppelt.
 Die Rechen-Leistung wuchs daher mit der Taktrate
 (Abbildung~\ref{processorperformance}).
@@ -30,15 +30,15 @@ Die Rechen-Leistung wuchs daher mit der Taktrate
 \end{figure}
 
 Grosse numerische Simulationen verlangen aber nicht nur eine grosse
-Menge von Rechenoperationen, sondern auch eine grosse Zahl von
+Menge von Rechenoperationen, sondern auch eine grosse Menge von
 Zahlen, die miteinander verkn"upft werden m"ussen.
 Mit wachsendem Umfang der Simulationen wurde daher auch mehr
 und mehr Speicher notwendig. Schneller Speicher (statisches RAM) ist
 zu teuer und verbraucht zuviel Energie. Grosse Speicher verwenden
 daher dynamisches RAM. Zu Beginn der Mikroprozessor-"Ara war
 die Prozessortaktrate mit der Zykluszeit des dynamischen RAM
-vergleichbar, ein Prozessor konnte in jedem Taktzyklus ein
-Element ein Wort aus dem dynamischen RAM lesen. Die Prozessortaktraten
+vergleichbar, ein Prozessor konnte in jedem Taktzyklus 
+ein Wort aus dem dynamischen RAM lesen. Die Prozessortaktraten
 entwickelten sich jedoch deutlich schneller als die DRAM-Zykluszeiten
 (Abbildung~\ref{memorywall}).
 \begin{figure}
@@ -59,7 +59,7 @@ Diesem L"osungsansatz setzt die Schaltungskomplexit"at jedoch enge Grenzen.
 Eine Hierarchie von Caches verschiedener Gr"osse und abnehmender
 Geschwindigkeit passt in modernen Systemen den relativ langsamen
 Hauptspeicher an den schnellen Prozessor an. Dies funktioniert,
-wenn Software Instruktionen und Daten immer wieder benutzt.
+wenn  das Programm sowohl Instruktionen als auch und Daten immer wieder benutzt.
 Tats"achlich trifft dies f"ur viele Betriebssysteme, Benutzeroberfl"achen
 und Awendungssoftware in hohem Mass zu.
 Sobald jedoch grosse Datenmengen verarbeitet werden m"ussen kann
@@ -94,7 +94,7 @@ einzigen Chip.
 Will man die Taktrate eines Prozessors zu verdoppeln, muss man
 bei gleicher Technologie ungef"ahr
 die vierfache Verlustleistung abf"uhren. Integriert man stattdessen
-vier Cores auf einem Chip, wird die Verlustleistung ebenfalls 
+vier Cores auf einem Chip, wird die Verlustleistung gleichermassen 
 vervierfacht, aber die zur Verf"ugung stehende Rechenleistung
 wird ebenfalls vervielfacht. Die Cores eines Chips teilen sich
 den Memory-Bus, auch dies limitiert die n"utzliche Anzahl Chips.
@@ -105,7 +105,7 @@ Probleme immer noch viel zu wenige. F"ur solche Probleme geeignete
 Systeme m"ussen daher aus einer grossen Zahl von einzelnen Prozessoren
 zusammengebaut werden. 
 
-Die eben skizziierte Entwicklung der Chip-Technologie liefert die
+Die eben skizzierte Entwicklung der Chip-Technologie liefert die
 Rahmenbedingungen f"ur massive numerische Simulationen, die in diesem
 Seminar untersucht werden sollen.
 \begin{enumerate}
@@ -115,7 +115,7 @@ von Prozessoren kann gen"ugen Rechenleistung akkumuliert werden.
 Caches kann sichergestellt werden, dass die Prozessoren ausreichend
 mit Daten versorgt werden.
 \item {\bf Nicht uniformer Speicherzugriff:} Ein System mit
-sehr vielen Prozessoren kann mit uniformem Speicherzugriff gebaut
+sehr vielen Prozessoren kann nicht mit uniformem Speicherzugriff gebaut
 werden.
 \end{enumerate}
 Ziel dieses Seminars ist daher, mathematische Methoden und geeignete
@@ -126,7 +126,7 @@ In den nachfolgenden Kapiteln werden daher einzelne Aspekte etwas
 vertieft untersucht:
 \begin{enumerate}
 \item[2.] Performance-Aspekte moderner Maschinen.
-\item[3.] Software-Hilfsmittel zur Implementation von parallelen Algorithmen
-\item[4.] Datenverwaltung
-\item[5.] Eine Auswahl gut geeigneter paralleler Algorithmen
+\item[3.] Software-Hilfsmittel zur Implementation von parallelen Algorithmen.
+\item[4.] Datenverwaltung.
+\item[5.] Eine Auswahl gut geeigneter paralleler Algorithmen.
 \end{enumerate}
