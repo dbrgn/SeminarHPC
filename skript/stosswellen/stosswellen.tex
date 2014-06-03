@@ -579,14 +579,15 @@ $U_{k}(t)$ ist die zeitabh"angige Amplitude und $k$ die Wellenzahl.
 Die Funktion (\ref{stosswellen:sinreihe}) hat folgende Partielle Ableitungen:
 \begin{align*}
 	\frac{\partial u}{\partial t}&=
-	\sin(2\pi k x) \sum_{k=1}^{\infty} \frac{\partial U_{k}(t)}{\partial t}
+	\sum_{k=1}^{\infty} \sin(2\pi k x) \frac{\partial U_{k}(t)}{\partial t}
 \\
-	\frac{\partial u}{\partial x}&= 2\pi k U_{k}(t) \sum_{k=1}^{\infty} \cos(2\pi k x) 
+	\frac{\partial u}{\partial x}&=
+	\sum_{k=1}^{\infty} 2\pi k U_{k}(t) \cos(2\pi k x) 
 \end{align*}
 
 Wir setzen diese in die Gleichung (\ref{stosswellen:burgeq}) ein und erhalten:
 \begin{equation}
-	\sin(2\pi k x) \sum_{k=1}^{\infty} \frac{\partial U_{k}(t)}{\partial t} + \sum_{k_{1}=1}^{\infty} U_{k_{1}}(t) \sin(2\pi k_{1}x) \cdot 2\pi k_{2} U_{k_{2}}(t) \sum_{k_{2}=1}^{\infty} \cos (2\pi k_{2} x)
+	\sum_{k=1}^{\infty}\sin(2\pi k x) \frac{\partial U_{k}(t)}{\partial t} + \sum_{k_{1}=1}^{\infty} U_{k_{1}}(t) \sin(2\pi k_{1}x) \cdot \sum_{k_{2}=1}^{\infty}2\pi k_{2} U_{k_{2}}(t) \cos (2\pi k_{2} x)
 	= 0
 	\label{stosswellen:bursin}
 \end{equation}
