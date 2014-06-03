@@ -23,14 +23,15 @@ JULIAFILES = julia/julia.tex julia/julia.bib
 MAPREDUCEFILES = mapreduce/mapreduce.tex mapreduce/map.bib
 POTENTIALFILES = potential/potential.tex
 GREENFILES = green/green.tex green/quellen.bib
+STOSSWELLENFILES = stosswellen/stosswellen.tex
 
 TEXFILES = vorwort.tex einleitung.tex maschinen.tex sprachen.tex \
 	daten.tex algorithm.tex \
 	$(RADONFILES) $(HEATFILES) $(JULIAFILES) $(MAPREDUCEFILES) \
-	$(GREENFILES)
+	$(GREENFILES) $(STOSSWELLENFILES)
 
 BLXFILES = skript1-blx.bbl skript2-blx.bbl skript3-blx.bbl skript4-blx.bbl \
-	skript5-blx.bbl skript6-blx.bbl skript7-blx.bbl
+	skript5-blx.bbl skript6-blx.bbl skript7-blx.bbl skript8-blx.bbl
 
 IMAGES = graphics/cgresults.pdf
 
