@@ -24,6 +24,7 @@ MAPREDUCEFILES = mapreduce/mapreduce.tex mapreduce/map.bib
 POTENTIALFILES = potential/potential.tex
 GREENFILES = green/green.tex green/quellen.bib
 STOSSWELLENFILES = stosswellen/stosswellen.tex
+KUGELFILES = kugel/Kugelsternhaufen.tex kugel/kugel.bib
 
 TEXFILES = vorwort.tex einleitung.tex maschinen.tex sprachen.tex \
 	daten.tex algorithm.tex \
@@ -32,7 +33,7 @@ TEXFILES = vorwort.tex einleitung.tex maschinen.tex sprachen.tex \
 
 BLXFILES = skript1-blx.bbl skript2-blx.bbl skript3-blx.bbl skript4-blx.bbl \
 	skript5-blx.bbl skript6-blx.bbl skript7-blx.bbl skript8-blx.bbl \
-	skript9-blx.bbl
+	skript9-blx.bbl skript10-blx.bbl
 
 IMAGES = graphics/cgresults.pdf
 
@@ -76,6 +77,9 @@ skript8-blx.bbl:	skript8-blx.aux
 
 skript9-blx.bbl:	skript9-blx.aux
 	bibtex skript9-blx
+
+skript10-blx.bbl:	skript10-blx.aux
+	bibtex skript10-blx
 
 # standalone compilation of a single article
 standalone.pdf:	standalone.tex $(TEXFILES)
