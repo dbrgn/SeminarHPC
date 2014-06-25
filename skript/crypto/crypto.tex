@@ -15,20 +15,21 @@
 \subsection{Hashfunktionen}
 \index{Hashfunktion}
 
-Hashfunktionen (zu Deutsch \textit{Streuwertfunktionen}) sind in der Informatik
-allgegenw"artig. Die Aufgabe einer Hashfunktion ist es, eine beliebig grosse
-Eingabemenge auf eine kleine Ausgabemenge mit fester L"ange abzubilden.
-Anwendungsgebiete sind beispielsweise die Integrit"atspr"ufung von Daten
-(Pr"ufsummen) oder das Verschleiern von Passw"ortern (Passwort-Hashes).
-
-Mathematisch gesehen ist eine Abbildung $h: K \rightarrow S$ eine Hashfunktion,
-wenn $|K| \geq |S|$ gilt. Dabei ist $K$ die Menge der Schl"ussel und $S$ die
-Menge der m"oglichen Hashwerte.
+Hashfunktionen sind in der Informatik allgegenw"artig. Die Aufgabe einer
+Hashfunktion ist es, eine beliebig grosse Eingabemenge auf eine kleine
+Ausgabemenge (den Hashwert) abzubilden. Anwendungsgebiete sind beispielsweise
+die Integrit"atspr"ufung von Daten (Pr"ufsummen) oder das Verschleiern von
+Passw"ortern (Passwort-Hashes).
 
 Eine der einfachsten Hashfunktionen ist die Quersumme, bei welcher die
-Ziffernwerte einer Zahl summiert werden.
+Ziffernwerte einer Zahl summiert werden:
 \[
 	q(1337) = 1 + 3 + 3 + 7 = 14
+\]
+Eine andere weit verbreitete Hashfunktion ist der MD5 Algorithmus. Er bildet
+eine beliebig lange Eingabe auf einen 128-Bit grossen Hashwert ab:
+\[
+	MD5(\textrm{``HSR''}) = \textrm{11bcd72b5eb1092800721a515cb10ea5}
 \]
 Weitere bekannte Hashfunktionen sind die Divisions-Rest-Methode
 (Modulo-Arithmetik), CRC-Pr"ufsummen (Integrit"atspr"ufung) oder der Secure Hash
@@ -45,33 +46,32 @@ vorgestellt.
 
 \subsubsection{Chaos}
 
-Die Ausgabe einer chaotischen Hashfunktion sollte f"ur "ahnliche Eingabewerte
-v"ollig unterschiedlich sein. Eine kleine "Anderung am Eingabewert sollte eine
-grosse "Anderung im Ausgabewert zur Folge haben.
+Der Hashwert einer chaotischen Hashfunktion soll f"ur "ahnliche Eingabewerte
+v"ollig unterschiedlich sein. Eine Einzelbit-"Anderung des Eingabewertes f"uhrt
+im Mittel zu einer "Anderung der H"alfte aller Hashwert-Bits.
 
 \subsubsection{Schwierige Umkehrbarkeit}
 
-Eine schwierig umkehrbare Hashfunktion hat zum Ziel die Berechnung des
+Eine schwierig umkehrbare Hashfunktion hat zum Ziel, die Berechnung des
 Funktionswertes m"oglichst zu vereinfachen, aber die Umkehrung dieses Ergebnisses
-(berechnen des Ausgangswertes aus der Abbildung) m"oglichst zu erschweren. Anders
+(Berechnen des Ausgangswertes aus der Abbildung) m"oglichst zu erschweren. Anders
 gesagt, es soll praktisch nicht m"oglich sein, zu einem gegebenen Hashwert $x$
 eine Nachricht $m$ zu finden, f"ur welche $h(m) = x$ gilt.  Funktionen welche
 diese Eigenschaft erf"ullen werden auch Einwegfunktionen genannt.
 
 \subsubsection{Surjektivit"at}
 
-Bei einer surjektiven Hashfunktion ist kein Ausgabewert unm"oglich, jeder kann
+Bei einer surjektiven Hashfunktion ist kein Hashwert unm"oglich, jeder kann
 tats"achlich vorkommen.
 
 \subsubsection{Kollisionsresistenz}
 \label{crypto:kollisionsresistenz}
 \index{Kollisionsresistenz}
 
-Eine Kollisionsresistente Hashfunktion sollte es erschweren, zwei Eingabewerte
-zu finden die den selben Ausgabewert ergeben. Daf"ur sollten die Ausgabewerte
-m"oglichst gleichverteilt auftreten. In der Kryptologie wird zwischen schwacher
-und starker Kollisionsresistenz
-unterschieden\cite{crypto:stephan2011kryptographie}:
+Eine Kollisionsresistente Hashfunktion soll es erschweren, zwei Eingabewerte zu
+finden die den selben Hashwert ergeben. Daf"ur sollen die Hashwerte m"oglichst
+gleichverteilt auftreten. In der Kryptologie wird zwischen schwacher und starker
+Kollisionsresistenz unterschieden\cite{crypto:stephan2011kryptographie}:
 
 \begin{itemize}
 		\item Schwache Kollisionsresistenz heisst, dass es praktisch nicht m"oglich
@@ -85,13 +85,14 @@ unterschieden\cite{crypto:stephan2011kryptographie}:
 \subsubsection{Effizienz}
 
 Je nach Anwendungsfall m"ochte man effiziente oder ineffiziente Berechnungen
-eines Hashwertes erzielen. W"ahrend ersteres logisch erscheint -- man m"ochte
-den Algorithmus in Hard- und Software m"oglichst einfach und schnell
+eines Hashwertes erzielen. W"ahrend ersteres logisch erscheint -- man m"ochte in
+der Regel den Algorithmus in Hard- und Software m"oglichst einfach und schnell
 implementieren k"onnen -- ist letzteres auf den ersten Blick ein merkw"urdiges
 Ziel. Die Eigenschaft ist jedoch vor allem f"ur Passwort-Hash-Funktionen
 relevant. Um zu verhindern dass ein Angreifer m"oglichst schnell alle m"oglichen
-Passw"orter vorberechnet (wie wir es in dieser Arbeit tun), m"ochte man eine
-Funktion welche aufw"andig und ressourcenintensiv zu berechnen ist.
+Passw"orter vorberechnet (wie wir es in dieser Arbeit tun), m"ochte man in
+diesem Fall eine Hashfunktion, welche aufw"andig und ressourcenintensiv zu
+berechnen ist.
 
 \subsection{MD5}
 \index{MD5}
@@ -109,7 +110,7 @@ $ echo -n "Mathematisches Seminar" | md5sum
 \end{verbatim}
 
 Man sieht also, dass der Eingabewert ``Mathematisches Seminar'' auf den
-Ausgabewert \texttt{47b2\-d986\-d0ae\-09d6\-504b\-9696\-e940\-6ca4} (in
+Hashwert \texttt{47b2\-d986\-d0ae\-09d6\-504b\-9696\-e940\-6ca4} (in
 hexadezimaler Notation) abgebildet wird. Wenn man nun nur ein einzelnes
 Zeichen im Eingabestring "andert, sieht die Ausgabe v"ollig anders aus
 ($\rightarrow$ Chaoseigenschaft):
@@ -265,14 +266,14 @@ Ans"atze entwickeln kann.
 
 \subsection{Grenzen von OpenCL}
 
-% @ Danilo: Ich würde es drin lassen. Sind zwei kurze Abschnitte, die fressen kaum
+% @ Danilo: Ich w"urde es drin lassen. Sind zwei kurze Abschnitte, die fressen kaum
 % Heu, aber ein bisschen Hintergrundinfo, denke ich kann nicht schaden.
-% TODO: Ich würde auf Erweiterungen gar nicht erst eingehen. Sie sind für uns ja
+% TODO: Ich w"urde auf Erweiterungen gar nicht erst eingehen. Sie sind f"ur uns ja
 % nicht sonderlich relevant.
 OpenCL wurde entwickelt um trotz einem m"oglichst Plattform"ubergreifenden Ansatz 
 sehr flexibel auf die Spezifika der jeweiligen Hardware reagieren zu k"onnen, was
 auch das ebenfalls in OpenGL vorhandene Extension-System beinhaltet. Vor allem f"ur
-% TODO: Hier ebenfalls, ich würde OpenGL gar nicht erst erwähnen, sondern ganz
+% TODO: Hier ebenfalls, ich w"urde OpenGL gar nicht erst erw"ahnen, sondern ganz
 % auf OpenCL fokussieren.
 Einsteiger in die OpenCL/OpenGL-Welt (hier sei erw"ahnt, dass hinter beiden 
 Technologien sehr "anhliche Grundkonzepte stehen) kann es dabei schwierig werden
@@ -420,10 +421,10 @@ Spezifikation\cite{crypto:opencl_ref} folgende Regeln:
 
 \subsubsection{Maximale Problemgr"osse am Beispiel MD5 Cracking}
 
-Am Beispiel des MD5-Crackings soll mit einer kurzen Beispielrechnung 
-gezeigt werden, wie man die maximal m"ogliche Grösse eines Problems 
-für die spezifische Hardware errechnen kann, die gleichzeitig der
-Hardware übergeben werden kann.
+Am Beispiel des MD5-Crackings soll mit einer kurzen Beispielrechnung gezeigt
+werden, wie man die maximal m"ogliche Gr"osse eines Problems f"ur die
+spezifische Hardware errechnen kann, die gleichzeitig der Hardware "ubergeben
+werden kann.
 
 Dazu treffen wir folgende Annahmen:
 
@@ -762,7 +763,7 @@ aufzuteilen.
 
 
 
-% TODO Lukas: Codebeispiel für Globale OpenCL Variable
+% TODO Lukas: Codebeispiel f"ur Globale OpenCL Variable
 
 
 
