@@ -43,6 +43,7 @@ sind jedoch viele weitere Kriterien relevant. Nachfolgend werden einige davon
 vorgestellt.
 
 \subsection{Eigenschaften von Hashfunktionen}
+\label{crypto:hashfunktionen:eigenschaften}
 
 \subsubsection{Chaos}
 
@@ -109,16 +110,21 @@ $ echo -n "Mathematisches Seminar" | md5sum
 47b2d986d0ae09d6504b9696e9406ca4
 \end{verbatim}
 
-Man sieht also, dass der Eingabewert ``Mathematisches Seminar'' auf den
-Hashwert \texttt{47b2\-d986\-d0ae\-09d6\-504b\-9696\-e940\-6ca4} (in
-hexadezimaler Notation) abgebildet wird. Wenn man nun nur ein einzelnes
-Zeichen im Eingabestring "andert, sieht die Ausgabe v"ollig anders aus
-($\rightarrow$ Chaoseigenschaft):
+Man sieht also, dass der Eingabewert ``Mathematisches Seminar'' auf den Hashwert
+\texttt{47b2\-d986\-d0ae\-09d6\-504b\-9696\-e940\-6ca4} (in hexadezimaler
+Notation) abgebildet wird. Wenn man nun nur ein einzelnes Zeichen im
+Eingabestring "andert, sieht die Ausgabe v"ollig anders aus ($\rightarrow$
+Chaoseigenschaft, siehe Abschnitt \ref{crypto:hashfunktionen:eigenschaften}):
 
 \begin{verbatim}
 $ echo -n "Mathematisches Saminar" | md5sum 
 625a5fb1280f153aa06709d70b38dfb8
 \end{verbatim}
+
+Wenn man die Bin"arwerte der beiden Hashes vergleicht, sieht man, dass die
+Einzelbit-"Anderung (\texttt{a} $\rightarrow$ \texttt{e}) zu einer "Anderung bei
+62 der 128 Bits gef"uhrt hat -- mit 48.4\% ziemlich genau die erwartete H"alfte
+aller Bits.
 
 MD5 war (und ist) ein weit verbreiteter Algorithmus und wurde in der
 Vergangenheit neben der Integrit"atspr"ufung auch h"aufig zum Verschleiern von
@@ -163,7 +169,7 @@ Anwendungen nicht mehr eingesetzt werden.
 W"ahrend Kollisionen f"ur frei gew"ahlte Eingabewerte wie im letzten Abschnitt
 beschrieben heute problemlos berechenbar sind, ist bisher noch kein praktischer
 Preimage-Angriff auf MD5 bekannt. Ein Preimage-Angriff bedeutet, dass der
-Ausgabewert nicht frei gew"ahlt werden kann, sondern festgelegt ist (ein Angriff
+Hashwert nicht frei gew"ahlt werden kann, sondern festgelegt ist (ein Angriff
 auf die schwache Kollisionsresistenz). Wenn man nun einen Passwort-Hash
 zur"uckrechnen will, ist daher bei einer "uberschaubaren Eingabemenge ein
 Brute-Force Angriff die simpelste M"oglichkeit.
@@ -498,8 +504,8 @@ jeweils verwendeten Implementation sollte vorg"angig abgekl"art oder
 einfach mal ausprobiert werden. Trotzdem kann es lohnenswert sein, sich
 bei solch umfangreichen Problemen ein wenig mehr Gedanken zur Aufteilung
 des Problems zu machen, nicht zuletzt, weil das, wie wir im n"achsten
-Kapitel sehen werden, einen grossen Einfluss auf die Geschwindigkeit des
-Totals der Rechnungen haben kann.
+Kapitel sehen werden, einen grossen Einfluss auf die gesamte Rechenzeit haben
+kann.
 
 \subsection{Aufteilung von grossen Problemen}
 
@@ -810,7 +816,7 @@ Memory w"are ineffizient und w"urde nur unn"otigen I/O verursachen. Es muss also
 eine bessere L"osung gefunden werden.
 
 Ein Vorteil des gegebenen Problemes ist, dass der Keyspace f"ur die m"oglichen
-Eingabewerte einen Linearen Raum darstellt. Es liegt also nahe, das Wort aus der
+Eingabewerte eine arithmetische Folge darstellt. Es liegt also nahe, das Wort aus der
 Global ID herzuleiten. Die Global ID ist eine $n$-Dimensionale nat"urliche Zahl,
 welche jedem Kernel von OpenCL zugewiesen wird. Der Wertebereich bewegt sich
 dabei in Einerschritten von $(0, ..., 0)$ bis $(s_1, ..., s_n)$. Dabei ist $s_n$
@@ -903,10 +909,9 @@ for (int i = 0; i < 3; i++) {
 \label{crypto:md5lib}
 
 Zur effektiven Berechnung des MD5-Wertes haben wir eine bereits bestehende
-C-Implementierung des MD5-Algorithmus
-verwendet\footnote{\url{http://openwall.info/wiki/people/solar/software/public-domain-source-code/md5}},
-welche im Jahr 2001 von \textit{RSA Data Security, Inc.} geschrieben und dann
-als gemeinfrei ver"offentlich wurde.
+C-Implementierung des MD5-Algorithmus verwendet\cite{crypto:md5_impl}, welche im
+Jahr 2001 von Alexander Peslyak geschrieben und dann als gemeinfrei
+ver"offentlich wurde.
 
 Die Library musste geringf"ugig angepasst werden, um innerhalb eines OpenCL
 Kernels lauff"ahig zu sein. Beispielsweise mussten alle dynamischen
@@ -959,12 +964,11 @@ starten.
 
 Wir haben im Rahmen dieser Arbeit nicht direkt mit den OpenCL C Libraries
 gearbeitet, sondern eine Wrapper-Library namens
-PyOpenCL\footnote{\url{http://documen.tician.de/pyopencl/}} f"ur die
-Programmiersprache Python\footnote{\url{https://www.python.org/}} verwendet. Im
-direkten Vergleich mit C ist es so viel einfacher OpenCL zu initialisieren und
-zu konfigurieren (wobei nat"urlich Python-Kenntnisse n"otig sind). Auf die
-Syntax von Python und die Implementations-Details der Library wird hier nicht
-n"aher eingegangen.
+PyOpenCL\cite{crypto:pyopencl_docs} f"ur die Programmiersprache
+Python\cite{crypto:python} verwendet. Im direkten Vergleich mit C ist es so viel
+einfacher OpenCL zu initialisieren und zu konfigurieren (wobei nat"urlich
+Python-Kenntnisse n"otig sind). Auf die Syntax von Python und die
+Implementations-Details der Library wird hier nicht n"aher eingegangen.
 
 Als Erstes muss ein OpenCL-Kontext und eine Command Queue eingerichtet werden:
 
@@ -1056,7 +1060,7 @@ else:
 
 Abh"angig von der gew"ahlten Platform st"osst man mit diesem L"osungsansatz
 relativ schnell an Ressourcen-Limits. Mit einer Nvidia GeForce GTX 760
-Grafikkarte war bereits ab einer L"ange von 7 Zeichen Schluss:
+Grafikkarte waren die Grenzen bereits ab einer L"ange von 7 Zeichen erreicht:
 
 \begin{small}
 \begin{verbatim}
@@ -1073,7 +1077,7 @@ pyopencl.RuntimeError: clEnqueueReadBuffer failed: out of resources
 \end{small}
 
 Wir haben nicht genauer nachverfolgt ob diese Fehlermeldung durch einen Fehler
-in der Library-Implementation verursacht wurde oder ob ein effektives
+in der Library-Implementation verursacht wurde, oder ob ein effektives
 Hardware-Limit erreicht wurde, aber es ist offensichtlich dass man nicht
 beliebig viele Kernel parallel laufen lassen kann (vgl. Kapitel
 \ref{crypto:grosse_probleme}).

@@ -32,7 +32,11 @@ for i, (label, (time, device)) in enumerate(data.items()):
     else:
         hatch = '**'
         color = '.70'
-    plt.bar(i, time, hatch=hatch, color=color)
+    plt.bar(i, time, hatch=hatch, color=color, width=0.5)
+
+labels = ax.get_xticklabels()
+plt.setp(labels, rotation=30)
+
 plt.savefig('speed_comparison_v1.pdf')
 
 print('Saved speed_comparison_v1.pdf')
