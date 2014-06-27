@@ -58,7 +58,7 @@ Carlo Algorithmus umfassen u.a.
 \end{itemize}
 
 \section{Funktionsprinzip}
-Die Monte Carlo Methode ist ein Überbegriff f"ur verschiedene Algorithmen
+Die Monte Carlo Methode ist ein "Uberbegriff f"ur verschiedene Algorithmen
 zur numerischen Berechnung / Simulation mittels Zufallsereignissen. Ein
 weit verbreiteter und sehr flexibler Ansatz ist das sogenannte Hit-or-Miss
 Verfahren. Dabei werden Zufallszahlen generiert und gepr"uft, ob diese
@@ -177,7 +177,7 @@ daraus eine Versicherungspr"amie berechnet werden.
 \section{Implementation}
 \subsection{Implementation in C}
 Die Implementation dieses Beispiels in C ist relativ kurz und
-"ubersichtlich: Über $N$ Iterationen wird jeweils ein Paar von
+"ubersichtlich: "Uber $N$ Iterationen wird jeweils ein Paar von
 Zufallszahlen $(x,y)$ generiert und die Gleichung
 \ref{equ:innerhalbKreis}: $x^2 + y^2$ berechnet. Ist das Resultat $\leq1$,
 wird eine Summe erh"oht. Das Resultat ist schlussendlich die Summe geteilt
@@ -313,7 +313,7 @@ empfohlene Vorgehen lautet wie folgt:
 \item Bestimmen des Zielsystems und der Anzahl parallel ausf"uhrbarer
 Workers $M$.
 \item Generieren von $M$ hochwertiger Zufallszahlen auf der CPU.
-\item Übergabe dieser $M$ Zahlen an OpenCL, Start des Kernels.
+\item "Ubergabe dieser $M$ Zahlen an OpenCL, Start des Kernels.
 \item Jeder Worker berechnet $N/M$ Punkte und gibt das Resultat zur"uck.
 \item Zusammenf"uhren und Auswerten der Resultate der einzelnen Worker
 auf der CPU.
