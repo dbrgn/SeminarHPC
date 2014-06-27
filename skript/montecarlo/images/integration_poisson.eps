@@ -1,0 +1,2603 @@
+%!PS-Adobe-3.0 EPSF-3.0
+%%Creator: MATLAB, The MathWorks, Inc. Version 7.14.0.739 (R2012a). Operating System: Darwin 13.1.0 Darwin Kernel Version 13.1.0: Wed Apr  2 23:52:02 PDT 2014; root:xnu-2422.92.1~2/RELEASE_X86_64 x86_64.
+%%Title: /Users/boss/Documents/Studium/HBadertscher/MonteCarlo/doku/images/integration_poisson.eps
+%%CreationDate: 04/27/2014  15:50:17
+%%DocumentNeededFonts: Helvetica
+%%DocumentProcessColors: Cyan Magenta Yellow Black
+%%LanguageLevel: 2
+%%Pages: 1
+%%BoundingBox:    26   186   585   606
+%%EndComments
+
+%%BeginProlog
+% MathWorks dictionary
+/MathWorks 160 dict begin
+% definition operators
+/bdef {bind def} bind def
+/ldef {load def} bind def
+/xdef {exch def} bdef
+/xstore {exch store} bdef
+% operator abbreviations
+/c  /clip ldef
+/cc /concat ldef
+/cp /closepath ldef
+/gr /grestore ldef
+/gs /gsave ldef
+/mt /moveto ldef
+/np /newpath ldef
+/cm /currentmatrix ldef
+/sm /setmatrix ldef
+/rm /rmoveto ldef
+/rl /rlineto ldef
+/s {show newpath} bdef
+/sc {setcmykcolor} bdef
+/sr /setrgbcolor ldef
+/sg /setgray ldef
+/w /setlinewidth ldef
+/j /setlinejoin ldef
+/cap /setlinecap ldef
+/rc {rectclip} bdef
+/rf {rectfill} bdef
+% page state control
+/pgsv () def
+/bpage {/pgsv save def} bdef
+/epage {pgsv restore} bdef
+/bplot /gsave ldef
+/eplot {stroke grestore} bdef
+% orientation switch
+/portraitMode 0 def /landscapeMode 1 def /rotateMode 2 def
+% coordinate system mappings
+/dpi2point 0 def
+% font control
+/FontSize 0 def
+/FMS {/FontSize xstore findfont [FontSize 0 0 FontSize neg 0 0]
+  makefont setfont} bdef
+/reencode {exch dup where {pop load} {pop StandardEncoding} ifelse
+  exch dup 3 1 roll findfont dup length dict begin
+  { 1 index /FID ne {def}{pop pop} ifelse } forall
+  /Encoding exch def currentdict end definefont pop} bdef
+/isroman {findfont /CharStrings get /Agrave known} bdef
+/FMSR {3 1 roll 1 index dup isroman {reencode} {pop pop} ifelse
+  exch FMS} bdef
+/csm {1 dpi2point div -1 dpi2point div scale neg translate
+ dup landscapeMode eq {pop -90 rotate}
+  {rotateMode eq {90 rotate} if} ifelse} bdef
+% line types: solid, dotted, dashed, dotdash
+/SO { [] 0 setdash } bdef
+/DO { [.5 dpi2point mul 4 dpi2point mul] 0 setdash } bdef
+/DA { [6 dpi2point mul] 0 setdash } bdef
+/DD { [.5 dpi2point mul 4 dpi2point mul 6 dpi2point mul 4
+  dpi2point mul] 0 setdash } bdef
+% macros for lines and objects
+/L {lineto stroke} bdef
+/MP {3 1 roll moveto 1 sub {rlineto} repeat} bdef
+/AP {{rlineto} repeat} bdef
+/PDlw -1 def
+/W {/PDlw currentlinewidth def setlinewidth} def
+/PP {closepath eofill} bdef
+/DP {closepath stroke} bdef
+/MR {4 -2 roll moveto dup  0 exch rlineto exch 0 rlineto
+  neg 0 exch rlineto closepath} bdef
+/FR {MR stroke} bdef
+/PR {MR fill} bdef
+/L1i {{currentfile picstr readhexstring pop} image} bdef
+/tMatrix matrix def
+/MakeOval {newpath tMatrix currentmatrix pop translate scale
+0 0 1 0 360 arc tMatrix setmatrix} bdef
+/FO {MakeOval stroke} bdef
+/PO {MakeOval fill} bdef
+/PD {currentlinewidth 2 div 0 360 arc fill
+   PDlw -1 eq not {PDlw w /PDlw -1 def} if} def
+/FA {newpath tMatrix currentmatrix pop translate scale
+  0 0 1 5 -2 roll arc tMatrix setmatrix stroke} bdef
+/PA {newpath tMatrix currentmatrix pop	translate 0 0 moveto scale
+  0 0 1 5 -2 roll arc closepath tMatrix setmatrix fill} bdef
+/FAn {newpath tMatrix currentmatrix pop translate scale
+  0 0 1 5 -2 roll arcn tMatrix setmatrix stroke} bdef
+/PAn {newpath tMatrix currentmatrix pop translate 0 0 moveto scale
+  0 0 1 5 -2 roll arcn closepath tMatrix setmatrix fill} bdef
+/vradius 0 def /hradius 0 def /lry 0 def
+/lrx 0 def /uly 0 def /ulx 0 def /rad 0 def
+/MRR {/vradius xdef /hradius xdef /lry xdef /lrx xdef /uly xdef
+  /ulx xdef newpath tMatrix currentmatrix pop ulx hradius add uly
+  vradius add translate hradius vradius scale 0 0 1 180 270 arc 
+  tMatrix setmatrix lrx hradius sub uly vradius add translate
+  hradius vradius scale 0 0 1 270 360 arc tMatrix setmatrix
+  lrx hradius sub lry vradius sub translate hradius vradius scale
+  0 0 1 0 90 arc tMatrix setmatrix ulx hradius add lry vradius sub
+  translate hradius vradius scale 0 0 1 90 180 arc tMatrix setmatrix
+  closepath} bdef
+/FRR {MRR stroke } bdef
+/PRR {MRR fill } bdef
+/MlrRR {/lry xdef /lrx xdef /uly xdef /ulx xdef /rad lry uly sub 2 div def
+  newpath tMatrix currentmatrix pop ulx rad add uly rad add translate
+  rad rad scale 0 0 1 90 270 arc tMatrix setmatrix lrx rad sub lry rad
+  sub translate rad rad scale 0 0 1 270 90 arc tMatrix setmatrix
+  closepath} bdef
+/FlrRR {MlrRR stroke } bdef
+/PlrRR {MlrRR fill } bdef
+/MtbRR {/lry xdef /lrx xdef /uly xdef /ulx xdef /rad lrx ulx sub 2 div def
+  newpath tMatrix currentmatrix pop ulx rad add uly rad add translate
+  rad rad scale 0 0 1 180 360 arc tMatrix setmatrix lrx rad sub lry rad
+  sub translate rad rad scale 0 0 1 0 180 arc tMatrix setmatrix
+  closepath} bdef
+/FtbRR {MtbRR stroke } bdef
+/PtbRR {MtbRR fill } bdef
+/stri 6 array def /dtri 6 array def
+/smat 6 array def /dmat 6 array def
+/tmat1 6 array def /tmat2 6 array def /dif 3 array def
+/asub {/ind2 exch def /ind1 exch def dup dup
+  ind1 get exch ind2 get sub exch } bdef
+/tri_to_matrix {
+  2 0 asub 3 1 asub 4 0 asub 5 1 asub
+  dup 0 get exch 1 get 7 -1 roll astore } bdef
+/compute_transform {
+  dmat dtri tri_to_matrix tmat1 invertmatrix 
+  smat stri tri_to_matrix tmat2 concatmatrix } bdef
+/ds {stri astore pop} bdef
+/dt {dtri astore pop} bdef
+/db {2 copy /cols xdef /rows xdef mul dup 3 mul string
+  currentfile 
+  3 index 0 eq {/ASCIIHexDecode filter}
+  {/ASCII85Decode filter 3 index 2 eq {/RunLengthDecode filter} if }
+  ifelse exch readstring pop
+  dup 0 3 index getinterval /rbmap xdef
+  dup 2 index dup getinterval /gbmap xdef
+  1 index dup 2 mul exch getinterval /bbmap xdef pop pop}bdef
+/it {gs np dtri aload pop moveto lineto lineto cp c
+  cols rows 8 compute_transform 
+  rbmap gbmap bbmap true 3 colorimage gr}bdef
+/il {newpath moveto lineto stroke}bdef
+currentdict end def
+%%EndProlog
+
+%%BeginSetup
+MathWorks begin
+
+0 cap
+
+end
+%%EndSetup
+
+%%Page: 1 1
+%%BeginPageSetup
+%%PageBoundingBox:    26   186   585   606
+MathWorks begin
+bpage
+%%EndPageSetup
+
+%%BeginObject: obj1
+bplot
+
+/dpi2point 12 def
+portraitMode 0312 7272 csm
+
+    0     0  6719  5040 rc
+85 dict begin %Colortable dictionary
+/c0 { 0.000000 0.000000 0.000000 sr} bdef
+/c1 { 1.000000 1.000000 1.000000 sr} bdef
+/c2 { 0.900000 0.000000 0.000000 sr} bdef
+/c3 { 0.000000 0.820000 0.000000 sr} bdef
+/c4 { 0.000000 0.000000 0.800000 sr} bdef
+/c5 { 0.910000 0.820000 0.320000 sr} bdef
+/c6 { 1.000000 0.260000 0.820000 sr} bdef
+/c7 { 0.000000 0.820000 0.820000 sr} bdef
+c0
+1 j
+1 sg
+   0    0 6720 5041 rf
+6 w
+0 4108 5208 0 0 -4108 873 4486 4 MP
+PP
+-5208 0 0 4108 5208 0 0 -4108 873 4486 5 MP stroke
+4 w
+DO
+SO
+6 w
+0 sg
+ 873 4486 mt 6081 4486 L
+ 873  378 mt 6081  378 L
+ 873 4486 mt  873  378 L
+6081 4486 mt 6081  378 L
+ 873 4486 mt 6081 4486 L
+ 873 4486 mt  873  378 L
+ 873 4486 mt  873 4433 L
+ 873  378 mt  873  430 L
+%%IncludeResource: font Helvetica
+/Helvetica /ISOLatin1Encoding 120 FMSR
+
+ 840 4631 mt 
+(0) s
+1393 4486 mt 1393 4433 L
+1393  378 mt 1393  430 L
+1327 4631 mt 
+(10) s
+1914 4486 mt 1914 4433 L
+1914  378 mt 1914  430 L
+1848 4631 mt 
+(20) s
+2435 4486 mt 2435 4433 L
+2435  378 mt 2435  430 L
+2369 4631 mt 
+(30) s
+2956 4486 mt 2956 4433 L
+2956  378 mt 2956  430 L
+2890 4631 mt 
+(40) s
+3477 4486 mt 3477 4433 L
+3477  378 mt 3477  430 L
+3411 4631 mt 
+(50) s
+3997 4486 mt 3997 4433 L
+3997  378 mt 3997  430 L
+3931 4631 mt 
+(60) s
+4518 4486 mt 4518 4433 L
+4518  378 mt 4518  430 L
+4452 4631 mt 
+(70) s
+5039 4486 mt 5039 4433 L
+5039  378 mt 5039  430 L
+4973 4631 mt 
+(80) s
+5560 4486 mt 5560 4433 L
+5560  378 mt 5560  430 L
+5494 4631 mt 
+(90) s
+6081 4486 mt 6081 4433 L
+6081  378 mt 6081  430 L
+5981 4631 mt 
+(100) s
+ 873 4486 mt  925 4486 L
+6081 4486 mt 6028 4486 L
+ 772 4530 mt 
+(0) s
+ 873 3801 mt  925 3801 L
+6081 3801 mt 6028 3801 L
+ 605 3845 mt 
+(0.01) s
+ 873 3116 mt  925 3116 L
+6081 3116 mt 6028 3116 L
+ 605 3160 mt 
+(0.02) s
+ 873 2432 mt  925 2432 L
+6081 2432 mt 6028 2432 L
+ 605 2476 mt 
+(0.03) s
+ 873 1747 mt  925 1747 L
+6081 1747 mt 6028 1747 L
+ 605 1791 mt 
+(0.04) s
+ 873 1062 mt  925 1062 L
+6081 1062 mt 6028 1062 L
+ 605 1106 mt 
+(0.05) s
+ 873  378 mt  925  378 L
+6081  378 mt 6028  378 L
+ 605  422 mt 
+(0.06) s
+ 873 4486 mt 6081 4486 L
+ 873  378 mt 6081  378 L
+ 873 4486 mt  873  378 L
+6081 4486 mt 6081  378 L
+gs 873 378 5209 4109 rc
+24 w
+gr
+
+24 w
+/c8 { 0.000000 0.000000 1.000000 sr} bdef
+c8
+3073 3586 PD
+gs 873 378 5209 4109 rc
+gr
+
+3075 3213 PD
+gs 873 378 5209 4109 rc
+gr
+
+3387 1415 PD
+gs 873 378 5209 4109 rc
+gr
+
+3299 3922 PD
+gs 873 378 5209 4109 rc
+gr
+
+2732 4259 PD
+gs 873 378 5209 4109 rc
+gr
+
+3490 3904 PD
+gs 873 378 5209 4109 rc
+gr
+
+3230 2793 PD
+3524 2729 PD
+3469 2010 PD
+gs 873 378 5209 4109 rc
+gr
+
+3455 3111 PD
+gs 873 378 5209 4109 rc
+gr
+
+3299 2524 PD
+3706 3662 PD
+gs 873 378 5209 4109 rc
+gr
+
+2884 4181 PD
+gs 873 378 5209 4109 rc
+gr
+
+2386 4463 PD
+gs 873 378 5209 4109 rc
+gr
+
+3306 2679 PD
+gs 873 378 5209 4109 rc
+gr
+
+3973 4166 PD
+gs 873 378 5209 4109 rc
+gr
+
+3622 1677 PD
+gs 873 378 5209 4109 rc
+gr
+
+4128 4168 PD
+gs 873 378 5209 4109 rc
+gr
+
+2940 3309 PD
+gs 873 378 5209 4109 rc
+gr
+
+3427 2830 PD
+gs 873 378 5209 4109 rc
+gr
+
+2912 4304 PD
+gs 873 378 5209 4109 rc
+gr
+
+2752 4422 PD
+gs 873 378 5209 4109 rc
+gr
+
+2941 3305 PD
+gs 873 378 5209 4109 rc
+gr
+
+3711 4303 PD
+gs 873 378 5209 4109 rc
+gr
+
+3151 3444 PD
+gs 873 378 5209 4109 rc
+gr
+
+3322 1591 PD
+gs 873 378 5209 4109 rc
+gr
+
+3477 3527 PD
+3847 3413 PD
+2745 4238 PD
+2853 4474 PD
+gs 873 378 5209 4109 rc
+gr
+
+3523 2215 PD
+gs 873 378 5209 4109 rc
+gr
+
+3520 3011 PD
+gs 873 378 5209 4109 rc
+gr
+
+3890 3566 PD
+3596 1557 PD
+3930 3599 PD
+gs 873 378 5209 4109 rc
+gr
+
+3379 2820 PD
+gs 873 378 5209 4109 rc
+gr
+
+3752 2736 PD
+gs 873 378 5209 4109 rc
+gr
+
+3538 2728 PD
+gs 873 378 5209 4109 rc
+gr
+
+4268 4317 PD
+gs 873 378 5209 4109 rc
+gr
+
+3675 1891 PD
+3189 2784 PD
+gs 873 378 5209 4109 rc
+gr
+
+3618 2680 PD
+3789 3398 PD
+gs 873 378 5209 4109 rc
+gr
+
+3679 3159 PD
+gs 873 378 5209 4109 rc
+gr
+
+3764 2328 PD
+3723 3730 PD
+gs 873 378 5209 4109 rc
+gr
+
+2553 4419 PD
+gs 873 378 5209 4109 rc
+gr
+
+3525 3764 PD
+gs 873 378 5209 4109 rc
+gr
+
+3989 4224 PD
+3564 4114 PD
+gs 873 378 5209 4109 rc
+gr
+
+3647 2261 PD
+gs 873 378 5209 4109 rc
+gr
+
+3419 663 PD
+gs 873 378 5209 4109 rc
+gr
+
+3720 4363 PD
+gs 873 378 5209 4109 rc
+gr
+
+3219 2094 PD
+3432 2238 PD
+gs 873 378 5209 4109 rc
+gr
+
+3657 1991 PD
+3543 971 PD
+gs 873 378 5209 4109 rc
+gr
+
+3415 3845 PD
+gs 873 378 5209 4109 rc
+gr
+
+3761 1608 PD
+gs 873 378 5209 4109 rc
+gr
+
+3360 2771 PD
+3446 3454 PD
+gs 873 378 5209 4109 rc
+gr
+
+3406 641 PD
+gs 873 378 5209 4109 rc
+gr
+
+2848 3583 PD
+gs 873 378 5209 4109 rc
+gr
+
+3492 2280 PD
+3531 2427 PD
+3079 3843 PD
+gs 873 378 5209 4109 rc
+gr
+
+2810 3914 PD
+gs 873 378 5209 4109 rc
+gr
+
+3181 3373 PD
+gs 873 378 5209 4109 rc
+gr
+
+3581 1782 PD
+3506 1436 PD
+3558 2087 PD
+gs 873 378 5209 4109 rc
+gr
+
+3506 3252 PD
+gs 873 378 5209 4109 rc
+gr
+
+3058 4234 PD
+gs 873 378 5209 4109 rc
+gr
+
+3051 3518 PD
+gs 873 378 5209 4109 rc
+gr
+
+3238 3498 PD
+3953 3860 PD
+gs 873 378 5209 4109 rc
+gr
+
+3182 2749 PD
+gs 873 378 5209 4109 rc
+gr
+
+3588 3086 PD
+2787 4139 PD
+gs 873 378 5209 4109 rc
+gr
+
+3219 3022 PD
+gs 873 378 5209 4109 rc
+gr
+
+3169 4182 PD
+gs 873 378 5209 4109 rc
+gr
+
+4438 4369 PD
+gs 873 378 5209 4109 rc
+gr
+
+3599 4122 PD
+3421 993 PD
+gs 873 378 5209 4109 rc
+gr
+
+3709 3841 PD
+gs 873 378 5209 4109 rc
+gr
+
+3430 851 PD
+gs 873 378 5209 4109 rc
+gr
+
+3535 2867 PD
+gs 873 378 5209 4109 rc
+gr
+
+3695 3859 PD
+gs 873 378 5209 4109 rc
+gr
+
+3472 1029 PD
+gs 873 378 5209 4109 rc
+gr
+
+4007 3521 PD
+2759 4284 PD
+3215 2755 PD
+3426 4468 PD
+gs 873 378 5209 4109 rc
+gr
+
+2934 3872 PD
+gs 873 378 5209 4109 rc
+gr
+
+3841 3565 PD
+3027 3015 PD
+gs 873 378 5209 4109 rc
+gr
+
+3202 3755 PD
+gs 873 378 5209 4109 rc
+gr
+
+3505 2717 PD
+3388 1678 PD
+gs 873 378 5209 4109 rc
+gr
+
+4191 4091 PD
+gs 873 378 5209 4109 rc
+gr
+
+3293 2080 PD
+gs 873 378 5209 4109 rc
+gr
+
+3206 2407 PD
+gs 873 378 5209 4109 rc
+gr
+
+2482 4448 PD
+3512 1121 PD
+gs 873 378 5209 4109 rc
+gr
+
+4050 3765 PD
+gs 873 378 5209 4109 rc
+gr
+
+3335 3537 PD
+gs 873 378 5209 4109 rc
+gr
+
+3604 3596 PD
+gs 873 378 5209 4109 rc
+gr
+
+3350 2308 PD
+gs 873 378 5209 4109 rc
+gr
+
+3463 768 PD
+gs 873 378 5209 4109 rc
+gr
+
+3138 3911 PD
+gs 873 378 5209 4109 rc
+gr
+
+3737 3587 PD
+gs 873 378 5209 4109 rc
+gr
+
+3193 4035 PD
+gs 873 378 5209 4109 rc
+gr
+
+3696 2090 PD
+3283 1412 PD
+gs 873 378 5209 4109 rc
+gr
+
+3111 2142 PD
+gs 873 378 5209 4109 rc
+gr
+
+3142 3611 PD
+gs 873 378 5209 4109 rc
+gr
+
+3300 1400 PD
+gs 873 378 5209 4109 rc
+gr
+
+3847 3195 PD
+gs 873 378 5209 4109 rc
+gr
+
+3141 1763 PD
+3501 2039 PD
+3552 869 PD
+gs 873 378 5209 4109 rc
+gr
+
+3592 3820 PD
+gs 873 378 5209 4109 rc
+gr
+
+3752 3217 PD
+3248 3336 PD
+3179 2377 PD
+gs 873 378 5209 4109 rc
+gr
+
+3321 4029 PD
+3658 3752 PD
+gs 873 378 5209 4109 rc
+gr
+
+3033 4352 PD
+gs 873 378 5209 4109 rc
+gr
+
+3731 2594 PD
+2756 4020 PD
+3326 3006 PD
+gs 873 378 5209 4109 rc
+gr
+
+3126 4222 PD
+gs 873 378 5209 4109 rc
+gr
+
+4041 4451 PD
+3623 1713 PD
+gs 873 378 5209 4109 rc
+gr
+
+3403 855 PD
+3442 2282 PD
+gs 873 378 5209 4109 rc
+gr
+
+3051 2915 PD
+gs 873 378 5209 4109 rc
+gr
+
+2938 4485 PD
+gs 873 378 5209 4109 rc
+gr
+
+3022 3948 PD
+gs 873 378 5209 4109 rc
+gr
+
+3697 4352 PD
+gs 873 378 5209 4109 rc
+gr
+
+3531 4222 PD
+gs 873 378 5209 4109 rc
+gr
+
+3288 4282 PD
+gs 873 378 5209 4109 rc
+gr
+
+3615 4160 PD
+3992 3298 PD
+gs 873 378 5209 4109 rc
+gr
+
+3296 3791 PD
+2788 4126 PD
+gs 873 378 5209 4109 rc
+gr
+
+4008 4267 PD
+gs 873 378 5209 4109 rc
+gr
+
+3463 2884 PD
+gs 873 378 5209 4109 rc
+gr
+
+3028 3930 PD
+gs 873 378 5209 4109 rc
+gr
+
+3368 3631 PD
+gs 873 378 5209 4109 rc
+gr
+
+3461 810 PD
+gs 873 378 5209 4109 rc
+gr
+
+3218 3751 PD
+3872 3145 PD
+gs 873 378 5209 4109 rc
+gr
+
+3402 1662 PD
+3554 2800 PD
+3429 2079 PD
+gs 873 378 5209 4109 rc
+gr
+
+3989 4063 PD
+gs 873 378 5209 4109 rc
+gr
+
+2962 3201 PD
+gs 873 378 5209 4109 rc
+gr
+
+3118 2956 PD
+gs 873 378 5209 4109 rc
+gr
+
+4125 4195 PD
+3784 4369 PD
+gs 873 378 5209 4109 rc
+gr
+
+3734 3869 PD
+3670 4316 PD
+gs 873 378 5209 4109 rc
+gr
+
+3217 3470 PD
+gs 873 378 5209 4109 rc
+gr
+
+3933 4419 PD
+3094 2403 PD
+3168 2659 PD
+3370 3217 PD
+gs 873 378 5209 4109 rc
+gr
+
+3545 2844 PD
+gs 873 378 5209 4109 rc
+gr
+
+3490 4161 PD
+gs 873 378 5209 4109 rc
+gr
+
+3050 3363 PD
+gs 873 378 5209 4109 rc
+gr
+
+3063 2947 PD
+gs 873 378 5209 4109 rc
+gr
+
+3077 3283 PD
+3509 3102 PD
+gs 873 378 5209 4109 rc
+gr
+
+3517 1303 PD
+gs 873 378 5209 4109 rc
+gr
+
+3299 2323 PD
+3379 3917 PD
+gs 873 378 5209 4109 rc
+gr
+
+3744 4115 PD
+gs 873 378 5209 4109 rc
+gr
+
+3151 3114 PD
+gs 873 378 5209 4109 rc
+gr
+
+3511 3178 PD
+gs 873 378 5209 4109 rc
+gr
+
+3796 3087 PD
+gs 873 378 5209 4109 rc
+gr
+
+2870 4291 PD
+gs 873 378 5209 4109 rc
+gr
+
+2877 4180 PD
+gs 873 378 5209 4109 rc
+gr
+
+3270 4076 PD
+gs 873 378 5209 4109 rc
+gr
+
+3564 3715 PD
+gs 873 378 5209 4109 rc
+gr
+
+4018 3692 PD
+gs 873 378 5209 4109 rc
+gr
+
+3493 998 PD
+gs 873 378 5209 4109 rc
+gr
+
+3520 2535 PD
+gs 873 378 5209 4109 rc
+gr
+
+3777 3557 PD
+gs 873 378 5209 4109 rc
+gr
+
+3775 2937 PD
+gs 873 378 5209 4109 rc
+gr
+
+3399 3056 PD
+3424 1184 PD
+gs 873 378 5209 4109 rc
+gr
+
+3539 1350 PD
+gs 873 378 5209 4109 rc
+gr
+
+3230 2703 PD
+gs 873 378 5209 4109 rc
+gr
+
+4053 3423 PD
+gs 873 378 5209 4109 rc
+gr
+
+3363 3636 PD
+gs 873 378 5209 4109 rc
+gr
+
+3711 3527 PD
+gs 873 378 5209 4109 rc
+gr
+
+2838 4198 PD
+gs 873 378 5209 4109 rc
+gr
+
+3759 4321 PD
+gs 873 378 5209 4109 rc
+gr
+
+2976 4463 PD
+3446 2310 PD
+gs 873 378 5209 4109 rc
+gr
+
+3899 4484 PD
+3677 2928 PD
+3816 4185 PD
+gs 873 378 5209 4109 rc
+gr
+
+3318 2009 PD
+3037 3823 PD
+gs 873 378 5209 4109 rc
+gr
+
+2637 4271 PD
+gs 873 378 5209 4109 rc
+gr
+
+4080 3838 PD
+gs 873 378 5209 4109 rc
+gr
+
+3221 3907 PD
+gs 873 378 5209 4109 rc
+gr
+
+3507 992 PD
+gs 873 378 5209 4109 rc
+gr
+
+3343 2188 PD
+3977 3532 PD
+3903 3882 PD
+gs 873 378 5209 4109 rc
+gr
+
+3408 3721 PD
+gs 873 378 5209 4109 rc
+gr
+
+3043 3168 PD
+gs 873 378 5209 4109 rc
+gr
+
+3621 1692 PD
+gs 873 378 5209 4109 rc
+gr
+
+3408 1261 PD
+gs 873 378 5209 4109 rc
+gr
+
+3734 1711 PD
+3389 1473 PD
+gs 873 378 5209 4109 rc
+gr
+
+3555 1214 PD
+3352 1885 PD
+4118 3974 PD
+3942 2876 PD
+3922 4200 PD
+gs 873 378 5209 4109 rc
+gr
+
+3326 2267 PD
+gs 873 378 5209 4109 rc
+gr
+
+3489 1190 PD
+3079 3576 PD
+gs 873 378 5209 4109 rc
+gr
+
+3067 3692 PD
+gs 873 378 5209 4109 rc
+gr
+
+3492 2995 PD
+gs 873 378 5209 4109 rc
+gr
+
+2767 4226 PD
+gs 873 378 5209 4109 rc
+gr
+
+3546 3149 PD
+gs 873 378 5209 4109 rc
+gr
+
+3344 2447 PD
+gs 873 378 5209 4109 rc
+gr
+
+3830 2487 PD
+gs 873 378 5209 4109 rc
+gr
+
+3947 3158 PD
+gs 873 378 5209 4109 rc
+gr
+
+2777 3852 PD
+gs 873 378 5209 4109 rc
+gr
+
+3037 2756 PD
+2863 3805 PD
+2906 4241 PD
+gs 873 378 5209 4109 rc
+gr
+
+3463 2776 PD
+gs 873 378 5209 4109 rc
+gr
+
+2437 4466 PD
+3643 2561 PD
+gs 873 378 5209 4109 rc
+gr
+
+3355 1903 PD
+3677 4070 PD
+gs 873 378 5209 4109 rc
+gr
+
+3365 3036 PD
+gs 873 378 5209 4109 rc
+gr
+
+3693 3981 PD
+gs 873 378 5209 4109 rc
+gr
+
+3047 2542 PD
+3650 3819 PD
+3312 3275 PD
+2935 4363 PD
+gs 873 378 5209 4109 rc
+gr
+
+3645 1831 PD
+gs 873 378 5209 4109 rc
+gr
+
+3786 2366 PD
+gs 873 378 5209 4109 rc
+gr
+
+3486 2700 PD
+gs 873 378 5209 4109 rc
+gr
+
+3565 3913 PD
+gs 873 378 5209 4109 rc
+gr
+
+3992 3509 PD
+gs 873 378 5209 4109 rc
+gr
+
+3388 1886 PD
+gs 873 378 5209 4109 rc
+gr
+
+4096 3840 PD
+3127 4236 PD
+3887 3473 PD
+2843 3971 PD
+gs 873 378 5209 4109 rc
+gr
+
+3609 4004 PD
+gs 873 378 5209 4109 rc
+gr
+
+3640 3596 PD
+gs 873 378 5209 4109 rc
+gr
+
+3653 1536 PD
+gs 873 378 5209 4109 rc
+gr
+
+2996 3641 PD
+gs 873 378 5209 4109 rc
+gr
+
+3468 2722 PD
+gs 873 378 5209 4109 rc
+gr
+
+4433 4324 PD
+gs 873 378 5209 4109 rc
+gr
+
+3606 3864 PD
+gs 873 378 5209 4109 rc
+gr
+
+3550 4371 PD
+gs 873 378 5209 4109 rc
+gr
+
+3802 2514 PD
+3658 2425 PD
+3627 3652 PD
+gs 873 378 5209 4109 rc
+gr
+
+3226 3191 PD
+3440 1201 PD
+3699 1450 PD
+gs 873 378 5209 4109 rc
+gr
+
+3400 2466 PD
+gs 873 378 5209 4109 rc
+gr
+
+3203 3152 PD
+gs 873 378 5209 4109 rc
+gr
+
+3746 1736 PD
+gs 873 378 5209 4109 rc
+gr
+
+3171 3602 PD
+4167 4204 PD
+gs 873 378 5209 4109 rc
+gr
+
+3436 2575 PD
+gs 873 378 5209 4109 rc
+gr
+
+3758 2832 PD
+gs 873 378 5209 4109 rc
+gr
+
+3354 2122 PD
+gs 873 378 5209 4109 rc
+gr
+
+4061 3880 PD
+gs 873 378 5209 4109 rc
+gr
+
+2847 4060 PD
+3200 4482 PD
+gs 873 378 5209 4109 rc
+gr
+
+3917 3408 PD
+gs 873 378 5209 4109 rc
+gr
+
+2829 4121 PD
+gs 873 378 5209 4109 rc
+gr
+
+2811 4322 PD
+3777 3713 PD
+gs 873 378 5209 4109 rc
+gr
+
+3094 3713 PD
+gs 873 378 5209 4109 rc
+gr
+
+3540 3276 PD
+3588 1506 PD
+gs 873 378 5209 4109 rc
+gr
+
+3871 4303 PD
+gs 873 378 5209 4109 rc
+gr
+
+3139 2556 PD
+gs 873 378 5209 4109 rc
+gr
+
+3117 2279 PD
+gs 873 378 5209 4109 rc
+gr
+
+/c9 { 0.000000 0.500000 0.000000 sr} bdef
+c9
+2988 703 PD
+2174 783 PD
+2052 3198 PD
+4227 1437 PD
+4990 1195 PD
+gs 873 378 5209 4109 rc
+gr
+
+2073 2180 PD
+3997 1790 PD
+1973 1769 PD
+2058 3683 PD
+1991 2780 PD
+4454 2833 PD
+2448 3878 PD
+gs 873 378 5209 4109 rc
+gr
+
+4652 2933 PD
+2551 1761 PD
+4624 4323 PD
+gs 873 378 5209 4109 rc
+gr
+
+2136 948 PD
+4390 2944 PD
+2809 1374 PD
+2863 696 PD
+gs 873 378 5209 4109 rc
+gr
+
+2546 2212 PD
+4905 2519 PD
+2227 1794 PD
+3592 762 PD
+3001 2659 PD
+gs 873 378 5209 4109 rc
+gr
+
+2353 4244 PD
+4299 3449 PD
+2247 902 PD
+4497 3539 PD
+4304 4126 PD
+2883 2483 PD
+4870 1240 PD
+4835 1463 PD
+gs 873 378 5209 4109 rc
+gr
+
+2194 3324 PD
+3060 1149 PD
+4704 4341 PD
+4419 1982 PD
+2141 3874 PD
+4291 1525 PD
+gs 873 378 5209 4109 rc
+gr
+
+2137 1111 PD
+gs 873 378 5209 4109 rc
+gr
+
+2879 2523 PD
+4897 1946 PD
+gs 873 378 5209 4109 rc
+gr
+
+4193 860 PD
+gs 873 378 5209 4109 rc
+gr
+
+2568 2807 PD
+2056 1792 PD
+4400 3409 PD
+2029 955 PD
+3703 1006 PD
+3235 1031 PD
+3000 2026 PD
+gs 873 378 5209 4109 rc
+gr
+
+4842 985 PD
+2593 2278 PD
+gs 873 378 5209 4109 rc
+gr
+
+4800 1281 PD
+2297 1597 PD
+4516 1360 PD
+4827 2569 PD
+4128 1807 PD
+4216 1036 PD
+gs 873 378 5209 4109 rc
+gr
+
+1973 2014 PD
+4260 1414 PD
+gs 873 378 5209 4109 rc
+gr
+
+2739 1144 PD
+4240 2272 PD
+4304 1667 PD
+3972 2786 PD
+4807 931 PD
+2303 1134 PD
+4325 1166 PD
+gs 873 378 5209 4109 rc
+gr
+
+4215 2731 PD
+2394 3048 PD
+2400 700 PD
+gs 873 378 5209 4109 rc
+gr
+
+3108 930 PD
+4991 2085 PD
+gs 873 378 5209 4109 rc
+gr
+
+4509 1665 PD
+4420 1050 PD
+gs 873 378 5209 4109 rc
+gr
+
+3956 1707 PD
+2682 1902 PD
+4998 2174 PD
+4584 1078 PD
+gs 873 378 5209 4109 rc
+gr
+
+5034 2490 PD
+4048 821 PD
+gs 873 378 5209 4109 rc
+gr
+
+3104 1789 PD
+2585 3862 PD
+gs 873 378 5209 4109 rc
+gr
+
+1969 4090 PD
+2492 1268 PD
+gs 873 378 5209 4109 rc
+gr
+
+3957 2773 PD
+4251 1932 PD
+gs 873 378 5209 4109 rc
+gr
+
+4410 3581 PD
+4791 880 PD
+2089 3268 PD
+gs 873 378 5209 4109 rc
+gr
+
+1970 798 PD
+2357 2649 PD
+4361 3351 PD
+3045 2287 PD
+4081 2041 PD
+2026 2580 PD
+4683 1368 PD
+gs 873 378 5209 4109 rc
+gr
+
+2887 1857 PD
+2207 3220 PD
+2756 3131 PD
+4799 1384 PD
+4679 3377 PD
+gs 873 378 5209 4109 rc
+gr
+
+2155 1649 PD
+gs 873 378 5209 4109 rc
+gr
+
+4264 2731 PD
+2370 911 PD
+2112 765 PD
+4791 1187 PD
+gs 873 378 5209 4109 rc
+gr
+
+4831 1006 PD
+2079 1650 PD
+2221 2365 PD
+gs 873 378 5209 4109 rc
+gr
+
+2098 3636 PD
+4422 3220 PD
+4935 3532 PD
+4068 1396 PD
+2863 1079 PD
+3956 1749 PD
+gs 873 378 5209 4109 rc
+gr
+
+2316 3370 PD
+gs 873 378 5209 4109 rc
+gr
+
+4735 1415 PD
+gs 873 378 5209 4109 rc
+gr
+
+4135 3691 PD
+gs 873 378 5209 4109 rc
+gr
+
+2703 2774 PD
+2784 1595 PD
+4959 2936 PD
+4919 4044 PD
+2059 4453 PD
+2117 2714 PD
+gs 873 378 5209 4109 rc
+gr
+
+4316 1690 PD
+4783 2514 PD
+gs 873 378 5209 4109 rc
+gr
+
+2618 1749 PD
+3196 640 PD
+4110 2420 PD
+2645 1873 PD
+3936 802 PD
+1923 2966 PD
+4273 1391 PD
+gs 873 378 5209 4109 rc
+gr
+
+3937 1606 PD
+1917 962 PD
+3889 2238 PD
+2311 1869 PD
+gs 873 378 5209 4109 rc
+gr
+
+2801 2838 PD
+2144 2800 PD
+gs 873 378 5209 4109 rc
+gr
+
+2400 1700 PD
+4784 3658 PD
+gs 873 378 5209 4109 rc
+gr
+
+2850 3309 PD
+2245 3176 PD
+1924 2920 PD
+4388 1022 PD
+gs 873 378 5209 4109 rc
+gr
+
+2774 2865 PD
+gs 873 378 5209 4109 rc
+gr
+
+2839 2125 PD
+4953 3407 PD
+4472 1950 PD
+4545 4259 PD
+gs 873 378 5209 4109 rc
+gr
+
+4260 2164 PD
+4756 3578 PD
+gs 873 378 5209 4109 rc
+gr
+
+2864 2788 PD
+3908 1609 PD
+gs 873 378 5209 4109 rc
+gr
+
+2673 2304 PD
+2704 2003 PD
+4893 3892 PD
+2438 1637 PD
+3768 1497 PD
+4107 973 PD
+gs 873 378 5209 4109 rc
+gr
+
+2760 2469 PD
+gs 873 378 5209 4109 rc
+gr
+
+4466 1711 PD
+2655 2902 PD
+2372 1000 PD
+gs 873 378 5209 4109 rc
+gr
+
+3877 664 PD
+4965 2964 PD
+4942 1962 PD
+4706 685 PD
+gs 873 378 5209 4109 rc
+gr
+
+4154 1531 PD
+2741 1443 PD
+2797 1765 PD
+2174 3148 PD
+4399 766 PD
+4631 2585 PD
+4720 4215 PD
+4796 3815 PD
+2667 3824 PD
+4675 802 PD
+gs 873 378 5209 4109 rc
+gr
+
+4138 3257 PD
+4075 2237 PD
+4314 3802 PD
+2699 2897 PD
+gs 873 378 5209 4109 rc
+gr
+
+2127 1392 PD
+2171 682 PD
+3964 954 PD
+4914 786 PD
+gs 873 378 5209 4109 rc
+gr
+
+3834 669 PD
+2544 4324 PD
+4078 3144 PD
+2835 1350 PD
+4423 2079 PD
+2529 3551 PD
+gs 873 378 5209 4109 rc
+gr
+
+3269 836 PD
+gs 873 378 5209 4109 rc
+gr
+
+4245 3632 PD
+2434 2030 PD
+4242 2700 PD
+gs 873 378 5209 4109 rc
+gr
+
+4511 1419 PD
+gs 873 378 5209 4109 rc
+gr
+
+4883 2806 PD
+gs 873 378 5209 4109 rc
+gr
+
+4098 2161 PD
+4561 4055 PD
+4485 1777 PD
+2162 3928 PD
+4372 3383 PD
+4149 1210 PD
+gs 873 378 5209 4109 rc
+gr
+
+2995 910 PD
+gs 873 378 5209 4109 rc
+gr
+
+2736 3834 PD
+gs 873 378 5209 4109 rc
+gr
+
+4113 883 PD
+1981 2666 PD
+gs 873 378 5209 4109 rc
+gr
+
+2116 964 PD
+4472 1044 PD
+4968 1671 PD
+gs 873 378 5209 4109 rc
+gr
+
+3943 1718 PD
+4931 694 PD
+4498 3607 PD
+3161 1262 PD
+4483 3554 PD
+2575 1213 PD
+gs 873 378 5209 4109 rc
+gr
+
+2483 1175 PD
+4899 940 PD
+3935 1674 PD
+gs 873 378 5209 4109 rc
+gr
+
+4601 4372 PD
+gs 873 378 5209 4109 rc
+gr
+
+2390 1069 PD
+2417 2567 PD
+gs 873 378 5209 4109 rc
+gr
+
+4384 3054 PD
+4436 2144 PD
+2454 3031 PD
+gs 873 378 5209 4109 rc
+gr
+
+2505 4191 PD
+4942 3019 PD
+gs 873 378 5209 4109 rc
+gr
+
+4575 1326 PD
+gs 873 378 5209 4109 rc
+gr
+
+2324 1285 PD
+2732 2179 PD
+4078 2483 PD
+gs 873 378 5209 4109 rc
+gr
+
+4925 2857 PD
+4419 1224 PD
+gs 873 378 5209 4109 rc
+gr
+
+4283 1733 PD
+1989 1863 PD
+gs 873 378 5209 4109 rc
+gr
+
+3862 1562 PD
+2928 3304 PD
+3124 1901 PD
+4413 4238 PD
+3857 1277 PD
+3215 999 PD
+2384 2662 PD
+4630 3325 PD
+4955 1206 PD
+4190 3716 PD
+2309 3087 PD
+4125 2580 PD
+2650 2873 PD
+2518 2461 PD
+2165 2510 PD
+4690 735 PD
+3704 726 PD
+2390 4211 PD
+2996 2012 PD
+gs 873 378 5209 4109 rc
+gr
+
+2951 2956 PD
+3883 1969 PD
+4480 1617 PD
+gs 873 378 5209 4109 rc
+gr
+
+4548 2507 PD
+3147 1437 PD
+4176 3018 PD
+gs 873 378 5209 4109 rc
+gr
+
+2099 3393 PD
+gs 873 378 5209 4109 rc
+gr
+
+2531 4327 PD
+2316 2497 PD
+4511 1363 PD
+4628 1145 PD
+2669 2940 PD
+2940 1211 PD
+gs 873 378 5209 4109 rc
+gr
+
+2254 3466 PD
+3781 1267 PD
+2009 2311 PD
+gs 873 378 5209 4109 rc
+gr
+
+2364 4440 PD
+4534 1471 PD
+4020 1458 PD
+4618 1897 PD
+4814 3286 PD
+4963 3957 PD
+2762 1301 PD
+2363 3195 PD
+gs 873 378 5209 4109 rc
+gr
+
+2517 3883 PD
+4783 1287 PD
+4216 1057 PD
+2104 1340 PD
+1977 3169 PD
+2866 2158 PD
+2382 1609 PD
+2444 3467 PD
+4343 1703 PD
+4884 3766 PD
+gs 873 378 5209 4109 rc
+gr
+
+4101 3312 PD
+gs 873 378 5209 4109 rc
+gr
+
+2562 1079 PD
+4537 3888 PD
+4934 2314 PD
+gs 873 378 5209 4109 rc
+gr
+
+2665 3542 PD
+gs 873 378 5209 4109 rc
+gr
+
+2339 4157 PD
+2556 2659 PD
+3347 676 PD
+2253 1229 PD
+2387 4040 PD
+gs 873 378 5209 4109 rc
+gr
+
+2139 3555 PD
+2642 1679 PD
+2793 1923 PD
+2490 687 PD
+2995 1561 PD
+gs 873 378 5209 4109 rc
+gr
+
+2100 2551 PD
+3170 631 PD
+4387 3039 PD
+4713 688 PD
+gs 873 378 5209 4109 rc
+gr
+
+3751 1598 PD
+gs 873 378 5209 4109 rc
+gr
+
+2894 1234 PD
+gs 873 378 5209 4109 rc
+gr
+
+4323 1662 PD
+gs 873 378 5209 4109 rc
+gr
+
+4014 2111 PD
+2187 661 PD
+gs 873 378 5209 4109 rc
+gr
+
+3051 1903 PD
+2789 3382 PD
+4405 2172 PD
+gs 873 378 5209 4109 rc
+gr
+
+2456 1500 PD
+gs 873 378 5209 4109 rc
+gr
+
+4506 4150 PD
+2327 3926 PD
+2504 4202 PD
+4726 1053 PD
+gs 873 378 5209 4109 rc
+gr
+
+2120 4007 PD
+2956 2895 PD
+gs 873 378 5209 4109 rc
+gr
+
+3883 2092 PD
+2294 1703 PD
+gs 873 378 5209 4109 rc
+gr
+
+4640 2483 PD
+3940 991 PD
+gs 873 378 5209 4109 rc
+gr
+
+3890 2001 PD
+1923 3659 PD
+2949 1851 PD
+gs 873 378 5209 4109 rc
+gr
+
+2773 3919 PD
+2740 821 PD
+gs 873 378 5209 4109 rc
+gr
+
+4958 3652 PD
+gs 873 378 5209 4109 rc
+gr
+
+2234 829 PD
+4235 1682 PD
+4075 1536 PD
+4103 1979 PD
+5014 2854 PD
+gs 873 378 5209 4109 rc
+gr
+
+2796 873 PD
+2287 679 PD
+2384 1857 PD
+gs 873 378 5209 4109 rc
+gr
+
+2151 2443 PD
+1937 3402 PD
+3634 969 PD
+4381 2531 PD
+4372 1498 PD
+4439 4231 PD
+2967 1718 PD
+gs 873 378 5209 4109 rc
+gr
+
+4290 3408 PD
+2101 4433 PD
+2161 1532 PD
+2231 2674 PD
+gs 873 378 5209 4109 rc
+gr
+
+4172 1269 PD
+gs 873 378 5209 4109 rc
+gr
+
+4608 3383 PD
+gs 873 378 5209 4109 rc
+gr
+
+2924 2235 PD
+4437 2639 PD
+2469 4389 PD
+3963 1589 PD
+gs 873 378 5209 4109 rc
+gr
+
+4119 3101 PD
+4782 4190 PD
+4354 3450 PD
+2140 2436 PD
+gs 873 378 5209 4109 rc
+gr
+
+2396 2207 PD
+4290 2778 PD
+4764 2103 PD
+2353 884 PD
+2911 1358 PD
+gs 873 378 5209 4109 rc
+gr
+
+4574 1871 PD
+gs 873 378 5209 4109 rc
+gr
+
+2776 2193 PD
+gs 873 378 5209 4109 rc
+gr
+
+4744 3154 PD
+4510 1380 PD
+4748 1833 PD
+4429 876 PD
+2465 3951 PD
+gs 873 378 5209 4109 rc
+gr
+
+4236 2761 PD
+gs 873 378 5209 4109 rc
+gr
+
+1946 3131 PD
+2004 1336 PD
+gs 873 378 5209 4109 rc
+gr
+
+4914 3115 PD
+gs 873 378 5209 4109 rc
+gr
+
+4598 910 PD
+4424 3696 PD
+4260 3568 PD
+gs 873 378 5209 4109 rc
+gr
+
+2166 1409 PD
+2609 1654 PD
+1998 4404 PD
+gs 873 378 5209 4109 rc
+gr
+
+2571 1234 PD
+4899 2670 PD
+4940 1360 PD
+gs 873 378 5209 4109 rc
+gr
+
+3716 1393 PD
+gs 873 378 5209 4109 rc
+gr
+
+4220 3272 PD
+gs 873 378 5209 4109 rc
+gr
+
+3163 819 PD
+2420 3581 PD
+2896 1628 PD
+4315 4049 PD
+3975 2429 PD
+2367 4327 PD
+gs 873 378 5209 4109 rc
+gr
+
+2119 4164 PD
+2507 1404 PD
+4188 3076 PD
+2143 2840 PD
+2094 2577 PD
+2486 3745 PD
+1986 2352 PD
+4922 4094 PD
+gs 873 378 5209 4109 rc
+gr
+
+2092 1085 PD
+gs 873 378 5209 4109 rc
+gr
+
+4494 2825 PD
+4723 3046 PD
+3766 1376 PD
+gs 873 378 5209 4109 rc
+gr
+
+2240 3367 PD
+gs 873 378 5209 4109 rc
+gr
+
+4127 2364 PD
+gs 873 378 5209 4109 rc
+gr
+
+2806 3207 PD
+2342 2879 PD
+1990 2095 PD
+gs 873 378 5209 4109 rc
+gr
+
+1917 2073 PD
+gs 873 378 5209 4109 rc
+gr
+
+4735 1761 PD
+gs 873 378 5209 4109 rc
+gr
+
+2698 2432 PD
+2479 1941 PD
+3060 1228 PD
+4434 656 PD
+2616 3783 PD
+4313 2160 PD
+2220 3732 PD
+2691 2013 PD
+4547 3829 PD
+gs 873 378 5209 4109 rc
+gr
+
+2207 1733 PD
+2799 3211 PD
+2389 4454 PD
+gs 873 378 5209 4109 rc
+gr
+
+2650 3114 PD
+3093 1733 PD
+gs 873 378 5209 4109 rc
+gr
+
+1915 2031 PD
+gs 873 378 5209 4109 rc
+gr
+
+4893 3397 PD
+gs 873 378 5209 4109 rc
+gr
+
+4703 4294 PD
+2108 805 PD
+3085 863 PD
+2101 899 PD
+4809 1980 PD
+2558 1407 PD
+4697 1147 PD
+gs 873 378 5209 4109 rc
+gr
+
+3961 2725 PD
+gs 873 378 5209 4109 rc
+gr
+
+2104 3514 PD
+2681 1796 PD
+4787 3588 PD
+2533 2906 PD
+4636 1362 PD
+gs 873 378 5209 4109 rc
+gr
+
+2762 3315 PD
+gs 873 378 5209 4109 rc
+gr
+
+2131 4013 PD
+2381 775 PD
+2481 3501 PD
+gs 873 378 5209 4109 rc
+gr
+
+4528 2991 PD
+gs 873 378 5209 4109 rc
+gr
+
+4347 759 PD
+gs 873 378 5209 4109 rc
+gr
+
+2531 3502 PD
+4952 3634 PD
+4227 2301 PD
+5031 4171 PD
+2965 1293 PD
+4114 3454 PD
+gs 873 378 5209 4109 rc
+gr
+
+4180 2909 PD
+4938 715 PD
+4742 3644 PD
+gs 873 378 5209 4109 rc
+gr
+
+2162 3897 PD
+4034 1392 PD
+2789 3689 PD
+gs 873 378 5209 4109 rc
+gr
+
+4655 1252 PD
+4255 1387 PD
+2892 3054 PD
+2291 4225 PD
+gs 873 378 5209 4109 rc
+gr
+
+4574 3544 PD
+1975 1997 PD
+2161 1217 PD
+gs 873 378 5209 4109 rc
+gr
+
+4060 2858 PD
+4397 1427 PD
+2435 2823 PD
+gs 873 378 5209 4109 rc
+gr
+
+3092 1996 PD
+4701 1904 PD
+2809 3111 PD
+4745 1774 PD
+2837 2446 PD
+2085 2821 PD
+2877 1665 PD
+gs 873 378 5209 4109 rc
+gr
+
+4950 2351 PD
+gs 873 378 5209 4109 rc
+gr
+
+2610 1871 PD
+4204 781 PD
+2891 1862 PD
+gs 873 378 5209 4109 rc
+gr
+
+3106 1122 PD
+2907 1289 PD
+2367 4075 PD
+gs 873 378 5209 4109 rc
+gr
+
+3267 907 PD
+4148 3457 PD
+4777 1505 PD
+2683 1711 PD
+4413 2648 PD
+4900 2026 PD
+3946 2809 PD
+2689 1545 PD
+3896 2006 PD
+gs 873 378 5209 4109 rc
+gr
+
+4155 3714 PD
+2407 4045 PD
+4998 4116 PD
+2411 1060 PD
+gs 873 378 5209 4109 rc
+gr
+
+2200 1726 PD
+gs 873 378 5209 4109 rc
+gr
+
+2492 1726 PD
+gs 873 378 5209 4109 rc
+gr
+
+2244 2005 PD
+gs 873 378 5209 4109 rc
+gr
+
+4242 2585 PD
+2147 3684 PD
+gs 873 378 5209 4109 rc
+gr
+
+2114 4110 PD
+3727 775 PD
+2077 3299 PD
+gs 873 378 5209 4109 rc
+gr
+
+4472 4315 PD
+gs 873 378 5209 4109 rc
+gr
+
+3078 1716 PD
+4178 1819 PD
+gs 873 378 5209 4109 rc
+gr
+
+4461 2925 PD
+gs 873 378 5209 4109 rc
+gr
+
+3127 1631 PD
+gs 873 378 5209 4109 rc
+gr
+
+4626 2278 PD
+gs 873 378 5209 4109 rc
+gr
+
+5001 661 PD
+2004 3335 PD
+gs 873 378 5209 4109 rc
+gr
+
+4366 3295 PD
+gs 873 378 5209 4109 rc
+gr
+
+2176 1455 PD
+4618 4005 PD
+3921 2477 PD
+2144 4271 PD
+2068 2135 PD
+4283 1909 PD
+3297 788 PD
+4355 1851 PD
+2320 4205 PD
+2545 2308 PD
+gs 873 378 5209 4109 rc
+gr
+
+2904 1487 PD
+2702 2070 PD
+2538 3830 PD
+4305 1641 PD
+gs 873 378 5209 4109 rc
+gr
+
+2043 3409 PD
+2928 2800 PD
+4643 3813 PD
+3939 686 PD
+2668 2805 PD
+gs 873 378 5209 4109 rc
+gr
+
+3861 1357 PD
+2793 2413 PD
+gs 873 378 5209 4109 rc
+gr
+
+2576 1913 PD
+2723 3591 PD
+4290 1579 PD
+4746 1563 PD
+4955 3382 PD
+2170 2565 PD
+gs 873 378 5209 4109 rc
+gr
+
+4838 3711 PD
+2195 4232 PD
+4868 3324 PD
+4513 2259 PD
+gs 873 378 5209 4109 rc
+gr
+
+4304 689 PD
+2066 1083 PD
+4667 1651 PD
+3775 1807 PD
+4128 2686 PD
+3914 1307 PD
+4629 2713 PD
+4451 2528 PD
+2150 3336 PD
+3720 713 PD
+gs 873 378 5209 4109 rc
+gr
+
+2711 3525 PD
+4502 2192 PD
+2268 1435 PD
+2276 680 PD
+4655 2474 PD
+gs 873 378 5209 4109 rc
+gr
+
+4566 3443 PD
+gs 873 378 5209 4109 rc
+gr
+
+4762 2783 PD
+2482 949 PD
+gs 873 378 5209 4109 rc
+gr
+
+3088 1621 PD
+4182 2088 PD
+5003 3181 PD
+1961 3214 PD
+gs 873 378 5209 4109 rc
+gr
+
+4443 2103 PD
+2886 1770 PD
+4167 1977 PD
+4156 2430 PD
+2189 907 PD
+4462 1636 PD
+3832 1249 PD
+gs 873 378 5209 4109 rc
+gr
+
+4773 1391 PD
+2872 2932 PD
+4311 3277 PD
+gs 873 378 5209 4109 rc
+gr
+
+3985 1256 PD
+5037 969 PD
+4669 796 PD
+4505 2257 PD
+gs 873 378 5209 4109 rc
+gr
+
+4270 802 PD
+4874 1327 PD
+2393 1689 PD
+gs 873 378 5209 4109 rc
+gr
+
+4760 929 PD
+2409 2713 PD
+4747 4455 PD
+3670 802 PD
+gs 873 378 5209 4109 rc
+gr
+
+1964 3903 PD
+2480 1284 PD
+5033 2874 PD
+4103 3436 PD
+2888 2478 PD
+3797 1193 PD
+1973 3567 PD
+4365 3504 PD
+gs 873 378 5209 4109 rc
+gr
+
+2424 3894 PD
+2093 2561 PD
+gs 873 378 5209 4109 rc
+gr
+
+2056 3329 PD
+2416 2080 PD
+2378 2296 PD
+gs 873 378 5209 4109 rc
+gr
+
+4663 3861 PD
+gs 873 378 5209 4109 rc
+gr
+
+3952 1677 PD
+3991 699 PD
+1956 1577 PD
+2263 2836 PD
+2343 3164 PD
+2577 664 PD
+gs 873 378 5209 4109 rc
+gr
+
+3172 1036 PD
+4849 1104 PD
+4722 2448 PD
+3086 963 PD
+4190 3573 PD
+2467 2791 PD
+gs 873 378 5209 4109 rc
+gr
+
+2557 3053 PD
+2267 3409 PD
+4112 1849 PD
+5032 1288 PD
+4084 3022 PD
+2588 1261 PD
+2021 1005 PD
+2148 1354 PD
+gs 873 378 5209 4109 rc
+gr
+
+2557 1105 PD
+4716 2404 PD
+gs 873 378 5209 4109 rc
+gr
+
+4259 2166 PD
+4476 2310 PD
+2155 1840 PD
+gs 873 378 5209 4109 rc
+gr
+
+3042 2045 PD
+gs 873 378 5209 4109 rc
+gr
+
+3828 1170 PD
+4457 1757 PD
+2163 3873 PD
+gs 873 378 5209 4109 rc
+gr
+
+4202 1196 PD
+2498 2947 PD
+2299 3714 PD
+4232 2419 PD
+4989 3498 PD
+1939 2349 PD
+gs 873 378 5209 4109 rc
+gr
+
+2297 667 PD
+4429 2874 PD
+4980 3782 PD
+2319 742 PD
+4687 3983 PD
+gs 873 378 5209 4109 rc
+gr
+
+1956 1097 PD
+2648 1458 PD
+gs 873 378 5209 4109 rc
+gr
+
+3211 1306 PD
+1990 1992 PD
+4573 4374 PD
+gs 873 378 5209 4109 rc
+gr
+
+3050 2339 PD
+2999 979 PD
+3965 2235 PD
+gs 873 378 5209 4109 rc
+gr
+
+3840 1477 PD
+2231 1436 PD
+gs 873 378 5209 4109 rc
+gr
+
+2226 3421 PD
+gs 873 378 5209 4109 rc
+gr
+
+2045 3852 PD
+2215 2189 PD
+gs 873 378 5209 4109 rc
+gr
+
+4980 1498 PD
+2299 3256 PD
+4179 783 PD
+gs 873 378 5209 4109 rc
+gr
+
+2571 4033 PD
+2290 717 PD
+3011 1575 PD
+4229 3059 PD
+2776 1446 PD
+1961 2016 PD
+gs 873 378 5209 4109 rc
+gr
+
+2146 4314 PD
+3930 2511 PD
+2552 3182 PD
+4889 2507 PD
+2287 3518 PD
+4448 1108 PD
+gs 873 378 5209 4109 rc
+gr
+
+2198 2918 PD
+4807 2164 PD
+4472 814 PD
+gs 873 378 5209 4109 rc
+gr
+
+4966 3709 PD
+2553 2402 PD
+4496 3071 PD
+4290 721 PD
+4125 2274 PD
+gs 873 378 5209 4109 rc
+gr
+
+4842 3910 PD
+gs 873 378 5209 4109 rc
+gr
+
+2644 2730 PD
+2571 2039 PD
+gs 873 378 5209 4109 rc
+gr
+
+4323 1324 PD
+2651 1572 PD
+gs 873 378 5209 4109 rc
+gr
+
+2373 1896 PD
+2860 3115 PD
+2939 2332 PD
+2503 3466 PD
+gs 873 378 5209 4109 rc
+gr
+
+2621 3739 PD
+4684 3030 PD
+gs 873 378 5209 4109 rc
+gr
+
+3637 866 PD
+gs 873 378 5209 4109 rc
+gr
+
+4863 1069 PD
+3081 1704 PD
+4796 2821 PD
+2670 1308 PD
+2468 2617 PD
+2892 2113 PD
+gs 873 378 5209 4109 rc
+gr
+
+4368 669 PD
+gs 873 378 5209 4109 rc
+gr
+
+4704 4063 PD
+2811 1623 PD
+2040 1513 PD
+5007 3957 PD
+gs 873 378 5209 4109 rc
+gr
+
+2702 1490 PD
+4791 1460 PD
+2535 1265 PD
+2669 911 PD
+gs 873 378 5209 4109 rc
+gr
+
+4878 3033 PD
+gs 873 378 5209 4109 rc
+/c10 { 1.000000 0.000000 0.000000 sr} bdef
+c10
+53 0 52 0 52 0 52 0 52 0 52 0 52 0 52 0 
+52 0 52 0 52 0 52 0 53 0 52 0 52 0 52 0 
+52 0 52 0 52 0 52 1 52 1 52 1 52 3 52 3 
+52 5 53 7 52 10 52 14 52 20 52 28 52 37 52 50 
+52 65 52 83 52 105 52 131 52 158 53 187 52 219 52 248 
+52 275 52 298 52 312 52 316 52 309 52 289 52 254 52 206 
+52 145 52 76 53 0 52 -77 52 -151 52 -218 52 -273 52 -314 
+52 -339 52 -347 52 -342 52 -323 52 -295 52 -259 53 -220 52 -182 
+52 -145 52 -111 52 -83 52 -61 52 -42 52 -28 52 -19 52 -11 
+52 -7 52 -5 52 -2 53 -1 52 -1 52 0 52 0 52 0 
+52 0 52 0 52 0 52 0 52 0 52 0 52 0 53 0 
+52 0 52 0 52 0 52 0 52 0 52 0 52 0 52 0 
+52 -1 52 0 52 0 925 4486 100 MP stroke
+6 w
+gr
+
+6 w
+c10
+
+end %%Color Dict
+
+eplot
+%%EndObject
+
+epage
+end
+
+showpage
+
+%%Trailer
+%%EOF
