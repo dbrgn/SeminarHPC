@@ -4,6 +4,7 @@
 
 \chapterauthor{Danilo Bargen, Lukas Murer}
 
+
 \section{Einleitung}
 
 %- Was ist ein Hash-Algorithmus?
@@ -160,7 +161,7 @@ es Forschern, MD5-Kollisionen auf einem Pentium 4 Rechner im Durchschnitt
 innerhalb einer Minute zu finden\cite{crypto:stevens2006fast}. Inzwischen sind
 Kollisionen auf markt"ublicher Hardware innerhalb weniger Sekunden berechenbar.
 Der MD5-Algorithmus ist also h"ochstens schwach kollisionsresistent (vgl.
-Kapitel \ref{crypto:kollisionsresistenz}) und sollte f"ur kryptologische
+Abschnitt \ref{crypto:kollisionsresistenz}) und sollte f"ur kryptologische
 Anwendungen nicht mehr eingesetzt werden.
 
 \subsection{Brute-Force Angriff auf MD5}
@@ -169,10 +170,10 @@ Anwendungen nicht mehr eingesetzt werden.
 W"ahrend Kollisionen f"ur frei gew"ahlte Eingabewerte wie im letzten Abschnitt
 beschrieben heute problemlos berechenbar sind, ist bisher noch kein praktischer
 Preimage-Angriff auf MD5 bekannt. Ein Preimage-Angriff bedeutet, dass der
-Hashwert nicht frei gew"ahlt werden kann, sondern festgelegt ist (ein Angriff
-auf die schwache Kollisionsresistenz). Wenn man nun einen Passwort-Hash
-zur"uckrechnen will, ist daher bei einer "uberschaubaren Eingabemenge ein
-Brute-Force Angriff die simpelste M"oglichkeit.
+Hashwert nicht frei gew"ahlt werden kann, sondern festgelegt ist; es ist also
+ein Angriff auf die schwache Kollisionsresistenz. Wenn man nun einen
+Passwort-Hash zur"uckrechnen will, ist daher bei einer "uberschaubaren
+Eingabemenge ein Brute-Force Angriff die simpelste M"oglichkeit.
 
 Bei einem Brute Force Angriff wird f"ur jeden Wert einer bestimmten
 Eingabemenge der Hash\-wert berechnet und mit dem Zielwert verglichen. In
@@ -230,6 +231,147 @@ komplett unabh"angiger paralleler Tasks. Die MD5-Berechnung selbst ist nicht
 unabh"angig und kann deshalb nicht parallelisiert werden, aber mehrere
 MD5-Berechnungen k"onnen nebeneinander ausgef"uhrt werden und ben"otigen
 keinerlei Interprozess-Kommunikation. OpenCL ist hierf"ur also bestens geeignet.
+
+
+\section{L"osungsansatz}
+
+% TODO danilo: Ev Bezug auf vorherige Section
+
+Um den Brute-Force-Knacker zu implementieren haben wir uns f"ur folgenden
+L"osungsansatz entschieden:
+
+\begin{itemize}
+	\item Jedes m"ogliche Eingabewort (siehe "Uberlegungen zum Keyspace in
+		Abschnitt \ref{crypto:keyspace}) wird einem Workitem zugewiesen.
+	\item Jedes Workitem berechnet den MD5-Hash f"ur genau ein Wort.
+	\item Das Eingabewort wird innerhalb des Kernels aus der Global ID
+		hergeleitet.
+	\item Der errechnete Hash wird innerhalb des Kernels mit dem Ziel-Hash
+		verglichen. Sofern die zwei Werte "ubereinstimmen, wird das Wort in den
+		Result-Buffer geschrieben.
+	\item Der Einfachheit halber wird im Erfolgsfall kein vorzeitiger Abbruch
+		durchgef"uhrt, stattdessen wird der ganze Keyspace durchprobiert. Dies
+		erm"oglicht auch einfache Performance-Vergleiche auf verschiedenen
+		Plattformen.
+	\item Nachdem alle m"oglichen Hash-Werte berechnet wurden, wird der
+		Result-Buffer vom Hauptprogramm ausgelesen und angezeigt.
+\end{itemize}
+
+\noindent Zusammengefasst besteht der Ablauf aus drei Phasen: Init (CPU),
+Calculate (GPU), Collect (CPU).
+
+\begin{figure}[H]
+	\centering
+	\input{crypto/tikz/programm-struktur}
+	\caption{L"osungsansatz Programmstruktur}
+	\label{img:crypto:programm-struktur}
+\end{figure}
+
+% TODO danilo: kernel / workgroup / workitems
+
+\subsection{Herleitung Wort aus Global ID}
+\index{Global ID}
+
+Irgendwie muss nun jedes Workitem herausfinden, welches Wort es hashen soll. Eine
+"Ubergabe des zu hashenden Wortes vom Hauptprogramm an jeden Kernel via Shared
+Memory w"are ineffizient und w"urde nur unn"otigen I/O verursachen. Es muss also
+eine bessere L"osung gefunden werden.
+
+Ein Vorteil des gegebenen Problemes ist, dass der Keyspace der m"oglichen
+Eingabewerte eine arithmetische Folge darstellt. Es liegt also nahe, das Wort
+aus der Global ID herzuleiten. Die Global ID ist eine $n$-Dimensionale
+nat"urliche Zahl, welche jedem Kernel von OpenCL zugewiesen wird. Der
+Wertebereich bewegt sich dabei in Einerschritten von $(0, ..., 0)$ bis $(s_1-1,
+..., s_n-1)$. Dabei steht $s$ f"ur die \textit{Work Size} der entsprechenden
+Dimension.
+
+\subsubsection{Naiver Ansatz}
+
+Ein naiver Ansatz w"are nun, dass die jede Dimension der Global ID einem Zeichen
+des Eingabewortes entspricht. Die Dimensionszahl entspricht dann der Anzahl
+Zeichen im Eingabewort. Um diesen Ansatz zu verdeutlichen, nachfolgend ein
+Pseudocode-Beispiel f"ur ein Eingabewort mit der L"ange 3 und dem Alphabet a--z:
+
+\begin{small}
+\begin{verbatim}
+>>> id = (22, 19, 5)
+>>> alphabet = "abcdefghijklmnopqrstuvwxyz"
+>>> word = alphabet[id[0]] + alphabet[id[1]] + alphabet[id[2]]
+>>> print(word)
+wtf
+\end{verbatim}
+\end{small}
+
+\noindent Das sieht zwar auf den ersten Blick nach einem guten Ansatz aus,
+jedoch ergibt sich dabei das erste Problem: Die Anzahl Dimensionen der Global ID
+(Work Size Dimension) darf gem"ass OpenCL Standard\cite{crypto:opencl_ref}
+maximal 3 sein. Das bedeutet, dass man mit diesem Ansatz nur W"orter mit einer
+L"ange von bis zu 3 Zeichen knacken kann. Man muss also einen Weg finden, diese
+Dimensionen irgendwie zu vergr"ossern.
+
+% TODO danilo: Backreferenz aus Problem-Kapitel
+
+\subsubsection{Virtuelle Dimensionen}
+
+Eine M"oglichkeit dazu ist die Einf"uhrung virtueller Dimensionen. Dabei werden
+mehrere Dimensionen durch Multiplikation der Keyspace-Gr"osse in eine einzelne
+``Virtuelle Dimension'' gepackt. Konkret sieht das so aus:
+
+\begin{itemize}
+	\item Dimension bei Wort-L"ange 1: $(26,)$
+	\item Dimension bei Wort-L"ange 3: $(26, 26, 26)$
+	\item Dimension bei Wort-L"ange 4: $(26^2, 26, 26) = (676, 26, 26)$
+	\item Dimension bei Wort-L"ange 7: $(26^3, 26^2, 26^2) = (17576, 676, 676)$
+\end{itemize}
+
+\noindent Aus diesen Werten kann dann der Buchstabenindex $c_n$ an Position $n$
+mithilfe von Modulo-Arithmetik aus der jeweiligen Global ID $i$ abgeleitet
+werden:
+\[
+	c_n = \left\lfloor\,\frac{i}{26^n}\,\right\rfloor\! \mod\enskip 26
+\]
+Um nun den entsprechenden ASCII-Buchstaben zu erhalten, muss man lediglich
+diesen Wert $c_n$ um 97 (ASCII-Position des Kleinbuchstabens \texttt{a})
+erh"ohen.
+
+Damit das Ganze etwas einfacher zu implementieren ist, f"uhren wir zus"atzlich
+das Konzept eines ``Triplets'' ein. Die Triplet-ID ergibt sich, wenn man die
+Buchstaben des Wortes in Dreiergruppen aufteilt (Sliding Window Algorithmus).
+
+\begin{figure}[H]
+	\centering
+	\input{crypto/tikz/triplets}
+	\caption{Aufteilung des Wortes in Triplets}
+	\label{img:crypto:triplets}
+\end{figure}
+
+% TODO danilo: Beispiel-Tabelle
+
+\noindent In OpenCL C sieht das folgendermassen aus:
+
+\begin{small}
+\begin{verbatim}
+// Initialize private variables
+__private char string[MAX_PW_LEN];
+__private unsigned int global_id;
+__private unsigned char triplet_id;
+
+for (int i = 0; i < 3; i++) {
+
+  // Get global ID for dimension i
+  global_id = get_global_id(i);
+
+  // Loop through triplets
+  for (triplet_id = 0; triplet_id <= (len - 1) / 3; triplet_id += 1) {
+    string[triplet_id * 3 + i] = 0x61 + ((int)(global_id / pown(26., triplet_id)) % 26);
+  }
+
+}
+\end{verbatim}
+\end{small}
+
+\noindent Das zu hashende Wort befindet sich nun in der Variablen \texttt{string}.
+
 
 \section{Probleme mit grossen Problemen}
 \label{crypto:grosse_probleme}
@@ -766,142 +908,8 @@ aufzuteilen.
        m"oglichst lange selbst rechnen lassen.
 \end{itemize}
 
-
-
-
 % TODO Lukas: Codebeispiel f"ur Globale OpenCL Variable
 
-
-
-\section{L"osungsansatz}
-
-% TODO danilo: Ev Bezug auf vorherige Section
-
-Um den Brute-Force-Knacker zu implementieren haben wir uns f"ur folgenden
-L"osungsansatz entschieden:
-
-\begin{itemize}
-	\item Jedes m"ogliche Eingabewort (siehe "Uberlegungen zum Keyspace in Kapitel
-		\ref{crypto:keyspace}) wird einem Kernel zugewiesen.
-	\item Jeder Kernel berechnet den MD5-Hash f"ur genau ein Wort.
-	\item Das Eingabewort wird innerhalb des Kernels aus der Global ID
-		hergeleitet.
-	\item Der errechnete Hash wird innerhalb des Kernels mit dem Ziel-Hash
-		verglichen. Sofern die zwei Werte "ubereinstimmen, wird das Wort in den
-		Result-Buffer geschrieben.
-	\item Der Einfachheit halber wird im Erfolgsfall kein vorzeitiger Abbruch
-		durchgef"uhrt, stattdessen wird der ganze Keyspace durchprobiert. Dies
-		erm"oglicht auch einfache Performance-Vergleiche auf verschiedenen
-		Plattformen.
-	\item Nachdem alle m"oglichen Hash-Werte berechnet wurden, wird der
-		Result-Buffer vom Hauptprogramm ausgelesen und angezeigt.
-\end{itemize}
-
-\noindent Zusammengefasst besteht der Ablauf aus drei Phasen: Init (CPU),
-Calculate (GPU), Collect (CPU).
-
-\begin{figure}[H]
-	\centering
-	\input{crypto/tikz/programm-struktur}
-	\caption{L"osungsansatz Programmstruktur}
-	\label{img:crypto:programm-struktur}
-\end{figure}
-
-\subsection{Herleitung Wort aus Global ID}
-\index{Global ID}
-
-Irgendwie muss nun jeder Kernel herausfinden, welches Wort er hashen soll. Eine
-"Ubergabe des zu hashenden Wortes vom Hauptprogramm an jeden Kernel via Shared
-Memory w"are ineffizient und w"urde nur unn"otigen I/O verursachen. Es muss also
-eine bessere L"osung gefunden werden.
-
-Ein Vorteil des gegebenen Problemes ist, dass der Keyspace f"ur die m"oglichen
-Eingabewerte eine arithmetische Folge darstellt. Es liegt also nahe, das Wort aus der
-Global ID herzuleiten. Die Global ID ist eine $n$-Dimensionale nat"urliche Zahl,
-welche jedem Kernel von OpenCL zugewiesen wird. Der Wertebereich bewegt sich
-dabei in Einerschritten von $(0, ..., 0)$ bis $(s_1, ..., s_n)$. Dabei ist $s_n$
-die \textit{Work Size} f"ur die entsprechende Dimension $n$.
-
-\subsubsection{Naiver Ansatz}
-
-Ein naiver Ansatz w"are nun, dass die jede Dimension der Global ID einem
-m"oglichen Zeichen des Eingabewortes entspricht. Die Dimensionszahl entspricht
-dann der Anzahl Zeichen im Eingabewort. Um diesen Ansatz zu verdeutlichen,
-nachfolgend ein Pseudocode-Beispiel f"ur ein Eingabewort mit der L"ange 3 und
-dem Alphabet a-z:
-
-\begin{small}
-\begin{verbatim}
->>> id = (22, 19, 5)
->>> alphabet = "abcdefghijklmnopqrstuvwxyz"
->>> word = alphabet[id[0]] + alphabet[id[1]] + alphabet[id[2]]
->>> print(word)
-wtf
-\end{verbatim}
-\end{small}
-
-\noindent Das sieht zwar auf den ersten Blick nach einem guten Ansatz aus,
-jedoch ergibt sich dabei das erste Problem: Die Anzahl Dimensionen der Global ID
-(Work Size Dimension) darf gem"ass OpenCL Standard\cite{crypto:opencl_ref}
-maximal 3 sein. Das bedeutet, dass man mit diesem Ansatz nur W"orter mit einer
-L"ange von bis zu 3 Zeichen knacken kann. Man muss also einen Weg finden, diese
-Dimensionen irgendwie zu vergr"ossern.
-
-\subsubsection{Virtuelle Dimensionen}
-
-Eine M"oglichkeit dazu ist die Einf"uhrung virtueller Dimensionen. Dabei werden
-mehrere Dimensionen durch Multiplikation der Keyspace-Gr"osse in eine einzelne
-``Virtuelle Dimension'' gepackt. Konkret sieht das so aus:
-
-\begin{itemize}
-	\item Dimension bei Wort-L"ange 1: $(26,)$
-	\item Dimension bei Wort-L"ange 3: $(26, 26, 26)$
-	\item Dimension bei Wort-L"ange 4: $(26^2, 26, 26) = (676, 26, 26)$
-	\item Dimension bei Wort-L"ange 7: $(26^3, 26^2, 26^2) = (17576, 676, 676)$
-\end{itemize}
-
-\noindent Aus diesen Werten kann dann der Buchstabe $c_n$ an Position $n$ mithilfe von
-Modulo-Arithmetik aus der jeweiligen Work Size $d$ abgeleitet werden:
-\[
-	c_n = \frac{d}{26^n} \mod\enskip 26
-\]
-Um nun den entsprechenden ASCII-Buchstaben zu erhalten, muss man lediglich
-diesen Wert $c_n$ um 97 (ASCII-Position des Kleinbuchstabens \texttt{a})
-erh"ohen.
-
-Damit das Ganze etwas einfacher zu implementieren ist, f"uhren wir zus"atzlich
-das Konzept eines ``Triplets'' ein. Die Triplet-ID ergibt sich, wenn man die
-Buchstaben des Wortes in Dreiergruppen aufteilt (Sliding Window Algorithmus).
-
-\begin{figure}[H]
-	\centering
-	\input{crypto/tikz/triplets}
-	\caption{Aufteilung des Wortes in Triplets}
-	\label{img:crypto:triplets}
-\end{figure}
-
-\noindent In OpenCL C sieht das folgendermassen aus:
-
-\begin{small}
-\begin{verbatim}
-// Initialize private variables
-__private char string[MAX_PW_LEN];
-__private unsigned int global_id;
-__private unsigned char triplet_id;
-
-for (int i = 0; i < 3; i++) {
-
-  // Get global ID for dimension i
-  global_id = get_global_id(i);
-
-  // Loop through triplets
-  for (triplet_id = 0; triplet_id <= (len - 1) / 3; triplet_id += 1) {
-    string[triplet_id * 3 + i] = 0x61 + ((int)(global_id / pown(26., triplet_id)) % 26);
-  }
-
-}
-\end{verbatim}
-\end{small}
 
 \section{Implementationsdetails}
 
@@ -910,8 +918,8 @@ for (int i = 0; i < 3; i++) {
 
 Zur effektiven Berechnung des MD5-Wertes haben wir eine bereits bestehende
 C-Implementierung des MD5-Algorithmus verwendet\cite{crypto:md5_impl}, welche im
-Jahr 2001 von Alexander Peslyak geschrieben und dann als gemeinfrei
-ver"offentlich wurde.
+Jahr 2001 von Alexander Peslyak geschrieben und als gemeinfrei ver"offentlich
+wurde.
 
 Die Library musste geringf"ugig angepasst werden, um innerhalb eines OpenCL
 Kernels lauff"ahig zu sein. Beispielsweise mussten alle dynamischen
@@ -939,7 +947,7 @@ MD5_Final(digest, &context);
 \subsection{Verifikation des Resultates}
 \label{crypto:verifikation}
 
-In jedem Kernel wird der berechnete MD5-Hash mit dem Ziel-Hash verglichen.
+In jedem Workitem wird der berechnete MD5-Hash mit dem Ziel-Hash verglichen.
 Stimmen sie "uberein, so wird das verwendete Eingabewort in den Result-Buffer im
 Global Memory geschrieben.
 
@@ -959,7 +967,7 @@ if (compare(hash, digest, 16) == 0) {
 \subsubsection{Init}
 
 Die Aufgabe der Initialisierungsphase ist es, das gew"unschte OpenCL Device
-auszuw"ahlen, die Kernel zu konfigurieren und zu initialisieren und dann zu
+auszuw"ahlen, die Workitems zu konfigurieren und zu initialisieren und dann zu
 starten.
 
 Wir haben im Rahmen dieser Arbeit nicht direkt mit den OpenCL C Libraries
@@ -967,8 +975,8 @@ gearbeitet, sondern eine Wrapper-Library namens
 PyOpenCL\cite{crypto:pyopencl_docs} f"ur die Programmiersprache
 Python\cite{crypto:python} verwendet. Im direkten Vergleich mit C ist es so viel
 einfacher OpenCL zu initialisieren und zu konfigurieren (wobei nat"urlich
-Python-Kenntnisse n"otig sind). Auf die Syntax von Python und die
-Implementations-Details der Library wird hier nicht n"aher eingegangen.
+Python-Kenntnisse vorausgesetzt sind). Auf die Syntax von Python und die
+Implementationsdetails der Library wird hier nicht n"aher eingegangen.
 
 Als Erstes muss ein OpenCL-Kontext und eine Command Queue eingerichtet werden:
 
@@ -1029,14 +1037,14 @@ for i in range(1, MAX_PW_LEN + 1):
 \end{small}
 
 \noindent Der gesamte Code (inkl. aller Variablen- und Konstantendefinitionen
-sowie aller Imports und Debug-Output) findet sich im Github-Repository (TODO URL
-TO REPO).
+sowie aller Imports und Debug-Output) findet sich im Github-Repository (siehe
+Abschnitt \cite{crypto:resultate:links}).
 
 \subsubsection{Collect}
 
-In der Collection-Phase werden die Ergebnisse der Kernel entgegengenommen und
+In der Collection-Phase werden die Ergebnisse der Workitems entgegengenommen und
 verarbeitet. Da das korrekte Resultat im Erfolgsfall immer in den Result-Buffer
-geschrieben wird (vgl. Kapitel \ref{crypto:verifikation}), muss nun lediglich
+geschrieben wird (siehe Abschnitt \ref{crypto:verifikation}), muss nun lediglich
 dieser Buffer ausgelesen werden. Da Python nicht mit null-terminierten
 Bytestrings sondern mit Unicode-Objekten arbeitet, m"ussen in unserem Fall
 zus"atzlich noch diese Null-Bytes entfernt werden.
@@ -1053,7 +1061,7 @@ else:
 \end{small}
 
 
-\subsection{Limitationen der gew"ahlten L"osung}
+\subsection{Limitationen und Optimierungspotential der gew"ahlten L"osung}
 
 \subsubsection{Ressourcen-Limits}
 \label{crypto:resourcenlimits}
@@ -1076,17 +1084,11 @@ pyopencl.RuntimeError: clEnqueueReadBuffer failed: out of resources
 \end{verbatim}
 \end{small}
 
-Wir haben nicht genauer nachverfolgt ob diese Fehlermeldung durch einen Fehler
+Wir haben nicht genauer nachverfolgt, ob diese Fehlermeldung durch einen Fehler
 in der Library-Implementation verursacht wurde, oder ob ein effektives
 Hardware-Limit erreicht wurde, aber es ist offensichtlich dass man nicht
-beliebig viele Kernel parallel laufen lassen kann (vgl. Kapitel
-\ref{crypto:grosse_probleme}).
-
-Ein m"oglicher L"osungsansatz w"are das Einf"uhren von Kernel-Gruppen mit einer
-fixen Anzahl parallel ausf"uhrbarer Kernel. Diese Zahl k"onnte dann jeweils an
-die verwendete Hardware angepasst werden. Die optimale Wahl dieses Parameters
-k"onnte durch algorithmische Optimierungsverfahren (optionale ``Kalibrierung''
-zu Beginn des Programms) automatisiert in Erfahrung gebracht werden.
+beliebig viele Workitems parallel laufen lassen kann. Details dazu wurden
+bereits in Kapitel \ref{crypto:grosse_probleme} erl"autert.
 
 \subsubsection{Vorzeitiger Abbruch}
 
@@ -1096,7 +1098,7 @@ Found} Flag, welches durch den erfolgreichen Thread im Globalen Memory gesetzt
 wird, relativ einfach implementierbar. Jeder Kernel m"usste zu Beginn der
 Ausf"uhrung dieses Flag "uberpr"ufen. Ist es gesetzt, wird die MD5-Berechnung im
 Kernel gar nicht erst ausgef"uhrt. Zu bestimmten Zeitpunkten im Programm-Ablauf
-(zB nach Beendigung einer Kernel-Gruppe gem"ass Kapitel
+(zB nach Beendigung einer Kernel-Gruppe gem"ass Abschnitt
 \ref{crypto:resourcenlimits}) k"onnte auch das Hauptprogramm dieses Flag
 "uberpr"ufen und im Erfolgsfall das Erzeugen neuer Kernel abbrechen.
 
@@ -1116,23 +1118,23 @@ vernachl"assigbar, solange der Hauptteil der Arbeit im Kernel-Code geschieht.
 
 \subsubsection{Optimierung der MD5-Implementation}
 
-Wie schon im Kapitel \ref{crypto:md5lib} beschrieben, haben wir innerhalb
+Wie schon im Abschnitt \ref{crypto:md5lib} beschrieben, haben wir innerhalb
 unseres Kernels eine bestehende MD5-Implementation verwendet. Diese
 Implementation wurde mit dem Fokus auf Einfachheit entwickelt und nicht im
 Hinblick auf maximale Performance. Im Rahmen dieser Arbeit haben wir keinerlei
 Optimierungen innerhalb dieser Library vorgenommen. Eine Parallelisierung des
 Algorithmus ist zwar aufgrund der rundenbasierten Natur von MD5 nicht m"oglich,
-jedoch bietet die Implementation selbst viel Raum f"ur
-Performance-Optimierungen. Wie gross die Welt der m"oglichen
-OpenCL-Kerneloptimierungen ist, sieht man beispielsweise eindr"ucklich im
+jedoch bietet die Implementation selbst viel Raum f"ur plattformspezifische
+Verbesserungen. Wie gross die Welt der m"oglichen OpenCL-Kerneloptimierungen
+ist, sieht man beispielsweise eindr"ucklich im
 \citetitle{crypto:nvidia_bestpractices} \cite{crypto:nvidia_bestpractices}.
 
 
 \section{Resultate}
 
-Unsere Implementation kann das gesetzte Ziel aus Kapitel
+Unsere Implementation kann das gesetzte Ziel aus Abschnitt
 \ref{crypto:zielsetzung} -- das Knacken des Wortes ``monkey'' innerhalb
-m"oglichst kurzer Zeit -- erreichen:
+kurzer Zeit -- erreichen:
 
 \begin{small}
 \begin{verbatim}
@@ -1174,7 +1176,7 @@ den Keyspace von 308'915'776 m"oglichen Eingabeworten innerhalb von 1.15s
 durchsuchen kann.
 
 Bei den anschliessend ausgegebenen Laufzeiten (sowohl effektiv wie auch
-extrapoliert) sieht man sehr gut die in Kapitel \ref{crypto:keyspace}
+extrapoliert) sieht man sehr gut die in Abschnitt \ref{crypto:keyspace}
 vorhergesagte exponentielle Entwicklung:
 
 \begin{figure}[H]
@@ -1188,7 +1190,7 @@ vorhergesagte exponentielle Entwicklung:
 
 Wir haben unsere Implementation auf verschiedenen CPU- und GPU-Platformen
 getestet. Nachfolgend ein Vergleich der Laufzeit (tiefer ist besser) auf 3 CPUs
-(Blau) und 3 GPUs (Gr"un):
+und 3 GPUs:
 
 \begin{figure}[H]
 	\centering
@@ -1197,11 +1199,19 @@ getestet. Nachfolgend ein Vergleich der Laufzeit (tiefer ist besser) auf 3 CPUs
 	\label{img:crypto:speed_comparison_v1}
 \end{figure}
 
-TODO: Vergleich inkl. single-threaded
+TODO danilo: Legende
+
+TODO danilo: Vergleich inkl. single-threaded
 
 \subsection{Bedeutung f"ur Umgang mit Passw"ortern}
 
-TODO
+TODO danilo
+
+\subsection{Links}
+\label{crypto:resultate:links}
+
+S"amtlicher Code zu diesem Kapitel ist auf Github zu finden:\\
+\url{https://github.com/AndreasFMueller/SeminarHPC/tree/master/code/crypto}
 
 
 \printbibliography[heading=subbibliography]
