@@ -269,7 +269,7 @@ Calculate (GPU), Collect (CPU).
 \subsection{Herleitung Wort aus Global ID}
 \index{Global ID}
 
-Irgendwie muss nun jedes Workitem herausfinden, welches Wort es hashen soll. Eine
+Irgendwie muss nun jedes Workitem herausfinden, welches Wort gehashed werden soll. Eine
 "Ubergabe des zu hashenden Wortes vom Hauptprogramm an jeden Kernel via Shared
 Memory w"are ineffizient und w"urde nur unn"otigen I/O verursachen. Es muss also
 eine bessere L"osung gefunden werden.
@@ -277,9 +277,9 @@ eine bessere L"osung gefunden werden.
 Ein Vorteil des gegebenen Problemes ist, dass der Keyspace der m"oglichen
 Eingabewerte eine arithmetische Folge darstellt. Es liegt also nahe, das Wort
 aus der Global ID herzuleiten. Die Global ID ist eine $n$-Dimensionale
-nat"urliche Zahl, welche jedem Kernel von OpenCL zugewiesen wird. Der
+nat"urliche Zahl, welche jedem Workitem von OpenCL zugewiesen wird. Der
 Wertebereich bewegt sich dabei in Einerschritten von $(0, ..., 0)$ bis $(s_1-1,
-..., s_n-1)$. Dabei steht $s$ f"ur die \textit{Work Size} der entsprechenden
+..., s_n-1)$. Dabei steht $s$ f"ur die Work Size der entsprechenden
 Dimension.
 
 \subsubsection{Naiver Ansatz}
@@ -370,7 +370,11 @@ for (int i = 0; i < 3; i++) {
 \end{verbatim}
 \end{small}
 
-\noindent Das zu hashende Wort befindet sich nun in der Variablen \texttt{string}.
+\noindent Das zu hashende Wort befindet sich nun in der Variablen
+\texttt{string} und kann nun weiterverarbeitet werden. Somit hat man einen
+sinnvollen L"osungsansatz. Jedoch sind damit noch nicht alle Probleme einfach
+gel"ost. Mehr dazu, wie man mit grossen Datenmengen umgeht, im nachfolgenden
+Kapitel.
 
 
 \section{Probleme mit grossen Problemen}
@@ -381,7 +385,7 @@ for (int i = 0; i < 3; i++) {
 Auch wenn OpenCL ausdr"ucklich daf"ur entwickelt wurde, mit riesigen Clustern
 von heterogenen Recheneinheiten sehr umfangreiche Probleme zu l"osen, so st"osst
 man doch irgendwann an die Grenzen der Hardware oder der Implementierung.  Denn
-jedes Workitem das ausgef"uhrt wird, ben"otigt Speicherplatz (Gr"osse des zur
+jedes Workitem, das ausgef"uhrt wird, ben"otigt Speicherplatz (Gr"osse des zur
 Verf"ugung stehenden Speichers, Hardware) und muss irgendwie verwaltet werden
 (Anzahl der maximal verwaltbaren Workitems und Workgroups, Implementierung).
 Zudem ist die Anzahl Dimensionen, die von einem Workitem verarbeitet werden k"onnen
@@ -389,78 +393,87 @@ begrenzt (Workitem-Dimension, Hardware \& Implementierung). Deshalb folgen in
 diesem Kapitel einige Betrachtungen dazu, wie man mit diesen Limitationen
 umgehen kann.
 
-Wie in der Einf"uhrung in den \ref{crypto:loesungsansatz} bereits betrachtet, 
-ergeben sich beim Zeichensatz [a-zA-Z0-9] und einer Passwortl"ange von 8 Zeichen 
-mehr als 200 Billionen = $2 * 10^{12}$ m"ogliche Kombinationen. Dieser Problemgr"osse 
-stehen aber auf einem System mit einem Intel Core i5-3320M Prozessor, 8GB RAM und 
-in einer OpenCL Workgroup maximal
+Wie in der Einleitung im Abschnitt \ref{crypto:keyspace} bereits erl"autert
+wurde, ergeben sich beim Zeichensatz \texttt{[a-zA-Z0-9]} und einer Wortl"ange
+von 8 Zeichen mehr als 200 Billionen ($2 * 10^{12}$) m"ogliche Kombinationen.
+Dieser Problemgr"osse stehen aber auf einem System mit einem Intel Core i5-3320M
+Prozessor, 8GB RAM und in einer OpenCL Workgroup gemäss dem OpenCL Standard
+theoretisch maximal
 
 \[
- N_{max} = N_{Workitems}^{wi_dim} = 8193^{3} = 5.50 * 10^{11}
+	N_{max} = w^d = 8193^{3} = 5.50 \cdot 10^{11} \quad\textrm{mit}\quad
+	\begin{aligned}
+		w &= \textrm{Anz. Workitems}\\
+		d &= \textrm{Anz. Workitem-Dimensionen}
+	\end{aligned}
 \]
 
-verwaltbare ``Problem-Teile'' = Workitems entgegen. Trotzdem l"asst zum Beispiel 
-die OpenCL Implementierung von Intel auch eine gr"ossere Anzahl Workitems problemlos zu, 
-wohingegen sich die Nvidia Implementation mit einer ``Out-of-resources''-Meldung 
-beendet.
+\noindent verwaltbare ``Problem-Teile'' entgegen. Trotzdem l"asst zum Beispiel
+die OpenCL Implementierung von Intel eine gr"ossere Anzahl Workitems problemlos
+zu, wohingegen sich die Nvidia Implementation mit einer ``Out of
+resources''-Meldung beendet.
 
 Genau um diese Grenzen soll es in diesem Abschnitt gehen. Es soll dabei nicht
-ersch"opfend auf die Grenzen von OpenCL oder auf alle Spezifikas der 
-Implementierungen eingegangen, sondern vielmehr f"ur das Thema sensibilisiert 
-und m"ogliche Ans"atze f"ur den Umgang mit grossen Problemen in OpenCL aufgezeigt
-werden, was hoffentlich dazu f"uhren wird, dass der Leser/die Leserin ein Gesp"ur 
-f"ur eigene, auf die spezifische Hardware und Implementierung zugeschnittene 
-Ans"atze entwickeln kann.
+ersch"opfend auf die Grenzen von OpenCL oder auf alle Spezifikas der
+Implementierungen eingegangen, sondern vielmehr f"ur das Thema sensibilisiert
+werden. Es sollen m"ogliche Ans"atze f"ur den Umgang mit grossen Problemen in
+OpenCL aufgezeigt werden, was hoffentlich dazu f"uhren wird, dass der Leser /
+die Leserin ein Gesp"ur f"ur eigene, auf die spezifische Hardware und
+Implementierung zugeschnittene Ans"atze entwickeln kann.
 
 
 \subsection{Grenzen von OpenCL}
 
-OpenCL wurde entwickelt um trotz einem m"oglichst Plattform"ubergreifenden Ansatz 
-sehr flexibel auf die Spezifika der jeweiligen Hardware reagieren zu k"onnen, was
-den Standard und die Grundkonzepte vor allem f"ur Einsteiger nicht unbedingt 
-einfacher zu begreifen macht. Insbesondere k"onnen sich trotz standardisierter 
-Schnittstelle die einzelnen OpenCL Compute Devices sehr stark voneinander unterscheiden,
-was die unterst"utzten Datentypen, maximale Problemgr"osse und andere angeht.
-Auf die wichtigsten Einstiegspunkte f"ur die Abfrage und Interpretation der 
-Hardwaremerkmale soll hier kurz eingegangen werden.
+OpenCL wurde entwickelt, um trotz einem m"oglichst Plattform"ubergreifenden
+Ansatz sehr flexibel auf die Spezifika der jeweiligen Hardware reagieren zu
+k"onnen. Das macht den Standard und die Grundkonzepte vor allem f"ur Einsteiger
+nicht unbedingt einfacher zu begreifen. Insbesondere k"onnen sich trotz
+standardisierter Schnittstelle die einzelnen OpenCL Compute Devices sehr stark
+voneinander unterscheiden, was wiederum die unterst"utzten Datentypen, die
+maximale Problemgr"osse und weitere Faktoren beeinflusst. Auf die wichtigsten
+Einstiegspunkte f"ur die Abfrage und Interpretation der Hardwaremerkmale soll
+hier kurz eingegangen werden.
 
 
 \subsubsection{Hardwaremerkmale abfragen}
 
-Gerade weil OpenCL so unterschiedliche Typen Hardware unterst"utzt, von der ``normalen''
-Desktop-CPU bis zu f"ur HPC Anwendungen spezialisierte Rechenkarten, gibt es einen
-sehr m"achtigen Weg die jeweiligen Hardwaremerkmale abzufragen. Das kann soweit 
-gehen, dass w"ahrend der Laufzeit die Hardwarekonfiguration abgefragt und das 
-Problem dynamisch auf die vorhandene Hardware optimiert wird.
+Gerade weil OpenCL so unterschiedliche Hardwareklassen unterst"utzt -- von der
+``normalen'' Desktop-CPU bis zu f"ur HPC Anwendungen spezialisierte Rechenkarten
+-- gibt es einen sehr m"achtigen Weg, um die jeweiligen Hardwaremerkmale
+abzufragen.  Das kann soweit gehen, dass w"ahrend der Laufzeit die
+Hardwarekonfiguration abgefragt wird, um das Problem dynamisch auf die
+vorhandene Hardware zu optimieren.
 
-An dieser Stelle macht es Sinn sich nochmals vereinfacht die Top-Down-Struktur
+An dieser Stelle macht es Sinn, sich nochmals vereinfacht die Top-Down-Struktur
 von OpenCL (wie bereits in Abbildung \ref{hardware:opencl} gezeigt) vor Augen zu
-f"uhren: \texttt{Platform $\rightarrow$ Compute Device $\rightarrow$ Compute
-	Unit ($\rightarrow$ Workgroup $\rightarrow$ Workitem $\rightarrow$ Workitem
-Dimension)}. In dieser Reihenfolge werden auch die Hardwaremerkmale abgefragt.
+f"uhren:
+\[
+	Platform \rightarrow Compute Device \rightarrow Compute Unit
+\]\[
+	(\rightarrow Workgroup \rightarrow Workitem \rightarrow Workitem Dimension)
+\]
+\noindent In dieser Reihenfolge werden auch die Hardwaremerkmale abgefragt.
 OpenCL 1.2 stellt dazu folgende Funktionen zur Verf"ugung:
 
 \begin{description}
  \item [clGetPlatformIDs()] gibt eine Liste der vorhandenen Plattformen zur"uck.
- \item [clGetPlatformInfo()] retourniert die Merkmale der aktuellen Plattform. Das heisst,
-                            der Herausgeber der Implementation, die imlementierte 
+ \item [clGetPlatformInfo()] retourniert die Merkmale der aktuellen Plattform:
+                            Herausgeber der Implementation, implementierte 
                             OpenCL Version und allf"allig von der Plattform 
-                            zus"atzlich unterst"utzte Erweiterungen (Das m"ussen
-                            nicht die gleichen sein wie die von den jeweiligen
-                            Compute Devices unterst"utzten).
- \item [clGetDeviceIDs()]   Mit der jeweiligen Plattform-ID k"onnen nun die auf der 
-                            jeweiligen Plattform verf"ugbaren Compute-Devices abgefragt 
-                            werden.
- \item [clGetDeviceInfo()]  Mit den so erhaltenen Device-IDs bekommt man anschliessend 
+                            zus"atzlich unterst"utzte Erweiterungen.
+ \item [clGetDeviceIDs()]   Mit der jeweiligen Plattform-ID k"onnen nun die
+                            verf"ugbaren Compute-Devices abgefragt werden.
+ \item [clGetDeviceInfo()]  Mit den so erhaltenen Device-IDs erh"alt man anschliessend 
                             zum abgefragten Compute Device einen ganzen Katalog von
-                            Merkmalen zur"uck, von der maximalen Anzahl von Workgroups
-                            und Workitems, "uber die Speicherkapazit"aten bis zur 
-                            Clock-Frequenz und dem Hersteller der Hardware. Auf einzelne 
+                            Merkmalen zur"uck, von der maximalen
+                            Workgroup- und Workitem-Anzahl "uber die
+                            Speicherkapazit"aten bis hin zur
+                            Clock-Frequenz und zum Hardware-Hersteller. Auf einzelne
                             dieser Merkmale soll im Folgenden noch eingegangen werden.
 \end{description}
 
 \noindent Die genauen Parameter und R"uckgabewerte k"onnen der offiziellen
-Dokumentation \cite{crypto:opencl_ref} entnommen werden.
+OpenCL-Referenz\cite{crypto:opencl_ref} entnommen werden.
 
 Um die vorher genannten Funktionen und deren M"oglichkeiten zu demonstrieren, wird ein kurzes
 Code-Beispiel f"ur einen typischen Desktop-Computer mit einer OpenCL f"ahigen
@@ -592,7 +605,7 @@ diese Zahl ist noch nicht sonderlich berauschend.
 
 % TODO MURL: fix that one
 Im folgenden soll nun gezeigt werden, wie das Problem so angepasst werden kann, 
-dass die Berechnung nicht für alle $64'000 cm^{3}$ neu angeworfen werden muss.
+dass die Berechnung nicht f"ur alle $64'000 cm^{3}$ neu angeworfen werden muss.
 
 \subsubsection{Maximale Problemgr"osse am Beispiel MD5 Cracking}
 
@@ -989,7 +1002,7 @@ Wir haben im Rahmen dieser Arbeit nicht direkt mit den OpenCL C Libraries
 gearbeitet, sondern eine Wrapper-Library namens
 PyOpenCL\cite{crypto:pyopencl_docs} f"ur die Programmiersprache
 Python\cite{crypto:python} verwendet. Im direkten Vergleich mit C ist es so viel
-einfacher OpenCL zu initialisieren und zu konfigurieren (wobei nat"urlich
+einfacher, OpenCL zu initialisieren und zu konfigurieren (wobei nat"urlich
 Python-Kenntnisse vorausgesetzt sind). Auf die Syntax von Python und die
 Implementationsdetails der Library wird hier nicht n"aher eingegangen.
 
@@ -1113,12 +1126,11 @@ Found} Flag, welches durch den erfolgreichen Thread im Globalen Memory gesetzt
 wird, relativ einfach implementierbar. Jeder Kernel m"usste zu Beginn der
 Ausf"uhrung dieses Flag "uberpr"ufen. Ist es gesetzt, wird die MD5-Berechnung im
 Kernel gar nicht erst ausgef"uhrt. Zu bestimmten Zeitpunkten im Programm-Ablauf
-(zB nach Beendigung einer Kernel-Gruppe gem"ass Abschnitt
-\ref{crypto:resourcenlimits}) k"onnte auch das Hauptprogramm dieses Flag
-"uberpr"ufen und im Erfolgsfall das Erzeugen neuer Kernel abbrechen.
+k"onnte auch das Hauptprogramm dieses Flag "uberpr"ufen und im Erfolgsfall das
+Erzeugen neuer Kernel abbrechen.
 
 Da das korrekte Resultat durchschnittlich nach 50\% der Versuche gefunden wird
-(vorausgesetzt nat"urlich dass sich die korrekte L"osung im Keyspace befindet),
+(vorausgesetzt nat"urlich, dass sich die korrekte L"osung im Keyspace befindet),
 w"urde ein vorzeitiger Abbruch die Programm-Laufzeit (abz"uglich des dadurch
 eingef"uhrten Overheads) im Schnitt halbieren.
 
