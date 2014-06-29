@@ -234,6 +234,7 @@ keinerlei Interprozess-Kommunikation. OpenCL ist hierf"ur also bestens geeignet.
 
 
 \section{L"osungsansatz}
+\label{crypto:loesungsansatz}
 
 % TODO danilo: Ev Bezug auf vorherige Section
 
@@ -312,6 +313,7 @@ Dimensionen irgendwie zu vergr"ossern.
 % TODO danilo: Backreferenz aus Problem-Kapitel
 
 \subsubsection{Virtuelle Dimensionen}
+\label{crypt:virtuelle_dimensionen}
 
 Eine M"oglichkeit dazu ist die Einf"uhrung virtueller Dimensionen. Dabei werden
 mehrere Dimensionen durch Multiplikation der Keyspace-Gr"osse in eine einzelne
@@ -346,6 +348,8 @@ Buchstaben des Wortes in Dreiergruppen aufteilt (Sliding Window Algorithmus).
 \end{figure}
 
 % TODO danilo: Beispiel-Tabelle
+% Bemerkung lukas: hier wäre allenfalls das Wort Kernel wirklich angebracht;
+% Was im Stil: ``Der OpenCL Kernel sieht somit folgendermassen aus:''
 
 \noindent In OpenCL C sieht das folgendermassen aus:
 
@@ -381,31 +385,32 @@ for (int i = 0; i < 3; i++) {
 Auch wenn OpenCL ausdr"ucklich daf"ur entwickelt wurde, mit riesigen Clustern
 von heterogenen Recheneinheiten sehr umfangreiche Probleme zu l"osen, so st"osst
 man doch irgendwann an die Grenzen der Hardware oder der Implementierung.  Denn
-jeder Kernel der ausgef"uhrt wird, ben"otigt Speicherplatz (Gr"osse des zur
+jedes Workitem das ausgef"uhrt wird, ben"otigt Speicherplatz (Gr"osse des zur
 Verf"ugung stehenden Speichers, Hardware) und muss irgendwie verwaltet werden
-(Anzahl der maximal verwaltbaren Work-Items und Work-Groups, Implementierung).
-Zudem ist die Anzahl Dimensionen, die von einem Kernel verarbeitet werden k"onnen,
-begrenzt (Work-Item-Dimension, Hardware \& Implementierung). Deshalb folgen in
+(Anzahl der maximal verwaltbaren Workitems und Workgroups, Implementierung).
+Zudem ist die Anzahl Dimensionen, die von einem Workitem verarbeitet werden k"onnen
+begrenzt (Workitem-Dimension, Hardware \& Implementierung). Deshalb folgen in
 diesem Kapitel einige Betrachtungen dazu, wie man mit diesen Limitationen
 umgehen kann.
 
-Wie in der Einf"uhrung ins Problem bereits betrachtet, ergeben sich beim Zeichensatz
-[a-zA-Z0-9] und einer Passwortl"ange von 8 Zeichen mehr als 200 Billionen = $2^{12}$ 
-m"ogliche Kombinationen. Dieser Problemgr"osse stehen aber auf einem System mit einem 
-Intel Core i5-3320M Prozessor, 8GB RAM und in einer OpenCL Workgroup maximal
+Wie in der Einf"uhrung in den \ref{crypto:loesungsansatz} bereits betrachtet, 
+ergeben sich beim Zeichensatz [a-zA-Z0-9] und einer Passwortl"ange von 8 Zeichen 
+mehr als 200 Billionen = $2 * 10^{12}$ m"ogliche Kombinationen. Dieser Problemgr"osse 
+stehen aber auf einem System mit einem Intel Core i5-3320M Prozessor, 8GB RAM und 
+in einer OpenCL Workgroup maximal
 
 \[
  N_{max} = N_{Workitems}^{wi_dim} = 8193^{3} = 5.50 * 10^{11}
 \]
 
-verwaltbare ``Problem-St"ucke'' entgegen. Trotzdem l"asst zum Beispiel die OpenCL
-Implementierung von Intel auch eine gr"ossere Anzahl WorkItems problemlos zu, 
+verwaltbare ``Problem-Teile'' = Workitems entgegen. Trotzdem l"asst zum Beispiel 
+die OpenCL Implementierung von Intel auch eine gr"ossere Anzahl Workitems problemlos zu, 
 wohingegen sich die Nvidia Implementation mit einer ``Out-of-resources''-Meldung 
 beendet.
 
-Genau um diese Grenzen soll es in diesem Abschnitt gehen. Es soll aber in keinster
-Weise ersch"opfend die Grenzen von OpenCL oder alle Spezifikas der 
-Implementierungen eingegangen werden, sondern vielmehr f"ur das Thema sensibilisiert 
+Genau um diese Grenzen soll es in diesem Abschnitt gehen. Es soll dabei nicht
+ersch"opfend auf die Grenzen von OpenCL oder auf alle Spezifikas der 
+Implementierungen eingegangen, sondern vielmehr f"ur das Thema sensibilisiert 
 und m"ogliche Ans"atze f"ur den Umgang mit grossen Problemen in OpenCL aufgezeigt
 werden, was hoffentlich dazu f"uhren wird, dass der Leser/die Leserin ein Gesp"ur 
 f"ur eigene, auf die spezifische Hardware und Implementierung zugeschnittene 
@@ -414,20 +419,14 @@ Ans"atze entwickeln kann.
 
 \subsection{Grenzen von OpenCL}
 
-% @ Danilo: Ich w"urde es drin lassen. Sind zwei kurze Abschnitte, die fressen kaum
-% Heu, aber ein bisschen Hintergrundinfo, denke ich kann nicht schaden.
-% TODO: Ich w"urde auf Erweiterungen gar nicht erst eingehen. Sie sind f"ur uns ja
-% nicht sonderlich relevant.
 OpenCL wurde entwickelt um trotz einem m"oglichst Plattform"ubergreifenden Ansatz 
 sehr flexibel auf die Spezifika der jeweiligen Hardware reagieren zu k"onnen, was
-auch das ebenfalls in OpenGL vorhandene Extension-System beinhaltet. Vor allem f"ur
-% TODO: Hier ebenfalls, ich w"urde OpenGL gar nicht erst erw"ahnen, sondern ganz
-% auf OpenCL fokussieren.
-Einsteiger in die OpenCL/OpenGL-Welt (hier sei erw"ahnt, dass hinter beiden 
-Technologien sehr "anhliche Grundkonzepte stehen) kann es dabei schwierig werden
-sich im Dschungel der Hardwaredaten und M"oglichkeiten zurechtzufinden. Auf die 
-wichtigsten Einstiegspunkte und die f"ur unsere Problemstellung relevanten Punkte
-soll hier kurz eingegangen werden.
+den Standard und die Grundkonzepte vor allem f"ur Einsteiger nicht unbedingt 
+einfacher zu begreifen macht. Insbesondere k"onnen sich trotz standardisierter 
+Schnittstelle die einzelnen OpenCL Compute Devices sehr stark voneinander unterscheiden,
+was die unterst"utzten Datentypen, maximale Problemgr"osse und andere angeht.
+Auf die wichtigsten Einstiegspunkte f"ur die Abfrage und Interpretation der 
+Hardwaremerkmale soll hier kurz eingegangen werden.
 
 
 \subsubsection{Hardwaremerkmale abfragen}
@@ -441,7 +440,7 @@ Problem dynamisch auf die vorhandene Hardware optimiert wird.
 An dieser Stelle macht es Sinn sich nochmals vereinfacht die Top-Down-Struktur
 von OpenCL (wie bereits in Abbildung \ref{hardware:opencl} gezeigt) vor Augen zu
 f"uhren: \texttt{Platform $\rightarrow$ Compute Device $\rightarrow$ Compute
-	Unit ($\rightarrow$ Work Group $\rightarrow$ Work Item $\rightarrow$ Work Item
+	Unit ($\rightarrow$ Workgroup $\rightarrow$ Workitem $\rightarrow$ Workitem
 Dimension)}. In dieser Reihenfolge werden auch die Hardwaremerkmale abgefragt.
 OpenCL 1.2 stellt dazu folgende Funktionen zur Verf"ugung:
 
@@ -459,7 +458,7 @@ OpenCL 1.2 stellt dazu folgende Funktionen zur Verf"ugung:
  \item [clGetDeviceInfo()]  Mit den so erhaltenen Device-IDs bekommt man anschliessend 
                             zum abgefragten Compute Device einen ganzen Katalog von
                             Merkmalen zur"uck, von der maximalen Anzahl von Workgroups
-                            und Work-Items, "uber die Speicherkapazit"aten bis zur 
+                            und Workitems, "uber die Speicherkapazit"aten bis zur 
                             Clock-Frequenz und dem Hersteller der Hardware. Auf einzelne 
                             dieser Merkmale soll im Folgenden noch eingegangen werden.
 \end{description}
@@ -467,7 +466,7 @@ OpenCL 1.2 stellt dazu folgende Funktionen zur Verf"ugung:
 \noindent Die genauen Parameter und R"uckgabewerte k"onnen der offiziellen
 Dokumentation \cite{crypto:opencl_ref} entnommen werden.
 
-Um das diese Begriffe etwas verst"andlicher zu machen, wird ein kurzes
+Um die vorher genannten Funktionen und deren M"oglichkeiten zu demonstrieren, wird ein kurzes
 Code-Beispiel f"ur einen typischen Desktop-Computer mit einer OpenCL f"ahigen
 CPU und einer modernen Grafikkarte aufgef"uhrt. Es ist exemplarisch, der
 Anschaulichkeit wegen in Pseudocode verfasst und repr"asentiert weder den vollen
@@ -535,10 +534,10 @@ Datatypes:
  \item [Profile] \texttt{full} oder \texttt{embedded} (in OpenCL 1.2)
  \item [Type]    \texttt{CPU}, \texttt{GPU} oder \texttt{ACCELERATOR}
  \item [Compute Units] Anzahl der physisch vorhandenen Compute Units. Dies ist
-                 die Anzahl effektiv parallel ausgef"uhrter Kernel
- \item [Max work group size] Maximale Anzahl Work Items in einer Work Group
- \item [Max work item dim.] Maximale direkt im Work Item bearbeitbare Dimensionen, minimal 1, maximal 3
- \item [Max work item size] Maximale Anzahl von Work Items in einer Work Group nach
+                 die Anzahl effektiv parallel ausgef"uhrten Workitems
+ \item [Max work group size] Maximale Anzahl Workitems in einer Workgroup
+ \item [Max work item dim.] Maximale direkt im Workitem bearbeitbare Dimensionen, minimal 1, maximal 3
+ \item [Max work item size] Maximale Anzahl von Workitems in einer Workgroup nach
                  Dimensionen (Ist je nach Ger"at unterschiedlich in den verschiedenen
                  Dimensionen)
  \item [Preferred vector size] (F"ur jeden unterst"utzten Datentyp) Vektorgr"osse, 
@@ -552,27 +551,58 @@ Datatypes:
 Spezifikation\cite{crypto:opencl_ref} folgende Regeln:
 
 \begin{itemize}
- \item Eine Work Group wird nur auf einer Compute Unit ausgef"uhrt (1 Workgrooup = 1 
+ \item Eine Workgroup kann nur auf einer Compute Unit ausgef"uhrt werden (1 Workgrooup = 1 
        Compute Device). Das heisst, pro Compute Unit muss eine Workgroup erstellt werden.
- \item Die Anzahl der Work-Items pro Workgroup darf insgesamt 8192 nicht "ubersteigen (global work size)
+ \item Die Anzahl der Workitems pro Workgroup darf insgesamt 8192 nicht "ubersteigen (global work size)
  \item Dabei d"urfen die in ``Max work item size'' angegebenen Werte in der jeweiligen 
        Dimension nicht "uberstiegen werden (local work size $[x,y,z,\ldots]$).
 			 Die Summe $x + y + z$ darf dabei insgesamt nicht gr"osser werden als ``Max work group size''.
- \item Die Anzahl effektiv verwendeter Work Item Dimensionen darf im Bereich von 1 bis
+ \item Die Anzahl effektiv verwendeter Workitem Dimensionen darf im Bereich von 1 bis
        ``Max work item dim.'' liegen.
 \end{itemize}
 
 
-\subsubsection {Maximale Problemgr"osse einer Partikelsimulation}
+\subsubsection {Maximale Problemgr"osse im 3-Dimensionalen Raum}
 
-% TODO luc: Aufzeigen anhand einer Partikelsimulation, 1 Pixel pro mm
+Das t"ont zwar schon mal nach einiger Gr"osse, doch soll ein kleines Beispiel
+demonstrieren, dass die Grenzen schneller erreicht sind als man denkt.
+
+Wir nehmen an, eine 3D-Simulation zu machen, in der sich das gesamte
+Simulationsproblem in lauter kleine W"urfel aufteilen lässt (Beispiele f"ur diese
+Anwendung gibt es viele: Str"omungssimulationen, Verformungen bei Krafteinwirkung,
+Wetterberechnung um drei davon zu nennen). Dabei nehmen wir an, dass f"ur unser 
+Problem eine Unterteilung des Raums $1 mm^{3}$ W"urfelchen, von denen in jedem 
+Iterationsschritt der Zustand in jeweils einem Workitem neu berechnet werden soll, 
+gen"ugt.
+
+Als erste berechnen wir das maximal so simulierbare Volumen mit einer Workgroup.
+Da die Gesamtzahl der Workitems in einer Workgroup f"ur das aktuelle Beispiel
+8192 nicht "uberschreiten darf, k"onnen maximal
+
+\[
+ n = \floor{\sqrt[3]{8192}} = \floor{20.159} = 20
+\]
+
+Qu"aderchen pro Dimension berechnet werden. Das entspricht einem W"urfel von 
+$2x2x2 cm^{3}$, was uns in den meisten F"allen noch nicht sonderlich weit bringt.
+
+Angenommen wir erweitern nun die Zahl der Workgroups nach demselben Schema,
+das heisst jede Workgroup berechnet einen $2x2x2 cm^{3}$ W"urfel, so entspricht
+das bei einer maximalen Workgroupzahl von 8192 nochmals 20 W"urfeln in jede 
+Dimension. Somit k"onnten wir f"ur die oben genannte Implementation in einem
+Anwurf der OpenCL Maschine einen W"urfel von $40x40x40 cm^{3}$ berechnen. Auch
+diese Zahl ist noch nicht sonderlich berauschend. 
+
+
+% TODO MURL: fix that one
+Im folgenden soll nun gezeigt werden, wie das Problem so angepasst werden kann, 
+dass die Berechnung nicht für alle $64'000 cm^{3}$ neu angeworfen werden muss.
 
 \subsubsection{Maximale Problemgr"osse am Beispiel MD5 Cracking}
 
 Am Beispiel des MD5-Crackings soll mit einer kurzen Beispielrechnung gezeigt
-werden, wie man die maximal m"ogliche Gr"osse eines Problems f"ur die
-spezifische Hardware errechnen kann, die gleichzeitig der Hardware "ubergeben
-werden kann.
+werden, wie man das Problem in kleinere Teilprobleme trennen kann, welche dann
+der Hardware auch "uebergebenwerden k"onnen.
 
 Dazu treffen wir folgende Annahmen:
 
@@ -601,53 +631,48 @@ F"ur den Keyspace erhalten wir somit folgende Werte:
 \end{center}
 
 Demgegen"uber stehen die maximale Anzahl Workitems pro Workgroup, f"ur
-den bereits vorgestellten Intel Core i5 sind dies 8192. Angenommen es
-wird die Dimension verwendet um den String zu berechnen (Details siehe
-im n"achsten Kapitel), so ergibt sich bei 3 verwendbaren Dimensionen die 
-folgende in einer Workgroup durchsuchbare Anzahl Strings:
+den bereits vorgestellten Intel Core i5 sind dies 8192. Wie bereits im
+Kaptiel \ref{crypto:loesungsansatz} beschrieben, verwenden wir die 
+Dimension f"ur die Bestimmung des Strings:
 
 \[
   N_{Strings} = 8192^3 = 5.498*10^{9}
 \]
 
-Das heisst, die MD5-Berechnung eines Strings mit dem (zugegeben eher 
-praxisfernen) Zeichensatz [a-z] ist bereits nach einer L"ange von nur
-7 Zeichen ein Problem, welches so gross ist, dass man sich "uberlegen
-muss, wie man es weiter aufteilen kann. Bei einer Zeichensatzgr"osse
-von $[a-zA-Z0-9] = 62$ Zeichen "ubersteigt das Problem bereits bei
-$62^6 = 5.680 * 10^{10}$ die Gr"osse, die mit einer einzelnen 
-Workgroup berechnet werden kann.
+Abgesehen davon, dass gewisse Implementationen die Gesamtzahl der 
+Workitems Dimensionsunabh"angig auf einen kleineren Wert als  $8192^3$
+legen, heisst das, dass die MD5-Berechnung eines Strings mit dem eher 
+praxisfernen Zeichensatz [a-z] bereits nach einer L"ange von nur
+7 Zeichen zu einem Problem wird, welches so gross ist, dass es weiter
+aufgeteilt werden muss. Bei einer Zeichensatzgr"osse
+von $[a-zA-Z0-9] = 62$ Zeichen "ubersteigt das Problem bereits bei 6
+Zeichen ($62^6 = 5.680 * 10^{10}$) deutlich diese Gr"osse.
 
-Beim gew"ahlten Ansatz muss zudem auch die Dimensionsgr"osse im Auge
-behalten werden. Denn der zu bearbeitende String wird aus der 
-Dimensionszahl berechnet wird (Details siehe im n"achsten Kapitel).
-Dabei "ubersteigt bereits $26^3 = 17'576$ die Maximal zul"assige
-Dimensionsgr"osse von $8192$. Das heisst effektiv kann durch diese
-Beschr"ankung sogar nur ein $[26^2, 26^2, 26^2] = 6$ Zeichen langer
-String in einer Workgroup gepr"uft werden (beziehungsweise bei 
-Verwendung von nur einer Dimension sogar nur $26^2 = 2$ Zeichen. 
-Dieser Fall wurde aber aus wohl verst"andlichen Gr"unden gar nicht
-speziell behandelt).
+Wird nun die maximale Gr"osse der Dimension mit in die Betrachtung
+integriert, "ubersteigt bereits $26^3 = 17'576$ die Maximal zul"assige
+Dimensionsgr"osse von $8192$ bei unserer Beispielimplementation. Das heisst,
+effektiv kann durch diese Beschr"ankung sogar nur ein $[26^2, 26^2, 26^2] = 6$ 
+Zeichen langer String in einer Workgroup gepr"uft werden, beziehungsweise bei 
+beachtung der Grenze von nur maximal $8192$ Workitems in der gesamten Workgroup 
+sogar nur $26^2 = 2$ Zeichen (f"ur die genannte Beispielimplementation).
 
-Dieses Tandem aus Dimensionsgr"ossen und der Gesamtzahl der Workitems
-muss immer zusammen betrachtet werden. In diesem Fall war die maximale
-Gr"osse einer Dimension der limitierende Faktor. Es kann aber 
-durchaus auch sein, dass die Maximalgr"osse der Dimension nicht 
-"uberschritten wird, aber bereits zu viele Workitems vorhanden sind
-(siehe dazu die Beschreibung zu den Hardwaremerkmalen).
+In diesem Fall war die maximale Zahl der Workitems pro Workgroup der limitierende 
+Faktor. Es kann durchaus auch sein, dass die Maximalzahl der Workitems nicht 
+"uberschritten wird, aber die Dimensionszahl bereits gr"osser als die maximal
+zugelassene Gr"osse wird (siehe dazu die Beschreibung zu den Hardwaremerkmalen).
+Das heisst, die zwei Punkte ``Maximale Anzahl Workitems pro Workgroup'' und 
+``Maximale Dimensionsgr"osse'' m"ussen als zwei unabh"angige Limitierungsfaktoren
+betrachtet werden, welche beide eingehalten werden m"ussen.
 
-Jetzt gibt es aber durchaus Unterschiede in der Behandlung von ``zu
-grossen Problem'' durch die verschiedenen Implementationen. W"ahrend
-die Intel Implementation Dimensionen gr"osser als die deklarierten
-8192 pro Dimension zul"asst, verabschiedet sich die Nvidia Implementation
-mit einem ``Out-of-Resources'' Fehler, sobald in einer Dimension die 
-Maximalanzahl von 8192 "uberschritten wird. Das genaue Verhalten der
+Verschiedene Implementationen behandeln eine "Uberschreitung der einzelnen
+Faktoren durchaus unterschiedlich. W"ahrend
+die Intel Implementation Dimensionen gr"osser als die eigentlich deklarierte
+Maximalgr"osse von $8192$ pro Dimension zul"asst, beendet sich die Nvidia 
+Implementation mit einem ``Out-of-Resources'' Fehler, sobald in einer Richtung 
+die Maximalanzahl von $8192$ "uberschritten wird. Das genaue Verhalten der
 jeweils verwendeten Implementation sollte vorg"angig abgekl"art oder
-einfach mal ausprobiert werden. Trotzdem kann es lohnenswert sein, sich
-bei solch umfangreichen Problemen ein wenig mehr Gedanken zur Aufteilung
-des Problems zu machen, nicht zuletzt, weil das, wie wir im n"achsten
-Kapitel sehen werden, einen grossen Einfluss auf die gesamte Rechenzeit haben
-kann.
+zumindest ausprobiert werden. 
+
 
 \subsection{Aufteilung von grossen Problemen}
 
@@ -655,12 +680,12 @@ In diesem Kapitel werden einige Techniken beschrieben, mit denen ein
 grosses Problem weiter portioniert werden kann, so dass es in die 
 Hardware und die Implementierung ``passt''. 
 Denn wie im letzten Kapitel aufgezeigt wurde sollte man sp"atestens dann
-beginnen sich Gedanken zur Problemgr"osse zu machen, wenn man an die 
-Grenzen der Hardware st"osst. Es lohnt sich aber auch, wie in diesem 
-Kapitel auch gezeigt werden soll, bereits vorg"angig mal anzuschauen
-wo man an die Grenzen der Hardware st"osst, beziehungsweise wie das
-Problem besser aufgeteilt werden kann, um nicht zuletzt auch die 
-Hardware optimal ausn"utzen zu k"onnen.
+beginnen sich Gedanken zur Problemgr"osse zu machen, wenn die 
+Grenzen der Hardware erreicht sind. Es lohnt sich aber trotzdem, wie in diesem 
+Kapitel auch gezeigt werden soll, auch bei ``kleineren'' grossen Problemen
+welche noch nicht an die Grenzen der Hardware stossen, sich Gedanken
+"uber eine m"oglichst effektive Aufteilung des Problems zu machen, so
+dass die vorhandenen Ressourcen optimal  ausgenutzt werden k"onnen.
 
 Speziell soll dabei auf die folgenden Techniken eingegangen werden:
 
@@ -676,71 +701,69 @@ wird, die auch im Zuge der Implementierung des MD5-Cracking Projekts
 ausprobiert oder evaluiert wurden. Das heisst, die Liste erhebt weder
 die den Anspruch auf Vollst"andigkeit noch auf die Brauchbarkeit f"ur
 ein spezielles Problem. Wir hoffen aber, dem Leser ein paar Ideen
-in die Hand zu geben, mit denen er seine eigene Anwendung hoffentlich
-weiter optimieren kann.
+in die Hand zu geben, wie er seine eigenen Anwendungen weiter optimieren 
+kann.
 
 
 \subsubsection{Mehrere Workgroups verwenden}
 
-Im gemachten Beispiel im vorherigen Abschnitt wurde davon ausgegangen,
-dass nur eine Workgroup verwendet wird. Diese Vorgabe wurde zum einen
-der Anschaulichkeit halber gemacht, um die Komplexit"at nicht h"oher zu
-treiben als sowieso schon notwendig, zum anderen besitzt besagtes Ger"at
-mit dem Intel Core i5 Prozessor nur ein von OpenCL direkt ansprechbares
-Compute Device (Implementierungsspezifisch). Im Normalfall besitzt jeder
-moderne Desktop Computer und die meisten Notebooks mindestens zwei 
-OpenCL f"ahige Ger"ate, namentlich die CPU und die Grafikkarte. 
-Vorausgesetzt die entsprechenden Treiber sind installiert, k"onnen alle
-diese Ger"ate f"ur die Berechnungen verwendet werden.
+In den bisherigen Beispielen wurde meist davon ausgegangen,
+dass nur eine Workgroup verwendet wird. In der Praxis besitzt jeder
+moderne Desktop-Computer mindestens zwei OpenCL-f"ahige Ger"ate, 
+namentlich die CPU und die GPU, welche wiederum ein bis \ldots Compute
+Devices, sprich real parallel laufende Rechenkerne umfassen.
 
-Genau hier kommt auch das Thema ``Mehrere Workgroups'' ins Spiel, denn
-eine Workgroup kann jeweils nur ein Ger"at ansprechen. Will man also
-nicht nur die CPU \textit{oder} die Grafikkarte verwenden, sondern die 
-CPU \textit{und} die Grafikkarte parallel verwenden, m"ussen unabh"angig
+Genau hier kommt das Thema ``Mehrere Workgroups'' ins Spiel, denn
+eine Workgroup kann jeweils nur auf einem Compute Device laufen. Will man also
+nicht nur einen Prozessor der modernen Multicore-CPUs \textit{oder}
+eine Recheneinheit der Grafikkarte verwenden, sondern die CPU \textit{und} 
+die Grafikkarte voll ausnutzen, m"ussen unabh"angig
 von der Problemgr"osse mehrere Workgroups erzeugt werden.
 
-Zugegeben, das hat nun nicht unbedingt direkt etwas mit der weiteren 
-Aufteilung des Problems zu tun, trotzdem kann diese Technik auch bei
-Problemen verwendet werden, welche die Grenzen einer Workgroup sprengen.
-Das kann aber als Variante des Punktes ``Mehrfacher, parametrisierter
-``Anwurf'' der OpenCL Maschine'' gesehen werden. Wirklich Sinn macht 
-diese Variante vor allem wenn mehrere Compute Devices zur Verf"ugung
-stehen. Hier ist anzumerken, dass je nach Implementation und 
-verwendeter Frameworks die Aufteilung in Workgroups auch automatisch
-vorgenommen wird, wenn nichts explizit angegeben wird. Aus den im
-n"achsten Absatz genannten Problem der unterschiedlichen Laufzeiten
-sollte um das Optimum aus der Hardware zu holen wenn m"oglich selbst
-aufgeteilt werden.
+Wie wir bereits gesehen haben, kann mit den Workgroups die Anzahl der 
+verarbeitbaren Workitems  pro ``Anwurf'' der OpenCL-Maschine bereits
+deutlich erh"oht werden. Darauf wird im Punkt ``Mehrfacher, parametrisierter
+``Anwurf'' der OpenCL Maschine'' weiter unten noch deutlich eingegangen. 
+Hierzu ist anzumerken, dass je nach Implementation und 
+verwendeten Frameworks die Aufteilung in Workgroups auch automatisch
+vorgenommen wird, wenn nichts explizit angegeben wurde.
 
-Denn insbesondere unterschiedliche Ger"ate rechnen
-auch unterschiedlich schnell. Es wird nicht einfach sein, 
-beim ersten Versuch die Problem-``H"appchen'' so zu portionieren, dass
-die Berechnungen auf beiden Compute Devices ungef"ahr "ahnlich lang 
-laufen. Dabei geht es nicht um Minuten, es kann durchaus sein, dass 
+M"ochte man aber die vorhandene Hardware optimal ausnutzen und dabei
+in betracht ziehen, dass die Compute Devices nicht alle gleich schnell
+rechnen, kommt man nicht darum herum sich selbst Gedanken "uber die
+Aufteilung in Workgroups zu machen. Die Herausforderung dabei ist, 
+die Anzahl der Workitems so via die Workgroups auf die Compute Devices
+zu verteilen, dass die Berechnungen abarbeitung der jeweiligen Workgroup
+auf allen Compute Devices ungef"ahr "anhlich lange dauert. Dabei geht es 
+nicht um Minuten, es kann durchaus sein, dass 
 die Portion welche auf der GPU gerechnet wurde, nach 30 Minuten bereits
 fertig ist, diejenige, welche die CPU "ubernimmt aber 3 Stunden dauert.
-Somit ist die GPU also 2.5 Stunden unbesch"aftigt rumgestanden. Hier
-empfiehlt es sich bei unbekannter Hardware mit kleinen Portionen zu 
-beginnen, die Durchlaufzeiten zu messen und erst dann zu Entscheiden,
-wie die weitere Aufteilung aussehen soll. Um eine gute Aussagekraft
-zu erhalten, sollten die ersten Portionen auch nicht zu klein sein,
-irgendwo zwischen 10-100 Berechnungen sollten die meisten Unw"agbarkeiten
-ausb"ugeln. Dabei kann durchaus auch Iterativ vorgegangen werden, um
-eine m"oglichst optimale Aufteilung zu erreichen und der Ansatz ist
+Da die OpenCL Spezifikation keinen Abbruch oder eine Neuverteilung zul"asst,
+bevor nicht alle Workgroups fertig gelaufensind, ist die GPU also 2.5 Stunden 
+unbesch"aftigt rumgestanden. Hier empfiehlt es sich bei unbekannter Hardware 
+mit kleinen Portionen zu beginnen, die Durchlaufzeiten zu messen und erst dann 
+zu Entscheiden, wie die weitere Aufteilung aussehen soll. Um eine gute 
+Aussagekraft zu erhalten, sollten die ersten Portionen auch nicht zu klein sein,
+irgendwo zwischen 10-100 Berechnungen auf jedem Compute Device sollten die meisten 
+Unw"agbarkeiten ausb"ugeln. Dabei kann durchaus auch Iterativ vorgegangen 
+werden, um eine m"oglichst optimale Aufteilung zu erreichen und der Ansatz ist
 auch leicht automatisierbar.
 
 Zusammengefasst gilt f"ur die Erh"ohung der Anzahl Workgroups:
 
 \begin{itemize}
- \item Zur Ausn"utzung von mehreren Compute Devices auf einer Plattform
+ \item Zur Ausn"utzung aller Compute Devices auf einer Plattform
        muss zwingend mit mindestens einer Workgroup pro Compute Device
-       gearbeitet werden. So kann die Geschwindigkeit grunds"atzlich
-       erh"oht werden.
+       gearbeitet werden. So kann die Geschwindigkeit schon mal 
+       grunds"atzlich erh"oht werden.
  \item Synchronisation / Abbruch "uber Workgroup-Grenzen hinweg ist 
        nicht direkt m"oglich.
  \item Als Konsequenz k"onnen unterschiedliche Laufzeiten in den 
        verschiedenen Compute Devices unter Umst"anden zu 
-       ungewollten Idle-Zeiten f"ur die schnelleren Compute Devices 
+       ungewollten Leerlauf-Zeiten f"ur die schnelleren Compute Devices 
+       (beziehungsweise diejenigen, welche das spezifische Problem 
+       schneller l"osen k"onnen, das muss je nach Problem nicht immer
+       dasselbe Compute Device sein)
        f"uhren. Eine sorgf"altige, an die Geschwindigkeit der 
        Compute Devices angepasste Aufteilung der Workitems ist n"otig.
 \end{itemize}
@@ -749,21 +772,15 @@ Zusammengefasst gilt f"ur die Erh"ohung der Anzahl Workgroups:
 
 \subsubsection{Virtuelle Dimensionsvergr"osserung}
 
-Wird davon ausgegangen, dass in unserem speziellen Beispiel die Dimensionen
-zur "Ubergabe des zu bearbeitenden Strings verwendet wird, w"are eigentlich
-bei einem String mit 3 Zeichen bereits schluss (bei einer maximalen Dimension
-von 3). Da aber bei der Dimension und einer Alphabetgr"osse effektiv nur die 
-Ziffern 1..26 verwendet werden, w"aren $ 8192 - 26 = 8156 $ m"ogliche 
-Punkte im Gitter quasi verschwendet worden. Hier kann eine Virtuelle 
-Dimensionsvergr"osserung helfen, indem zur Berechnung des Problempunktes 
-nach der Formel $ B^{n} $ vorgegangen wird, wobei $ B $ die Gr"osse der
-ben"otigten Dimension darstellt (in unserem Fall $ 26 $) und $ n $ die
-Anzahl der virtuell ben"otigten Dimensionen. Wir haben vorg"angig in diesem
-Skript bereits implizit mit dieser Technik gearbietet, um auch mit realen
-Stringl"angen rechnen zu k"onnen.
+Die bereits bei der Einf"uhrung ins Problem beschriebene Technik der Virtuellen
+Dimensionen (siehe \ref{crypt:virtuelle_dimensionen}) soll hier nochmals 
+zusammenfassend dargestellt werden.
 
-Im Kernel selbst kann man bei gegebenem Punkt die Dimensionen mit 
-Modulo-Arithmetik wie folgt berechnen:
+Ist die Anzahl zu verwendender Dimensionen gr"osser als die "ublicherweise 
+unterst"utzten 3, aber die Gr"osse der einzelnen Dimensionen vergleichsweise
+klein, so k"onnen im Kernel die Dimensionszahlen f"ur das jeweilige Workitem 
+mittels Modulo-Arithmetik vorgenommen werden:
+
 \begin{center}
 \begin{tabular}{|>{$}c<{$}|>{$}c<{$}|}
 \hline
@@ -775,19 +792,17 @@ Modulo-Arithmetik wie folgt berechnen:
 \end{tabular}
 \end{center}
 
-Hierzu ist zusagen, dass Divisonen und auch die Modulo-Bildung auch auf
+Ausser wenn $B$ eine konstante Zweierpotenz ist, was der Compiler in eine 
+Shift-Operation umwandeln kann, sind Divisonen und auch die Modulo-Bildung auch auf
 modernen Floating-Point Units sehr rechenintensiv ist (Anzahl ben"otigte 
-Taktzyklen immer $ >> 1 $). Trotzdem kann dieses Vorgehen bei einer 
-begrenzten Dimensionsgr"osse des Problems aber vielen potentiellen 
-Dimensionen sinn machen, insbesondere wenn eine Dimensionsberechnung mit
-Modulo-Arithmetik f"ur mehrere Berechnungen verwendet werden kann
+Taktzyklen $ >> 1 $). Trotzdem kann dieses Vorgehen auch f"ur beliebige
+$B$ sinn machen, insbesondere wenn solch eine Dimensionsberechnung mit
+Modulo-Arithmetik dann gleich f"ur mehrere Berechnungen verwendet werden kann
 (siehe n"achsten Abschnitt).
 
-Sollte die Hardware eine gr"ossere Dimensionensanzahl unterst"utzen als 
-3, was vor allem wegen der Verwendung von OpenCL in 3D-Simulationen
-mehr oder weniger Standard ist, oder falls $ B < n $ sein sollte, 
-kann man sich auch "uberlegen, ob $ n $ und $ B $ allenfalls vertauscht
-werden k"onnten.
+Sollte $ B < n $ sein, kann man sich generell "uberlegen, ob $ n $ und $ B $ 
+allenfalls vertauscht werden k"onnten, wodurch die Anzahl der zur Dimensionsberechnung
+verwendeten Instruktionen in jedem Fall abnehmen w"urde.
 
 Zusammengefasst gilt f"ur die virtuelle Dimensionsvergr"osserung:
 
@@ -795,52 +810,56 @@ Zusammengefasst gilt f"ur die virtuelle Dimensionsvergr"osserung:
  \item Bei einem Problem, welches nur eine kleine Anzahl Punkte pro 
        Dimension ben"otigt, aber viele Dimensionen hat, kann mit der
        virtuellen Dimensionsvergr"osserung eine ``Verschwendung'' von
-       m"oglichen Workitems in einer Workgroup verhindert werden.
+       ungenutzen aber m"oglichen Workitems in einer Workgroup verhindert 
+       werden.
  \item Die Berechnung der einzelnen Punkte in den virtuellen 
-       Dimensionen ist aber sehr kostspielig im Bezug auf daf"ur notwendige
-       Rechenzeit.
- \item Diesem Problem kann begegnet werden, indem pro Dimensionsrechnung
-       mehrere Rechnungen ausgef"uhrt werden. (siehe n"achster Abschnitt)
+       Dimensionen ist bei einer beliebigen Basis sehr kostspielig im Bezug 
+       auf daf"ur notwendige Rechenzeit. Werden konstante Zweierpotenzen
+       verwendet verschwindet dieser Nachteil.
+ \item Dem Problem der aufw"andigen Dimensionsberechnung kann auch begegnet 
+       werden, indem mit den errechneten Dimensionszahlen
+       mehrere Rechnungen durchgef"uhrt werden. (siehe n"achster Abschnitt)
 \end{itemize}
 
 
 \subsubsection{Mehr als eine Berechnung pro Kernel}
 
-Ist der Initialisierungsaufwand in einem Kernel verglichen mit der eigentlichen
+Ist der Initialisierungsaufwand im Kernel verglichen mit der eigentlichen
 Berechnung relativ gross und zeitaufwendig, so kann es sich lohnen, mehr als 
-eine Berechnung pro Kernel durchf"uhren zu lassen. Speziell dann wenn der 
+eine Berechnung pro Workitem durchf"uhren zu lassen. Speziell dann wenn der 
 Arbeitsbereich zum Beispiel in einer Schleife abgearbeitet werden kann, kann
 mit dieser Technik sehr viel Performance rausgeholt werden.
 
-Denn das Vorgehen, dass ein Kernel nur jeweils eine einzelne Rechnung macht, 
-ist zwar von der Systematik in der Problemaufteilung wohl durchaus sinnvoll 
-und auch einfach zu verstehen. Zudem muss man sich bei der Aufteilung der
-Arbeitspakete deutlich mehr Gedanken machen, um zu verhindern, dass keine
-L"ucken entstehen.
-
-Doch gerade bei nicht sehr aufw"andigen Berechnungen pro Kernel, was wohl 
-eher die Regel sein wird, ist die Initialisierung im Vergleich zum eigentlichen
-Rechenvorgang sehr zeitintensiv, und ``stielt'' so einen Teil der m"oglichen
-Rechenkapazit"at. Macht zum Beispiel die Initialisierung 20 \% der gesamten
-Rechenzeit aus, so ist ein Optimierungspotential von nahezu demselben Faktor
-m"oglich, wenn statt einer 10 Berechnungen in einem Kernel durchgef"uhrt 
-werden. Gerade bei der im vorherigen Absatz vorgestellten Methode k"onnen
-durchaus auch deutlich gr"ossere Geschwndigkeitsvorteile herausschauen, denn
-Modulo und Divisons Operationen f"uhren die Listen der kostspieligsten 
-Instruktionen im Sinne von Rechenzeitverbrauch deutlich an.
+Denn das Vorgehen, dass ein Kernel jeweils eine einzelne Rechnung macht, 
+ist zwar von der Systematik in der Problemaufteilung durchaus sinnvoll 
+und auch einfach zu verstehen. Doch gerade wenn die Berechnungen im Workitem
+nicht sehr Aufw"andig sind, nimmt die Initialisierung im Vergleich zum eigentlichen
+Rechenvorgang sehr viel Zeit und somit Rechenzeit in Anspruch. Macht zum Beispiel 
+die Initialisierung 20 \% der gesamten Rechenzeit aus, so ist ein 
+Optimierungspotential von nahezu demselben Faktor m"oglich, wenn statt einer 10 Berechnungen 
+in einem Kernel durchgef"uhrt werden (Dann betr"agt der Overhead noch gem"ass der 
+Milchb"uchleinrechnung noch 2 \%, real sind es meist etwas mehr, da der Overhead der 
+Schleife noch dazu kommt). 
 
 Im aktuellen Beispiel des MD5-Cracking konnte durch die Einf"uhrung zweier
 Schleifen, welche f"ur die letzten zwei Zeichen des Strings insgesamt 
 \[ 26^2 = 676 \] Berechnungen und Stringpr"ufungen durchf"uhrten, die 
 maximale L"ange des berechenbaren Strings ohne gross sp"urbare zus"atzliche
-Rechenzeit erweitert werden.
+Rechenzeit um zwei Zeichen erweitert werden.
+
+Da nun das Paradigma eine Berechnung pro Workitem verletzt wird, bekommt
+die Problemaufteilung neben den Workgroups und Workitems eine zus"atzliche 
+Ebene, was auch die Komplexit"at der Aufteilung erh"oht. Insbesondere in 
+den Grenzregionen muss besondere Beachtung geschenkt werden, um nicht
+gewisse Rechnungen mehrfach oder, was deutlich gravierender w"are, gar nicht
+ausgef"uhrt werden.
 
 \begin{itemize}
- \item Ist die Initialisierung eines Kernels "anhlich rechenintensiv wie die
+ \item Ist die Initialisierung im Kernel "anhlich rechenintensiv wie die
        tats"achliche Berechnung selber (bis ca. Faktor 1 : 10) und das 
        Arbeitspaket durch einfache Schleifen ``erweiterbar'', so lohnt
        es sich dar"uber Gedanken zu machen, ob man mehr als eine Berechnung
-       im Kernel machen soll.
+       pro Workitem machen soll.
  \item Doch steigen die Anforderungen an die Aufteilung der Arbeitspakete:
        Soll nur in eine Dimension erweitert werden? Und in welche? Was 
        passiert an den Grenzen, wenn die Anzahl Berechnungen im Kernel die 
@@ -866,20 +885,22 @@ im Kernel zu der Dimensionszahl hinzu gez"ahlt wird.
 
 "Ubergeben werden kann dieser Offset mit einer globalen Variable, die vom
 Rahmenprogramm direkt gesetzt wird, welches auch die Workgroups vorbereitet 
-und die Kernel startet. Damit kann das Programm beliebig weiter ausgebaut
+und die Workitems startet. Diese globale Variable kann dann in jedem Workitem
+ausgelesen werden. Realisiert werden kann dies mit OpenCL Buffer Objects.
+Damit kann das Programm beliebig weiter ausgebaut
 werden, jedoch kostet der ``Anwurf'' der OpenCL Maschine auch Rechenzeit.
 F"ur eine kleine Menge von Workitems mit jeweils kurzer Rechenzeit pro Kernel
 lohnt sich der Aufwand somit im Normalfall kaum. 
 
 Anders sieht die 
-Ausgangslage aus, wenn die Berechnungen je Kernel sehr aufw"andig oder
-die Workgroup sehr gross wird, insbesondere dann, wenn nicht einfach von 
+Ausgangslage aus, wenn die Berechnungen pro Workitem sehr aufw"andig oder
+die Workgroup sehr gross wird, insbesondere auch dann, wenn nicht einfach von 
 A bis Z durchgerechnet werden soll, sondern gelegentlich auf eine 
-(Workgroup "ubergreifende) Abbruchbedingung gepr"uft werden soll. Denn
+(Workgroup-"Ubergreifende) Abbruchbedingung gepr"uft werden soll. Denn
 "uber die Workgroup hinaus kann kein Abbruch (und auch keine anderen 
-Signale) signalisiert werden. Es muss gewartet werden, bis die restlichen
+Ereignisse) kommuniziert werden. Es muss gewartet werden, bis die restlichen
 Workgroups fertig sind mit ihrem Arbeitspaket, und erst dann kann "uber
-die ganze ``Maschine'' hinaus gepr"uft werden, ob das Abbruchkriterium
+die ganze Maschinerie hinaus gepr"uft werden, ob das Abbruchkriterium
 erf"ullt ist und anschliessend die Maschine weitergelaufen lassen 
 beziehungsweise definitiv angehalten werden.
 
@@ -897,7 +918,7 @@ aufzuteilen.
        die verf"ugbare Menge von Workgroups und Workitems je Workgroup
        aufgeteilt werden kann; Wenn das Problem eine definierte 
        Abbruchbedingung hat, die man regelm"assig und Workgroup-
-       "Ubergreifend pr"ufen m"ochte; Und w"ahrend dem Einmessvorgang
+       "Ubergreifend pr"ufen m"ochte; W"ahrend dem Einmessvorgang
        zur m"oglichst optimalen Aufteilung der Arbeitspakete f"ur die 
        jeweilige Performance des Compute Devices.
  \item Der Overhead f"ur den Anwurf der OpenCL Maschine kann aber im 
@@ -907,8 +928,6 @@ aufzuteilen.
        (ausser allenfalls bei der Einmessung) die OpenCL Maschine
        m"oglichst lange selbst rechnen lassen.
 \end{itemize}
-
-% TODO Lukas: Codebeispiel f"ur Globale OpenCL Variable
 
 
 \section{Implementationsdetails}
