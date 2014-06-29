@@ -3,12 +3,15 @@
 	% Init
 	\draw (0,2.8) rectangle node {Init} (10,3.8);
 
-	% Kernels
-	\draw (0,1.4) rectangle node {Kernel $1$} (2,2.4);
-	\draw (2.4,1.4) rectangle node {Kernel $2$} (4.4,2.4);
-	\draw (5,1.9) node {\ldots};
-	\draw (5.6,1.4) rectangle node {Kernel $n-1$} (7.6,2.4);
-	\draw (8,1.4) rectangle node {Kernel $n$} (10,2.4);
+	% Workitems
+	{
+		\footnotesize
+		\draw (0,1.4) rectangle node {Workitem $1$} (2,2.4);
+		\draw (2.4,1.4) rectangle node {Workitem $2$} (4.4,2.4);
+		\draw (5,1.9) node {\ldots};
+		\draw (5.6,1.4) rectangle node {Workitem $n-1$} (7.6,2.4);
+		\draw (8,1.4) rectangle node {Workitem $n$} (10,2.4);
+	}
 
 	% Collect
 	\draw (0,0) rectangle node {Collect} (10,1);
