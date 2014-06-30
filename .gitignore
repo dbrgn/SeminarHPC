@@ -103,3 +103,6 @@ sympy-plots-for-*.tex/
 
 ## Common text editors
 *.swp
+
+# python
+*.pyc

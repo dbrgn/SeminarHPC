@@ -31,14 +31,16 @@
 \usepackage{placeins}
 \usepackage{subfigure}
 \usepackage{csquotes}
+\usepackage{float}
 %\usetikzlibrary{arrows,decorations.pathmorphing,positioning,fit,petri}
 \usetikzlibrary{calc,intersections,through,backgrounds,graphs,positioning,shapes,arrows}
 \usetikzlibrary{patterns,decorations.pathreplacing}
 %\usetikzlibrary{shapes,snakes,trees}
-%\usetikzlibrary{decorations.pathreplacing}
+\usetikzlibrary{decorations.pathreplacing}
 %\usetikzlibrary{patterns}
 \usepackage{siunitx}
 \usepackage{tabularx}
+\usetikzlibrary{arrows}
 \usepackage{listings}
 \lstdefinestyle{Matlab}{
   numbers=left,
@@ -69,6 +71,7 @@
 \addbibresource{montecarlo/MonteCarlo.bib}
 \addbibresource{green/quellen.bib}
 \addbibresource{stosswellen/stoss.bib}
+\addbibresource{crypto/crypto.bib}
 \AtEndDocument{\clearpage\ifodd\value{page}\else\null\clearpage\fi}
 \makeindex
 \begin{document}
@@ -200,6 +203,7 @@ Hochschule f"ur Technik, Rapperswil, 2014
 \input potential/potential.tex
 \input green/green.tex
 \input stosswellen/stosswellen.tex
+\input crypto/crypto.tex
 \vfill
 \pagebreak
 \lhead{Index}
