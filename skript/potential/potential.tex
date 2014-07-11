@@ -47,11 +47,12 @@
     tabsize = 				4,
 }
 \chapter{L"osungen der Potentialgleichung\label{chapter:potential}}
-\rhead{L"osungen der Potentialgleichung}
+\lhead{L"osungen der Potentialgleichung}
 \begin{refsection}
 \chapterauthor{Reto Christen, Philipp Solenthaler}
 
 \section{Problemstellung}
+\rhead{Problemstellung}
 \index{Potentialproblem}
 In diesem Kapitel geht es um die Potentialgleichung. Um diesen Begriff
 noch etwas bildlicher zu erl"autern, stellt man sich am besten eine
@@ -67,6 +68,7 @@ Implementation und die Umsetzung etwas genauer erkl\"aren. Zuletzt gehen
 wir noch auf die erhaltenen Resultate ein.
 
 \section{Rechnung}
+\rhead{Rechnung}
 Das Potential $u$ einer Stromverteilung $f$ wird durch die folgende
 partielle Differentialgleichung beschrieben.
 \index{Stromverteilung}
@@ -148,6 +150,7 @@ gr\"osseren Abweichung keine Bedeutung mehr hat.
 
 
 \section{Programm-Code}	
+\rhead{Programm-Code}
 Unser Programm \texttt{potential}  basiert  weitgehend  auf  dem  Code  des  W"armleitungs-Beispiels. Ge"andert wurden:
 \begin{enumerate}
 \item Matrixaufteilung
@@ -229,6 +232,7 @@ dass sie Daten sendet und anschliessend weiter arbeitet. Dadurch l"asst
 sich ein Deadlock verhindern. 
 		
 \section{Umsetzung}
+\rhead{Umsetzung}
 Die Problemstellung des Potentialproblems wird mit verschiedenen
 Algorithmen gel"ost. Daf"ur werden der Jacobi-Algorithmus und der
 Gauss-Seidel-Algorithmus, welche im Kapitel 5 erkl"art wurden,
@@ -354,6 +358,7 @@ schwarz.}
 \end{figure}
 
 \section{Input/Output}
+\rhead{Input/Output}
 Als Input wird ein FITS-File verwendet. Dabei werden auf einer schwarzen
 Fl"ache (black = 0.0 / 0 \%) Elektroden angelegt (white = 255.00 /
 100 \%). Als Output werden ebenfalls FITS-Files verwendet. Je nach
@@ -365,7 +370,7 @@ wurden nur $n\times n$-Bilder untersucht, mit $n = 2^k$, $4\le k\le
 12$. S"amtliche verwendeten Shell-Scripts sind auf GitHub einsehbar. 
 
 \section{Resultate}
-
+\rhead{Resultate}
 In diesem Kapitel stellen wir die erhaltenen Messresultate f"ur
 Parallelisierungsversuche f"ur die Potentialgleichung vor. Zur L"osung
 des Problems wurde wie bereits erw"ahnt OpenMPI verwendet. 

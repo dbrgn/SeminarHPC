@@ -1,9 +1,10 @@
 \chapter{(S) SOR\label{chapter:sor}}
-\rhead{(S) SOR}
+\lhead{(S) SOR}
 \begin{refsection}
 \chapterauthor{Felix Hofer}
 
 \section{Einf"uhrung}
+\rhead{Einf"uhrung}
 ``Successive Overrelaxation'' -- kurz SOR -- bezeichnet eine
 \index{SOR}
 \index{Overrelaxation}
@@ -30,6 +31,7 @@ steuert man mittels des sogenannten ("Uber-) Relaxationsparameters
 $\omega$.
 	
 \section{SOR-Algorithmus\label{sec: SOR-Alg.}}
+\rhead{SOR-Algorithmus}
 Zur Illustration des SOR-Algorithmus und zur Herleitung einer
 Iterationsformel nehmen wir die unmodifizierte Variante von
 Gauss-Seidel (siehe Kapitel \ref{section-gauss-seidel}, Gleichung
@@ -95,6 +97,7 @@ x^{(k+1)}=\underbrace{(D+\omega L)^{-1}}_{\substack{M^{-1}}}\cdot(\omega b-\unde
 \end{equation}
 		
 \section{Wahl des optimalen Relaxationsparameters}
+\rhead{Wahl des optimalen Relaxationsparameters}
 Die Wahl des ("Uber-) Relaxationsparameters $\omega$ hat einen
 entscheidenden Einfluss auf die Konvergenzgeschwindigkeit des
 SOR-Verfahrens. Mit ihm kann sie gegen"uber dem unrelaxierten Algorithmus
@@ -289,6 +292,7 @@ Gauss-Seidel-Algorithmus aus Kapitel \ref{section-matrix-aufteilung}
 \end{figure}
 			
 \section{SSOR-Prinzip}
+\rhead{SSOR-Prinzip}
 \index{SSOR}
 \index{Symmetric SOR}
 ``Symmetric SOR'' ist eine Erweiterung des in Kapitel \ref{sec: SOR-Alg.}

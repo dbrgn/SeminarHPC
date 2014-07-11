@@ -1,5 +1,5 @@
 \chapter{L"osung der W"armeleitungsgleichung}
-\rhead{W"armeleitungsgleichung}
+\lhead{W"armeleitungsgleichung}
 
 \chapterauthor{Andreas M"uller}
 
@@ -11,7 +11,7 @@ In diesem Kapitel werden die Eigenheiten ihrer numerischen L"osung
 diskutiert.}
 
 \section{Problemstellung}
-\lhead{Problemstellung}
+\rhead{Problemstellung}
 Die W"armeleitungsgleichung f"ur einen Stab
 auf dem Interval $[0,1]$ ist die partielle Differentialgleichung
 \begin{equation}
@@ -415,6 +415,7 @@ Dies ist der numerische Ausdruck daf"ur, dass die W"armeleitungsgleichung
 unendlich schnelle Wirkungsausbreitung modelliert.
 
 \section{Parallelisierungsansatz}
+\rhead{Parallelisierungsansatz}
 Die numerische L"osung des diskretisierten Problems soll jetzt parallelisiert
 werden.
 Im Abschnitt~\ref{heat:section-diskretisation} wurde dargelegt, dass 
@@ -445,12 +446,14 @@ $u^{(k)}$ zur Verf"ugung haben, sie brauchen von jedem Nachbarprozess
 auch noch genau einen zus"atzlichen Wert.
 
 \section{Output}
+\rhead{Output}
 Die Beispielimplementation schreibt als Output ein NetCDF File mit einem
 zweidimensionalen Array der $u(x,t)$ Werte.
 Ausserdem werden Attribute hinzugef"ugt, in denen die Schrittweiten
 $h_x$ und $h_t$ sowie die Zahl $n$ festgehalten sind.
 
 \section{Resultate}
+\rhead{Resultate}
 In diesem Kapitel stellen wir Messresultate f"ur Parallelisierungsversuche
 f"ur die W"armeleitungsgleichung mit OpenMP und OpenMPI zusammen.
 

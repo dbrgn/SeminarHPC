@@ -1,5 +1,5 @@
 \chapter{Stosswellen}
-\rhead{Stosswellen}
+\lhead{Stosswellen}
 \begin{refsection}
 
 \chapterauthor{Fabian Klein, Thomas Ziegler}
@@ -44,7 +44,7 @@ ist. {\tt :-)}
 
 \section{Transportgleichung}
 \index{Transportgleichung}
-\lhead{Transportgleichung}
+\rhead{Transportgleichung}
 Stosswellen sind L"osungen einer nichtlinearen Transportgleichung. In
 diesem Abschnitt sollen die wesentlichen Unterschiede zwischen linearen
 und nichtlinearen Transportgleichungen beleuchtet werden.
@@ -245,7 +245,7 @@ l"asst das Bild ausreissen.
 
 
 \section{Problemstellung}
-
+\rhead{Problemstellung}
 Die Wellenausbreitung der \textit{unviskosen Burgersgleichung}
 (\ref{stosswellen:burgeq}) soll mittels eines numerischen
 L"osungsverfahrens simuliert werde k"onnen. Wir verwenden daf"ur die
@@ -254,7 +254,7 @@ bekannt. Als Anfangsbedingung $u(x,t\!=\!0)$ sollen verschiedene
 Wellenformen wie z.B. eine Sinushalbwelle oder ein Gaussglocke dienen. 
 
 \section{Diskretisierung}
-\lhead{Diskretisierung}
+\rhead{Diskretisierung}
 Zur Diskretisierung teilen wir die $x$-Achse im Intervall $[0,1]$ in $N$
 Punkte $x_{n}$. Die $t$-Achse wird ebenfalls in eine endliche Anzahl
 Punkte $t_{m}$ im Intervall $[0,M]$ unterteilt. Die Intervallgrenze
@@ -423,7 +423,7 @@ da $v_{max}\!=\!u_{max}\!=\!1$ ist.
 
 
 \section{Nichtlinearit"at und Computational Mode}
-\lhead{Nichtlinearit"at und Computational Mode}
+\rhead{Nichtlinearit"at und Computational Mode}
 \label{stosswellen:nichtlinearit"at}
 \subsection{Computational Mode}
 Im Abschnitt \ref{stosswellen:kleapfrog} haben wir erkannt, dass wir ein
@@ -767,7 +767,7 @@ Performance-Gr"unden bei der Implementation im C++-Programm gew"ahlt.
 
 \section{Implementierung}
 \label{stosswellen:implementation}
-\lhead{Implementierung}
+\rhead{Implementierung}
 \subsection{Implementation in Matlab}
 F"ur die einfache numerische Simulation der Stosswelle wird ein Tool
 ben"otigt, welches mit numerischen Problemen umgehen kann. Als Software
@@ -943,7 +943,7 @@ Dimensionen an. In diesen F"allen k"onnte man eine Zeitersparnis
 gegen"uber einer sequenziellen Implementation erzielen.
 
 \section{Visualisierung}
-\lhead{Visualisierung}
+\rhead{Visualisierung}
 Wir speichern unsere Daten in einem CSV-File ab. Diese Daten k"onnen
 wir nun visualisieren. Eine einfache Methode ist, das CSV-File
 in Matlab einzulesen und die Daten zu plotten wie in Abbildung
