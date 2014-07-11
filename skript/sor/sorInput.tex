@@ -24,7 +24,7 @@ in die entsprechende Richtung wagt (daher auch die Bezeichnung
 Iterationsschritt in die Berechnung der neuen Approximation der echten
 L"osung mit einfliessen.
 
-Wie stark man den neuen Schritt ``"uberrelaxiert'' bzw. wie stark der
+Wie stark man den neuen Schritt ``"uberrelaxiert'' bzw.~wie stark der
 vorhergehende Iterationsschritt noch in die Berechnung mit einfliesst
 steuert man mittels des sogenannten ("Uber-) Relaxationsparameters
 $\omega$.
@@ -218,7 +218,7 @@ Wie nicht anders zu erwarten sind auch hier deutliche Unterschiede zu erkennen.
 Die folgenden Visualisierungen zeigen die effektiv errechneten
 Iterationsschritte mit dem Jacobi-, dem Gauss-Seidel- und dem in
 Kapitel \ref{sec: SOR-Alg.} beschriebenen SOR-Verfahren in einem 2D-
-bzw. 3D-Koordinatensystsem.
+bzw.~3D-Koordinatensystsem.
 
 Anhand diesen kann man gut erkennen, wie man beim SOR-Verfahren mit
 einem zu grossen $\omega$ "uber das eigentliche Ziel hinausschiesst,
@@ -230,7 +230,7 @@ die Schritte f"ur eine Genauigkeit von 4 Nachkommastellen.
 			
 \subsubsection{2D-Beispiel}
 Die folgenden Visualisierungen wurden anhand dem Zahlenbeispiel zum
-Jacobi-Algorithmus aus Kapitel \ref{Algorithmus!Jacobi} erstellt.
+Jacobi-Algorithmus aus Kapitel \ref{section-jacobi} erstellt.
 \begin{figure}[!ht]\centering
 %\includegraphics[width=0.5\textwidth]{img/Jac_2D_14It.png}
 \caption{Jacobi, 14 Iterationen.}
@@ -261,7 +261,7 @@ Jacobi-Algorithmus aus Kapitel \ref{Algorithmus!Jacobi} erstellt.
 \subsubsection{3D-Beispiel}
 Die folgenden Visualisierungen wurden anhand dem Zahlenbeispiel zum
 Gauss-Seidel-Algorithmus aus Kapitel \ref{section-matrix-aufteilung}
-(bzw. Kapitel \ref{subsec: Konv.geschw.analyse}) erstellt.
+(bzw.~Kapitel \ref{subsec: Konv.geschw.analyse}) erstellt.
 \begin{figure}[!ht]\centering
 %	\includegraphics[width=0.5\textwidth]{img/Jacobi_3D_46_It.png}
 	\caption{Jacobi, 46 Iterationen.}
@@ -309,7 +309,7 @@ SOR-Herleitung}, Gleichung \ref{eq: SOR-It.formel}):
 Dabei nutzt man aus, dass der Gauss-Seidel-Algorithmus -- im Gegensatz
 zum simultanen Jacobi-Algorithmus -- sukzessive ist. Das heisst, die
 Resultate der einzelnen $x_i$ sind abh"angig von der Reihenfolge derer
-Berechnung, da bei Gauss-Seidel jedes $x_i$ mit $i>1$ (bzw. in Gleichung
+Berechnung, da bei Gauss-Seidel jedes $x_i$ mit $i>1$ (bzw.~in Gleichung
 \ref{eq: SSOR-It.formel-k+1} mit $i<n$) abh"angig von im aktuellen
 Iterationsschritt bereits berechneten $x_i$ ist. Deshalb auch der Name
 ``\textbf{Successive} Overrelaxation''.
