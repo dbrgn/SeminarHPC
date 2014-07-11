@@ -46,12 +46,13 @@
     stepnumber =			1,
     tabsize = 				4,
 }
-\chapter{L"osungen der Potentialgleichung}
+\chapter{L"osungen der Potentialgleichung\label{chapter:potential}}
 \rhead{L"osungen der Potentialgleichung}
 \begin{refsection}
 \chapterauthor{Reto Christen, Philipp Solenthaler}
 
 \section{Problemstellung}
+\index{Potentialproblem}
 In diesem Kapitel geht es um die Potentialgleichung. Um diesen Begriff
 noch etwas bildlicher zu erl"autern, stellt man sich am besten eine
 leitende, quadratische Platte vor. Nun wird der Rand der Platte mit der
@@ -68,6 +69,7 @@ wir noch auf die erhaltenen Resultate ein.
 \section{Rechnung}
 Das Potential $u$ einer Stromverteilung $f$ wird durch die folgende
 partielle Differentialgleichung beschrieben.
+\index{Stromverteilung}
 \begin{equation}\label{eq:gleichung}
 \dfrac{\partial^2 u}{\partial x^2}+\dfrac{\partial^2 u}{\partial y^2} =f(x,y)
 \end{equation}
@@ -189,6 +191,7 @@ Code sieht folgendermassen aus:
 			
 		
 \subsection{OpenMPI}	
+\index{OpenMPI}
 Wenn die zu berechnende Matrix gen"ugend gross ist, kann eine
 Parallelisierung den Rechenvorgang deutlich verk"urzen.
 
@@ -218,6 +221,7 @@ welche allerdings nach dem Senden
 der Daten blockiert, bis die n"achsten Daten erhalten wurden. Warten
 dabei Empf"anger, welche auch Sender sind, in der falschen Reihenfolge
 auf die Sender, kann ein sogenannter Deadlocks enstehen. Das heisst, der
+\index{Deadlock}
 Algorithmus bleibt stehen bis der Prozess ein Timeout meldet. Zur Behebung
 dieses Problems wurde die Funktion \texttt{MPI\_Isend} verwendet (wie bereits im
 Kapitel der W"armeleitung erw"ahnt). Diese Funktion hat den Vorteil,
@@ -228,9 +232,10 @@ sich ein Deadlock verhindern.
 Die Problemstellung des Potentialproblems wird mit verschiedenen
 Algorithmen gel"ost. Daf"ur werden der Jacobi-Algorithmus und der
 Gauss-Seidel-Algorithmus, welche im Kapitel 5 erkl"art wurden,
+\index{Algorithmus!Jacobi}
+\index{Algorithmus!Gauss-Seidel}
 angewendet. Ebenfalls wurde das Potentialproblem von Andreas Linggi
-und Stefan Steiner im Kapitel Visualisierung der Grennschen Funktion
-behandelt.
+und Stefan Steiner im Kapitel~\ref{chapter:green} behandelt.
 
 Als Anfangswert diente uns ein FITS-File, welches jeden
 Funktionswert $f$ als Pixel darstellt (siehe Input/Output). Die
@@ -299,7 +304,7 @@ Gauss-Seidel-Algorithmus\label{potential:gaussseidel}}
 
 Die Asymmetrie des Gauss-Seidel-Algorithmus l"asst
 sich mit dem symmetrischen Gauss-Seidel-Algorithmus beheben
-(im Kapitel SOR behandelt). In unserem Code wechselt dabei die
+(im Kapitel~\ref{chapter:sor} behandelt). In unserem Code wechselt dabei die
 \texttt{for}-Schleife jedes Mal ihre Richtung. Dadurch ergibt
 sich ein "ahnliches Bild wie beim Jacobi-Algorithmus, welches
 schneller divergiert. 
@@ -440,6 +445,7 @@ eine Berechnung mit 16 Threads wirtschaftlich g"unstiger sein.
 
 Diverse weitere numerische L"osungen sind auf GitHub als
 MPEG-File verf"ugbar.
+\index{MPEG}
 	
 \subsection{Fazit}
 Grunds"atzlich ist gut zu erkennen, dass eine Parallelisierung den Code

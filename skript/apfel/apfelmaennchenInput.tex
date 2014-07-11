@@ -35,14 +35,14 @@
 
 \subsection{Einf"uhrung}
 Die Mandelbrot-Menge (Abbildung \ref{fig. appleman}), auch bekannt als
-''Apfelm"annchen'', umfasst eine Menge von Punkten der komplexen Ebene,
+``Apfelm"annchen'', umfasst eine Menge von Punkten der komplexen Ebene,
 die gemeinsam eine fraktale Struktur bilden\footnote{Ein geometrisches
 oder mathematisches Gebilde mit einer fraktalen Struktur, ist ein
 Gebilde,  dessen (selbst"ahnliche) Form innerhalb des Gebildes immer
 wieder in kleineren Formen vorkommt. \cite{fraktal}}. Sie wurde nach
 dem franz"osischen Mathematiker Beno\^it Mandelbrot benannt, der die
 Mandelbrot-Menge im Zusammenhang mit einer Studie der nahe verwandten
-Julia-Mengen, im Jahre 1980 entdeckte. \cite{wiki}\\[-0.95cm]
+Julia-Mengen, im Jahre 1980 entdeckte. \cite{wiki}
 \begin{figure}[ht!]\centering
 \begin{adjustbox}{scale=0.45, keepaspectratio}
 	\input{apfel/pic/apfelman}
@@ -53,6 +53,7 @@ Julia-Mengen, im Jahre 1980 entdeckte. \cite{wiki}\\[-0.95cm]
 \end{figure}
 
 \subsection{Definition}
+\index{Mandelbrot-Menge}
 Um die Mandelbrot-Menge $\mathbb{M}$ zu finden, wird f"ur jede komplexe
 Zahl $c\in\mathbb{C}$ die Iteration der quadratischen Funktion
 \begin{equation}
@@ -88,7 +89,7 @@ zwei oder mehr. Beispielsweise $c=-1$ konvergiert gegen den Grenzzyklus
 \item $f_c^i(0)$ strebt gegen unendlich (Divergenz).
 \end{itemize}
 In Abbildung \ref{fig. grenzzyklen} sind die Teilgebiete der Grenzzyklen
-mit den jeweiligen Periodenl"angen dargestellt. Der ''K"orper'' der
+mit den jeweiligen Periodenl"angen dargestellt. Der ``K"orper'' der
 Mandelbrot-Menge hat die Periodenl"ange eins und stellt somit das Gebiet
 der Konvergenz dar. \cite{wiki} \\[-0.8cm]
 \begin{figure}[ht!]\centering
@@ -98,6 +99,7 @@ der Konvergenz dar. \cite{wiki} \\[-0.8cm]
 \end{figure}
 
 \subsection{Bezug zur Julia-Menge}
+\index{Julia-Menge}
 Die Mandelbrot-Menge ist nahe verwandt mit der Julia-Menge. Der
 Unterschied zu dieser liegt darin, dass bei der Julia-Menge $c$ konstant
 bleibt und der Anfangswert $z_0$ variiert. Die Julia-Menge zu dieser
@@ -164,6 +166,7 @@ Quaternionen erweitert werden. Dazu wird die Funktion $f_c(z)$ (Formel
 \ref{equ. itformel}) im Raum der Quaternionen neu betrachtet.
 
 \subsection{Iterationsformel f"ur Quaternionen}
+\index{Quaternionen}
 Quaternionen $\mathbb{H}$ sind vierdimensionale Zahlen und setzen sich
 aus einem Realteil und drei Imagin"arteilen zusammen.
 \begin{equation}
@@ -238,7 +241,7 @@ unabh"angige Einheiten parallel zu berechnen.
 
 Um den Zeitgewinn durch die Parallelisierung mittels OpenCL absch"atzen
 zu k"onnen, wurde zuvor ein Versuch in Matlab durchgef"uhrt. Dazu
-wurde ein ''Apfelm"annchen'' im Wertebereich $[-2, 2]$ von jeder
+wurde ein ``Apfelm"annchen'' im Wertebereich $[-2, 2]$ von jeder
 Achse (1 $\times$ Re-Achse und 3 $\times$ Im-Achse) und mit einer
 Aufl"osung von $4/100$ berechnet. Folglich musste die Iterationsformel
 \ref{equ. quaternionItFormelVec} auf
@@ -249,7 +252,7 @@ Aufl"osung von $4/100$ berechnet. Folglich musste die Iterationsformel
 verschiedene $c$'s (Gitterpunkte) angewendet werden, wobei diese
 jeweils 20 mal iteriert wurde. Diese Berechnung ben"otigte in Matlab
 ohne Parallelisierung hochgerechnet 3h. Soll nun aber eine ansprechende
-Darstellung des berechneten ''Apfelm"annchens'' mit gen"ugend grosser
+Darstellung des berechneten ``Apfelm"annchens'' mit gen"ugend grosser
 Aufl"osung erreicht werden, so m"ussen viel gr"ossere Datenmengen
 bearbeitet werden. Auch steigt der Berechnungsaufwand f"ur gr"ossere
 Aufl"osungen mit $O(n^4)$ an. Somit w"urde eine Berechnung mit einer
@@ -265,7 +268,7 @@ n"utzlichen Zeit berechenbar w"are.
 \subsection{Programmaufbau}
 Als Basis der Open-CL Realisierung diente die im GitHub-Repository
 des Mathematischen Seminars vorliegende Realisation der
-Julia-Mengen-Berechnung von Prof. Dr. Andreas M"uller. Diese Codevorlage
+Julia-Mengen-Berechnung aus Kapitel~\ref{chapter:julia}. Diese Codevorlage
 wurde dem Problem der Mandelbrot-Mengen-Berechnung entsprechend
 angepasst. Dabei musste beispielsweise die Parameter"ubergabe und die
 Berechnung der Arbeitsgruppen\footnote{Aufteilung des Berechnungsraumes
@@ -273,6 +276,7 @@ in m"oglichst kleine Gruppen, die dann parallel ausgef"uhrt werden.}
 angepasst werden. Ebenfalls wurden diverse Details wie Datentypen
 etc. ver"andert. Weiter wurde das Abspeichern der Resultate in ein
 NetCDF-File im C-Teil erg"anzt. Das Grundger"ust in C, welches als
+\index{NetCDF}
 Programmumgebung des OpenCL-Kerns dient, wurde jedoch mehrheitlich
 "ubernommen.
 
@@ -351,7 +355,7 @@ unterst"utzen (Matlab, ParaView etc.) erheblich erschweren oder gar
 verunm"oglichen. Deshalb wurden trotzdem  {\tt short}-Datenwerte
 verwendet.
 
-Ein Ziel dieser Arbeit ist es, die berechneten ''Apfelm"annchen''
+Ein Ziel dieser Arbeit ist es, die berechneten ``Apfelm"annchen''
 anschaulich darzustellen. Da die menschliche optische Wahrnehmung auf drei
 Dimensionen beschr"ankt ist, kann die Rechenzeit und der Speicherbedarf
 erheblich reduziert werden, indem der quaternionische Raum um eine
@@ -380,13 +384,13 @@ Open-Source-Tool ParaView verwendet. Dies ist ein Programm, welches
 effizient mit grossen Datenmengen umgehen und diese auf verschiedene
 Arten darstellen kann (beispielsweise als dreidimensionales Volumen). In
 den Abbildungen \ref{fig. mandelbrot100}, \ref{fig. mandelbrot500}
-und \ref{fig. mandelbrot1000} sind ''Apfelm"annchen'' mit verschiedenen
+und \ref{fig. mandelbrot1000} sind ``Apfelm"annchen'' mit verschiedenen
 Aufl"osungen dargestellt.
 
 Bei der Verwendung von ParaView stellte sich heraus, dass eine solche
 Darstellung hohe Anforderungen an den Arbeitsspeicher stellt. So
 war es beispielsweise nicht m"oglich das 16GiB grosse File des
-$2000\times2000\times 2000$ ''Apfelm"annchens'' darzustellen. Denn selbst
+$2000\times2000\times 2000$ ``Apfelm"annchens'' darzustellen. Denn selbst
 28GB Arbeitsspeicher reichten schlicht nicht aus.
 \begin{figure}[ht!]\centering
 	\includegraphics[width=0.5\textwidth]{apfel/pic/v1_100.png}
@@ -405,6 +409,7 @@ $2000\times2000\times 2000$ ''Apfelm"annchens'' darzustellen. Denn selbst
 \end{figure}
 
 \subsection{Komprimierung der Ausgabedaten}
+\index{Kompression}
 Aufgrund der grossen Datenmengen lohnt sich ein kurzer Blick auf die
 generierten Daten. Diese liegen im nicht komprimierten NetCDF-Format vor
 und beinhalten grosse Mengen an Rohdaten, welche sich teilweise sehr
@@ -424,6 +429,8 @@ kann sowohl normal als auch parallelisiert ({\tt pbzip2}) angewendet
 werden. Die Versuche wurden ebenfalls auf dem f"ur die Berechnungen
 verwendeten Cluster durchgef"uhrt. Es zeigen sich erstaunliche Resultate
 (siehe Tabelle \ref{kompression}).
+\index{bzip2@\texttt{bzip2}}
+\index{pbzip2@\texttt{pbzip2}}
 
 Sowohl bei der Verwendung von {\tt bzip2} als auch {\tt pbzip2} sinkt
 die Datengr"osse drastisch. Da bei {\tt pbzip2} die Daten in parallel

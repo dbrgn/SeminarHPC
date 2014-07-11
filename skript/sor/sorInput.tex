@@ -1,16 +1,20 @@
-\chapter{(S) SOR}
+\chapter{(S) SOR\label{chapter:sor}}
 \rhead{(S) SOR}
 \begin{refsection}
 \chapterauthor{Felix Hofer}
 
 \section{Einf"uhrung}
 ``Successive Overrelaxation'' -- kurz SOR -- bezeichnet eine
+\index{SOR}
+\index{Overrelaxation}
+\index{Overrelaxation!Successive}
 Modifikation bestehender iterativer Approximationsverfahren, welche
 die Konvergenzgeschwindigkeit gegen"uber den unmodifizierten Verfahren
 erh"ohen soll. Das Prinzip wird oft anhand des Gauss-Seidel-Algorithmus
 illustriert, kann aber genauso gut auch auf andere iterative
 Approximationsverfahren zur L"osung linearer Gleichungssystemen angewendet
 werden.
+\index{Relaxationsparameter}
 
 Die grundlegende Idee hinter dem SOR-Prinzip ist, dass eine einmal
 eingeschlagene Richtung hin zur schlussendlichen L"osung so falsch
@@ -132,6 +136,7 @@ Verfahren zur"uckgegriffen werden muss.
 
 Im Jahre 1947 hat der russisch-deutsch-schweizerische Mathematiker
 Alexander Markowitsch Ostrowski \cite{AlexanderMarkowitschOstrowski}
+\index{Ostrovski, Alexander Markowitsch}
 bewiesen, dass der SOR-Algorithmus f"ur positiv definitive
 Ausgangsmatrizen A konvergiert, wenn $\omega \in (0,2)$. In diesem Falle
 ist also der Spektralradius $\rho(G) < 1$ mit
@@ -142,6 +147,7 @@ N=\omega U+(\omega-1)\cdot D.
 \end{equation}
 Im Jahre 1958 hat ausserdem der kanadische Mathematiker und Informatiker
 William Kahan \cite{WilliamKahan} bewiesen, dass f"ur den SOR-Algorithmus
+\index{Kahan, William}
 mit $\omega < 0$ oder $\omega > 2$ keine Konvergenz mehr vorliegt.
 			
 \subsection{Analyse der Konvergenzgeschwindigkeit \label{subsec:
@@ -283,6 +289,8 @@ Gauss-Seidel-Algorithmus aus Kapitel \ref{section-matrix-aufteilung}
 \end{figure}
 			
 \section{SSOR-Prinzip}
+\index{SSOR}
+\index{Symmetric SOR}
 ``Symmetric SOR'' ist eine Erweiterung des in Kapitel \ref{sec: SOR-Alg.}
 beschriebenen SOR-Algorithmus. In einem einzelnen Iterationsschritt
 folgt bei SSOR auf den in Gleichung (\ref{eq: SOR-It.formel1})
@@ -322,6 +330,8 @@ soll auf diese Weise dahingehend vorbereitet werden, dass sich in der
 weiteren Verarbeitung durch Vereinfachungsmethoden f"ur schwach besetzte
 Matrizen m"oglichst Vorteile ergeben (verbesserte Spektraleigenschaften),
 nicht jedoch die eigentliche L"osung des Systems beeinflusst wird.
+\index{Preconditioner}
+\index{Vorkonditionierung}
 
 \printbibliography[heading=subbibliography]
 \end{refsection}

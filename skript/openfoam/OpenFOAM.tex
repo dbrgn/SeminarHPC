@@ -4,6 +4,7 @@
 \begin{refsection}
 \chapterauthor{Gregor Dengler}
 \section{Einleitung}
+\index{OpenFOAM}
 OpenFOAM (Open Source Field Operation and Manipulation) ist ein in
 C++ geschriebenes, numerisches, freies Simulationssoftwarepaket. Es
 wurde urspr"unglich in den sp"aten 1980er Jahren am Imperial College
@@ -12,12 +13,15 @@ Source, erst im Jahr 2004 nachdem es verkauft wurde, wurde es als
 OpenFOAM ver"offentlicht. Das Ziel war ein Softwarepaket zu erstellen,
 welches flexibler und besser als das bis dato genutze FORTRAN (Formula
 Translating System) ist.
+\index{FORTRAN}
 
 OpenFOAM besteht nicht nur aus den Solvern f"ur die verschiedenen
 Probleme, sondern besitzt auch Pre-Processing sowie Post-Processing
 Tools. Im Pre-Processing wird vor allem ein Meshing Tool zur Verf"ugung
 gestellt. Im Post-Processing wird mittels ParaView eine "ubersichtliche
 Darstellung der berechneten Daten erm"oglicht. \cite{ofwiki}
+\index{Pre-Processing}
+\index{Post-Processing}
 
 Im Pre-Processing wird die Geometrie definiert und Randbedingungen
 vorgegeben. Es wird also definiert, was genau simuliert werden
@@ -25,6 +29,7 @@ soll. Randbedingungen sind Vorgaben zum Verhalten der Simulation am
 Rande des simulierten Bereichs, sowie auf Oberfl"achen.
 
 W"ahrend des solven, dem L"osen der Str"omungsdiffereitialgleichungen oder
+\index{Solver}
 allgemein der Feldgleichungen, wird die eigentliche Berechnung von Solver
 ausgef"uhrt. Solver sind Programme, welche die Algorithmen von OpenFOAM
 zur L"osung von partitiellen Differenzialgleichungen beinhalten.
@@ -74,6 +79,7 @@ jedes Problem zuschneiden. \cite{of}
 
 \section{Beispiel Cavity}
 \subsection{Pre-Processing}
+\index{Cavity}
 \begin{figure}
 \begin{center}
 \includegraphics[width =  0.5\linewidth]{./openfoam/pics/cavity1.png} 
@@ -182,10 +188,6 @@ vertices
 );
 \end{ofcode}
 
-%\begin{wrapfigure}{r}{0.5\hsize}
-%\includegraphics[width =  \hsize]{./openfoam/pics/blocks.png}
-%\caption{Codebeispiel Cavity}
-%\end{wrapfigure}
 Im folgenden Codeblock sieht man, wie so ein Block
 definiert wird. In der ersten Klammer sind die Punkte, welche den Block
 begrenzen. Hier ist es wichtig die Reihenfolge der Punkte zu beachten. Die
@@ -266,7 +268,7 @@ darin definieren.
 
 \subsection{Berechnung}
 Sind nun alle Voreinstellungen gemacht, l"asst sich die Berechnung
-mittels Befehl icoFOAM starten. Alternativ kann man mit OpenMPI auch
+mittels Befehl \texttt{icoFOAM} starten. Alternativ kann man mit OpenMPI auch
 eine parallele Berechnung auf mehreren Prozessoren durchf"uhren. Daf"ur
 wird eine kleine Vorbereitung ben"otigt. Es muss in einem weiteren
 Textfile namens \texttt{decomposeParDict} definiert werden, auf wie
@@ -312,6 +314,7 @@ Schlusszeitpunkt anschauen. Man kann auch den Verlauf der Str"omung in
 einer Art Video ansehen.
 
 \section{Beispiel Keil}
+\index{Keil}
 Das Beispiel Keil habe ich selber versucht mit Cavity als Grundlage zu
 erarbeiten. Im Grundsatz geht es um einen Keil, der in einem Windkanal
 in einer Str"omung steht. In diesem Beispiel erwarte ich, dass sich
@@ -356,7 +359,9 @@ als gegen Schluss des Windkanals. Ich habe in diesem Beispiel 200 x 200
 Zellen pro Block gew"ahlt, also 23 x 200 x 200 (=920'00)Zellen.
 
 \subsection{Die Courant-Zahl}
+\index{Courant-Zahl}
 Will man mit einer CFD (Computational Fluid Dynamics) Software etwas
+\index{CFD}
 berechnen, so hat man bei den Einstellungen zu beachten, dass die
 Berechnung stabil bleibt. Um dies zu erreichen, muss die sogenannte
 Courant-Zahl (auch Courant-Friedrichs-Lewy-Zahl genannt) zwingend unter

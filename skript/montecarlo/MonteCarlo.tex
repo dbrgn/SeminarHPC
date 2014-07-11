@@ -43,8 +43,10 @@ equations into an equivalent form interpretable as a succession of random
 operations. Later... [in 1946, I ] described the idea to John von Neumann
 and we began to plan actual calculations.'' - Stan Ulam, 1983
 \end{quote}
+\index{Ulam, Stan}
 
 Monte Carlo Methoden kommen "uberall zum Einsatz, wo deterministische
+\index{Monte Carlo Methode}
 Algorithmen entweder zu komplex sind oder gar nicht existieren. Dank
 zunehmender Rechenleistung sind in den letzten Jahren Simulationen wie
 globale Klimamodelle m"oglich geworden. Typische Anwendungen des Monte
@@ -76,6 +78,7 @@ generiert. Generell kann ausgesagt werden, dass das Integral
 \end{equation} 
 
 mit $N$ im Intervall $[a,b]$ gleichverteilten Zufallszahlen $x_i$ durch
+\index{Zufallszahlen}
 
 \begin{equation}
 	\hat{I} = (b-a) \cdot \frac{1}{N} \sum_{i=1}^{N} f(x_i)
@@ -109,9 +112,10 @@ Ereignisse (gr"un).
 	\label{fig:integration_histogram}
 \end{figure}
 
-\subsection{Absch"atzung des Wertes von Pi}
+\subsection{Absch"atzung des Wertes von $\pi$}
 Als Einf"uhrungsbeispiel f"ur die Monte Carlo Methode wird die Zahl $\pi$
 mit einer Hit-or-Miss Methode abgesch"atzt. Ein Kreis mit Radius $r$
+\index{Hit-or-Miss Methode}
 hat eine Grundfl"ache von $A_{\text{Kreis}} = \pi r^{2}$.  Damit muss
 in einem Intervall von $[-r,+r]$ integriert werden, was eine Fl"ache
 von $A_{\text{Quadrat}} = 4r^2$ ergibt. Damit l"asst sich $\pi$
@@ -127,8 +131,8 @@ $(x_i,y_i)$ mit $x_i,y_i \leq r$ innerhalb des Kreises mit Radius $r$
 liegen. Dies wird mit folgender Formel "uberpr"uft:
 
 \begin{equation}
-	x^2 + y^2 \leq r^2
-	\label{equ:innerhalbKreis}
+x^2 + y^2 \leq r^2
+\label{equ:innerhalbKreis}
 \end{equation}
 
 \begin{figure}[htbp]
@@ -185,6 +189,7 @@ durch die Anzahl Iterationen $N$ mal 4. Da diese L"osung nicht parallel
 abl"auft, steigt der Rechenaufwand linear mit der Anzahl Iterationen.
 
 Die Effizienz $\varepsilon$ des Hit-or-Miss Algorithmus l"asst sich
+\index{Effizienz}
 mit der Anzahl Hits $k$ und der Iterationen $N$ gem"ass Gleichung
 \ref{equ:effizienz_hitnmiss} beschreiben.
 \begin{equation}
@@ -197,6 +202,7 @@ entspricht. Wird $\Omega$ sehr gross gew"ahlt, ist die Wahrscheinlichkeit
 eines Hits sehr gering und es sind viele Iterationen notwendig, um das
 korrekte Resultat zu erreichen. Der relative Fehler der Sch"atzung wird
 gem"ass Gleichung \ref{equ:relativer_Fehler} berechnet.
+\index{relativer Fehler}
 
 \begin{equation}
 	\text{Relativer Fehler} = \sqrt{\frac{1-\varepsilon}{k}} 
@@ -328,6 +334,7 @@ ohne Genauigkeit durch schlechte Zufallszahlen zu verlieren.
 ``Anyone who considers arithmetical methods of producing random digits
 is, of course, in a state of sin.'' - John von Neumann, 1951
 \end{quote}
+\index{von Neumann, John}
 
 Die Generierung von Zufallszahlen ist absolut essentiell f"ur die Monte
 Carlo Methode. In der analogen Welt bestehen verschiedene hervorragende
@@ -399,6 +406,8 @@ Ein Code-Snippet zur Verwendung des Random-Device ist im Github-Repository
 
 
 \subsection{Multiplikativ kongruentielle Generatoren (LCG)} \label{subsec:LCG}
+\index{LCG}
+\index{linear congruential generator}
 Eine der popul"arsten Methoden zur Generierung von Zufallszahlen ist die
 multiplikativ kongruentielle Methode. Solche Generatoren werden h"aufig
 als \textit{linear congruential generator (LCG)} bezeichnet. Dabei werden
@@ -434,9 +443,11 @@ eines LCG mit $a=11$, $b=0$ und $m=64$.
 \end{figure}
 
 \subsubsection{Die IBM RANDU-Funktion}
+\index{RANDU!\texttt{RANDU}}
 Ein bekanntes Beispiel f"ur schlecht entwickelte LCG Generatoren ist die
 Funktion \textit{RANDU}, welche ab den 60er-Jahren eine Standardfunktion
 auf dem IBM System/360 war. Diese nutzte einen LCG-Algorithmus gem"ass
+\index{IBM System/360}
 folgender Gleichung:
 
 \begin{equation}
@@ -487,6 +498,7 @@ Periodendauer durch die Wahl von $m=2^{31}$ als Potenz von zwei eher
 klein ist. Deshalb wird die Verwendung dieser Funktion nicht empfohlen.
 
 \subsection{Lehmer Generator} \label{subsec:Lehmer}
+\index{Lehmer Generator}
 Der Lehmer-Generator ist eine Unterart der LCG Generatoren, nach folgender
 Rekursionsvorschrift:
 
@@ -540,6 +552,8 @@ alle drei Bedingungen. Bereits 1969 schlugen Lewis, Goodman, Miller
 \cite{rng:LewisGoodmanMiller1969} die Wahl von $a = 7^5 = 16'807$ vor,
 bis zum Paper von Park und Miller fand dies aber kaum Beachtung. Genau
 diese Kombination wurde von Park und Miller als \textbf{Minmal Standard}
+\index{Park-Miller Generator}
+\index{Minimal Standard}
 f"ur Random Number Generators bezeichnet. In der Literatur wird f"ur
 diesen RNG h"aufig die Bezeichnung Park-Miller RNG benutzt.
 
@@ -619,6 +633,7 @@ von Park und Miller \cite{rng:ParkMiller1988} nachgewiesen, "uber sehr
 gute Eigenschaften um als Minimal Standard verwendet zu werden.
 
 \subsection{Mersenne-Twister} \label{subsec:MersenneTwister}
+\index{Mersenne-Twister}
 Der Mersenne-Twister Algorithmus zeichnet sich durch eine extrem
 hohe Periode von $2^{19937}-1 \approx 4.3 \cdot 10^{6001}$ aus. Die
 Periodenl"ange ist eine Mersenne-Primzahl\footnote{Mersenne-Primzahl:
@@ -674,7 +689,7 @@ vern"unftigem Aufwand zu erreichen. Die einfachste Methode ist die im
 folgenden Abschnitt beschriebene Inversionsmethode.
 
 \subsubsection{Inversionsmethode}
-
+\index{Inversionsmethode}
 Um aus der im Einheitsintervall $[0,1]$ gleichverteilten Zufallsvariable
 $z$  eine Zufallsvariable $x$ mit der Verteilungsfunktion $F_X(x)$
 zu erhalten, muss F invertiert werden und auf $z$ angewandt werden.
@@ -708,6 +723,7 @@ einiger ausgew"ahlter Verteilungen aufgestellt.
 \end{table}
 
 \subsection{Implementation mit Boost}
+\index{Boost}
 Die C++ Bibliothek \textit{Boost} bietet sehr gute M"oglichkeiten zum
 Generieren von Zufallszahlen. Es lassen sich oben vorgestellte, wie auch
 verschiedene weitere Generatoren ausw"ahlen. Auch die Verteilungsfunktion

@@ -3,11 +3,13 @@
 \begin{refsection}
 
 \chapterauthor{Fabian Klein, Thomas Ziegler}
-
 Stosswellen oder auch Schockwellen sind transiente Druckschwankungen,
+\index{Stosswellen}
+\index{Schockwellen}
 die sich dadurch auszeichnen, dass es in sehr kurzer Zeit zu einer sehr
 grossen Druck"anderung kommt.
 In der Atmosph"are sind Stosswellen als laute "Knallwellen" \, direkt
+\index{Atmosphare@Atmosph\"are}
 mit dem Geh"or wahrnehmbar, wie folgender Comicausschnitt bildlich zeigt.
 \begin{figure}[h]
 \begin{center}
@@ -15,6 +17,7 @@ mit dem Geh"or wahrnehmbar, wie folgender Comicausschnitt bildlich zeigt.
 \end{center}
 \caption{Stosswelle die als "Uberschallknall auftritt. Ausschnitt aus dem Comic "Le Mur du Silence" \, von Jean Pierre Petit\cite{stoss:leMurDeSilence}.}
 \label{stosswellen:ueberschall}
+\index{Petit, Jean Pierre}
 \end{figure}
 
 Stosswellen werden in der Atmosph"are durch verschiedene Ereignisse
@@ -35,9 +38,11 @@ Stosswellen werden durch nicht lineare Partielle Differentialgleichungen
 bestimmt. In diesem Kapitel werden wir der Einfachheit halber auf den
 speziellen Fall eingehen, dass sich die Welle nur in einer Dimension
 ausbreitet, was aufgrund der Nichtlinearit"at trotzdem knifflig genug
-ist. {\tt :-)}\\
+ist. {\tt :-)}
+\index{nichtlinear}
 
 \section{Transportgleichung}
+\index{Transportgleichung}
 \lhead{Transportgleichung}
 Stosswellen sind L"osungen einer nichtlinearen Transportgleichung. In
 diesem Abschnitt sollen die wesentlichen Unterschiede zwischen linearen
@@ -63,6 +68,7 @@ $u_{1}(x,t)$ und $u_{2}(x,t)$ auch jede Linearkombination
 \end{equation}
 als L"osung besitzt. Dies wird auch als "Uberlagerungssatz oder
 Superposition bezeichnet.
+\index{Superposition}
 
 Als Beispiel dient eine Transportgleichung im eindimensionalen Fall und bei konstanter Geschwindigkeit $v$. Sie l"asst sich schreiben als
 \begin{equation}
@@ -115,6 +121,7 @@ von der transportierten Gr"osse abh"angig ist $v=v(u)$.
 
 Im speziellen Fall $v\!=\!v(u)\!=\!u$ ergibt sich die \textit{unviskose
 Burgersgleichung}\cite{stoss:burgersgleichung}. 
+\index{Burgersgleichung}
 
 \begin{equation}
 	\left\{
@@ -263,6 +270,7 @@ m"ussen alle Gitterpunkte eines Zeitpunktes $t_m$ iterativ aus den Werten
 der vorg"angigen Zeitschritten berechnet werden k"onnen. 
 
 \subsection{Upstream-Schema}
+\index{Upstream-Schema}
 Da es sich beim Problem um eine Differentialgleichung handelt, muss man
 auch den Differentialquotient auf diskrete Werte anwenden k"onnen. Es ist
 naheliegend, dass man bei der bekannten Formel der partiellen Ableitung
@@ -312,6 +320,7 @@ gesetzt. So entsteht ein ungewollter Rechtsdrift in der Rechnung.
 
 \subsection{Leapfrog-Schema}
 \label{stosswellen:kleapfrog}
+\index{Leapfrog-Schema}
 Da wir keinen Drift in unserer Simulation wollen, ist das obige Verfahren
 f"ur uns nutzlos. Wir verwenden stattdessen das \textit{Leapfrog-}Schema,
 dieses ist r"aumlich und zeitlich zentriert. Die partiellen Ableitungen
@@ -395,6 +404,7 @@ werden k"onnen.
 
 
 \subsection{Courant-Zahl}
+\index{Courant-Zahl}
 Ebenfalls sehr wichtig in der Gleichung (\ref{stosswellen:unext}) ist
 das Verh"altnis von $\frac{\Delta t}{\Delta x}$. Dieses wird "uber die
 Courant-Zahl, auch CFL-Zahl\cite{stoss:cfl} genannt, bestimmt. Sie gibt
@@ -458,6 +468,7 @@ L"osungen m"oglich:
 Die erste L"osung ist die korrekte L"osung, denn nur dort gilt
 $u\!=\! \text{konst.}$ Die zweite L"osung ist der "k"unstlich" \,
 erzeugte \textit{Computional Mode}.
+\index{Computational Mode}
 
 \subsection{Exponentialfunktion}
 Als zweites Beispiel wollen wir folgende lineare Differentialgleichung
@@ -698,6 +709,7 @@ werden. Eine Veranschaulichung des Aliasing-Fehlers wird in Abbildung
 	\end{tikzpicture}
 \end{minipage}
 \caption{Illustration des Aliasing-Fehlers im Zeitbereich und im
+\index{Aliasing-Fehler}
 Spektralen Raum.
 Links: Eine Welle mit Wellenl"ange $\frac{4 \Delta x}{3}$ wird
 f"alschlicherweise als eine Welle mit Wellenl"ange $4\Delta x$ angezeigt.
@@ -710,6 +722,7 @@ Wellenzahl f"alschlicherweise als $k_{a}\!=\!2k_{max}\!-\!k$ angenommen.
 
 \subsection{Filter}
 \label{stosswellen:loesung}
+\index{nichtlineare Instabilitat@nichtlineare Instabilit\"at}
 Die theoretisch exakte L"osung zur Behebung der \textit{nichtlinearen
 Instabilit"at} folgt aus der vorherigen Definition. Wenn man bei jedem
 Zeitschritt alle Wellen mit einer Wellenzahl $k > \frac{k_{max}}{2}$
@@ -731,6 +744,7 @@ wird, lautet:
 
 Dieses Filter ist bekannt unter dem Namen
 \textit{Robert-Asselin-Time-Filter}\cite{stoss:filter}. Wir wenden es
+\index{Robert-Asselin-Time-Filter}
 jedoch nicht auf die Zeitvariable $t$ an, sondern nach jedem Zeitschritt
 auf alle $x$-Werte, gegebenenfalls auch mehrmals hintereinander. Dadurch
 werden grosse "Anderungen in der Amplitudenh"ohe gegl"attet. Jede
@@ -955,6 +969,7 @@ Mit CAD-Programmen lassen sich die CSV-Daten in 3D-Objekte umwandeln,
 sodass diese danach mit einem 3D-Drucker ausgedruckt werden k"onnen. Der
 3D-Druck in Abbildung \ref{stosswellen:3Dprint} wurde mit der CAD-Software
 SolidWorks und einem Velleman K8200 3D-Printer erstellt. 
+\index{SolidWorks}
 
 Um aus dem CSV-File einen 3D-K"orper erstellen zu k"onnen, gibt es
 unterschiedliche Varianten. Mit zwei unterschiedlichen Methoden wurde dies
@@ -1033,6 +1048,7 @@ wie in Abbildung \ref{stosswellen:solid} entsteht.
 Dieser K"orper kann als .STL File exportiert und zum Druck verwendet
 werden. 
 Der verwendete 3D-Printer ist ein K8200 von Velleman mit der
+\index{3D-Printer}
 Standart Open-Source Software \textit{RepetierHost} zur Erzeugung
 der Druckdaten. Der fertiggestellte Druck ist in Abbildung
 \ref{stosswellen:3Dprint} zu sehen.

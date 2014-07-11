@@ -4,23 +4,27 @@
 \chapterauthor{Daniel Monti, Pascal Stump}
 
 \section{MapReduce}
+\index{MapReduce}
 MapReduce ist ein Programmiermodell, mit dessen Hilfe man sehr grosse
 Datenmenge verarbeiten kann.  Die M"oglichkeiten reichen bis zu
 einigen Petabyte an Daten \cite{wiki:mapReduce}.
 
 MapReduce wurde urspr"unglich von Google eingef"uhrt, um die riesigen
+\index{Google}
 Datenmengen zu verarbeiten, welche bei der Erstellung der Suchindexe
 und Page-Rank-Tabellen entstehen.
+\index{Page-Rank}
 
 Das Problem bei grossen Datenmengen ist weniger der Bedarf von grosser
 Rechenleistung, als mehr die Lese- und Schreibzeiten.  Somit kann man
 bei MapReduce Problemen Zusammenschl"usse aus ganz \enquote{normaler
-  Hardware} verwenden.
+Hardware} verwenden.
 
 F"ur die Arbeitsaufteilung gibt es vorgefertigte
 MapReduce-Frameworks.  Eines der Bekanntesten ist zum Beispiel hadoop
 \cite{apache:hadoop}.  Es sorgt selbsst"andig f"ur die Aufteilung der
 Map-Prozesse und bemerkt verlorene Tasks.
+\index{Hadoop}
 
 Das MapReduce Konzept arbeitet mit zwei separaten Abl"aufe.
 Einerseits gibt es einen parallelen Map Teil und andererseits gibt es
@@ -89,6 +93,7 @@ verdeutlichen.
 \subsection{Beispiel}
 \begin{beispiel}
   Man besitzt Unmengen an Wetterdaten von den letzten Hundert Jahren.
+\index{Wetterdaten}
   Man hat nun das Problem, dass man f"ur jedes Jahr die maximalen und
   minimalen Jahresh"ochstwerte ben"otigt. (Beispiel angelehnt an
   \cite{uniLeipzig:mapReduce})
@@ -144,6 +149,7 @@ verdeutlichen.
 
 
 \subsection{Shuffle}
+\index{Shuffle}
 Je nach der Implementation des MapReduce Konzepts, gibt es zwischen
 dem Map Teil und dem Reduce Teil noch einen Shuffle Prozess.  Dieser
 sorgt daf"ur, dass alle gleichen Schl"ussel zusammengefasst werden.
@@ -167,6 +173,7 @@ werden muss, sondern nur einmal f"ur alle Reduce Prozesse.
 
 
 \section{Eigenwertberechnung}
+\index{Eigenwerte}
 MapReduce eignet sich nicht direkt f"ur die Programmierung numerischer
 Algorithmen, da es f"ur die Verarbeitung unstrukturierter Daten
 ausgelegt ist, die sich mit Schl"ussel-Wert-Paaren beschreiben lassen.
@@ -178,6 +185,7 @@ Suchmaschine in Zusammenhang steht, mit diesem Konzept parallelisiert
 werden kann.
 
 \subsection{Google Matrix und Page Rank}
+\index{Google-Matrix}
 Die Google Matrix wird verwendet, um die Beliebtheit der verschiedenen
 Internetseiten in die Suchabfrage einzubeziehen.  Dieser so genannte
 Page Rank ist der Eigenvektor zum gr"ossten Eigenwert der Google
@@ -236,9 +244,9 @@ Ein Beispiel soll die Funktionsweise zeigen \cite{mueller:linAlg}
 	\label{bspInternet}
   \end{figure}
   
-  Daraus l"asst sich eine Matrix $H$ erstellen, welche die
-  Wahrscheinlichkeit beschreibt, von einer Internetseite zu einer
-  Anderen zu kommen (die so genannte Google Matrix).
+Daraus l"asst sich eine Matrix $H$ erstellen, welche die
+Wahrscheinlichkeit beschreibt, von einer Internetseite zu einer
+Anderen zu kommen (die so genannte Google Matrix).
 
 \[
     H =
@@ -255,17 +263,17 @@ Ein Beispiel soll die Funktionsweise zeigen \cite{mueller:linAlg}
     \end{pmatrix}
 \]
 
-  Von der ersten Internetseite f"uhren Links zur zweiten und dritten
-  Internetseite.  Beide Links besitzen die gleiche Wahrscheinlichkeit.
-  Somit ist die Wahrscheinlichkeit von der ersten Internetseite zur
-  zweiten oder dritten zu kommen je \SI{50}{\percent}.  Zu sehen in
-  der Google Matrix in der ersten Spalte und der zweiten/dritten Zeile
-  mit dem $\frac{1}{2}$.  Was der ersten Internetseite und den beiden
-  Links zur zweiten/dritten Internetseite entspricht.
+Von der ersten Internetseite f"uhren Links zur zweiten und dritten
+Internetseite.  Beide Links besitzen die gleiche Wahrscheinlichkeit.
+Somit ist die Wahrscheinlichkeit von der ersten Internetseite zur
+zweiten oder dritten zu kommen je \SI{50}{\percent}.  Zu sehen in
+der Google Matrix in der ersten Spalte und der zweiten/dritten Zeile
+mit dem $\frac{1}{2}$.  Was der ersten Internetseite und den beiden
+Links zur zweiten/dritten Internetseite entspricht.
 
-  Mit der Potenzmethode $u_{k+1} = \frac{Hu_k}{|Hu_k|}$ kann man nun
-  die Matrix l"osen und erh"alt den gr"ossten Eigenvektor $u$,
-  welcher dem Page Rank entspricht.
+Mit der Potenzmethode $u_{k+1} = \frac{Hu_k}{|Hu_k|}$ kann man nun
+die Matrix l"osen und erh"alt den gr"ossten Eigenvektor $u$,
+welcher dem Page Rank entspricht.
 \end{beispiel}
 
 \subsection{Potenzmethode}
@@ -327,14 +335,15 @@ erhebliche Teile der Berechnungszeit f"ur die Iterationen verwendet
 wird.
 
 Die Grundidee ist, eine Bandmatrix diagonal aufzuteilen und den
+\index{Bandmatrix}
 Potenzalgorithmus auf die Teilmatrizen anzuwenden. Dadurch werden die
+\index{Potenzalgorithmus}
 Eigenvektoren der Teilmatrizen bestimmt, welche anschliessend in den
 gesamten Eigenvektor eingesetzt werden, wie auf Abbildung \ref{1}
 ersichtlich ist. Dadurch wird erwartet, dass die Berechnung "uber die
 gesamte Matrix mit diesem angepassten Eigenvektor viel weniger
 Iterationsschritte ben"otigt als die originale Berechnung ohne
 Aufteilung.
-
 
 \begin{figure}
 \begin{center}
