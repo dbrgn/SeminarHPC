@@ -20,6 +20,7 @@ RADONFILES = radon/RadonBack.bib radon/RadonBack.tex			\
 	radon/sections/Rueckprojektion.tex
 HEATFILES = heat/heat.tex
 JULIAFILES = julia/julia.tex julia/julia.bib
+OPENFOAMFILES = openfoam/OpenFOAM.tex openfoam/OpenFOAM.bib
 MAPREDUCEFILES = mapreduce/mapreduce.tex mapreduce/map.bib
 POTENTIALFILES = potential/potential.tex
 GREENFILES = green/green.tex green/quellen.bib
@@ -28,12 +29,13 @@ KUGELFILES = kugel/Kugelsternhaufen.tex kugel/kugel.bib
 
 TEXFILES = vorwort.tex einleitung.tex maschinen.tex sprachen.tex \
 	daten.tex algorithm.tex \
-	$(RADONFILES) $(HEATFILES) $(JULIAFILES) $(MAPREDUCEFILES) \
-	$(GREENFILES) $(STOSSWELLENFILES)
+	$(RADONFILES) $(HEATFILES) $(JULIAFILES) $(OPENFOAMFILES) \
+	$(MAPREDUCEFILES) $(GREENFILES) $(STOSSWELLENFILES)
 
 BLXFILES = skript1-blx.bbl skript2-blx.bbl skript3-blx.bbl skript4-blx.bbl \
 	skript5-blx.bbl skript6-blx.bbl skript7-blx.bbl skript8-blx.bbl \
-	skript9-blx.bbl skript10-blx.bbl skript11-blx.bbl
+	skript9-blx.bbl skript10-blx.bbl skript11-blx.bbl skript12-blx.bbl \
+	skript13-blx.bbl skript14-blx.bbl
 
 IMAGES = graphics/cgresults.pdf
 
@@ -83,6 +85,15 @@ skript10-blx.bbl:	skript10-blx.aux
 
 skript11-blx.bbl:	skript11-blx.aux
 	bibtex skript11-blx
+
+skript12-blx.bbl:	skript12-blx.aux
+	bibtex skript12-blx
+
+skript13-blx.bbl:	skript13-blx.aux
+	bibtex skript13-blx
+
+skript14-blx.bbl:	skript14-blx.aux
+	bibtex skript14-blx
 
 # standalone compilation of a single article
 standalone.pdf:	standalone.tex $(TEXFILES)
