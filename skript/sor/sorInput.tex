@@ -4,7 +4,7 @@
 \chapterauthor{Felix Hofer}
 
 \section{Einf"uhrung}
-"'Successive Overrelaxation"' -- kurz SOR -- bezeichnet eine
+``Successive Overrelaxation'' -- kurz SOR -- bezeichnet eine
 Modifikation bestehender iterativer Approximationsverfahren, welche
 die Konvergenzgeschwindigkeit gegen"uber den unmodifizierten Verfahren
 erh"ohen soll. Das Prinzip wird oft anhand des Gauss-Seidel-Algorithmus
@@ -20,7 +20,7 @@ in die entsprechende Richtung wagt (daher auch die Bezeichnung
 Iterationsschritt in die Berechnung der neuen Approximation der echten
 L"osung mit einfliessen.
 
-Wie stark man den neuen Schritt "'"uberrelaxiert"' bzw. wie stark der
+Wie stark man den neuen Schritt ``"uberrelaxiert'' bzw. wie stark der
 vorhergehende Iterationsschritt noch in die Berechnung mit einfliesst
 steuert man mittels des sogenannten ("Uber-) Relaxationsparameters
 $\omega$.
@@ -44,9 +44,9 @@ von Gauss-Seidel f"uhrt:
 \end{equation}
 Auf die Wahl des Wertes f"ur $\omega$ wird sp"ater eingegangen.
 		
-\subsection{Herleitung von Matrix-Zerlegung \& Iterationsformel \label{subsec: SOR-Herleitung}}
+\subsection{Herleitung von Matrix-Zerlegung und Iterationsformel \label{subsec: SOR-Herleitung}}
 Wie Jacobi und Gauss-Seidel basiert auch der SOR-Algorithmus auf einer
-Matrix-Aufteilung in "'einfach"' invertierbare Matrizen wie zum Beispiel
+Matrix-Aufteilung in ``einfach'' invertierbare Matrizen wie zum Beispiel
 Dreiecks- oder Diagonalmatrizen.
 
 Um auf die schlussendliche Matrix-Formel zu kommen, wird obige
@@ -162,7 +162,7 @@ b=
 	1 \\
 	2 \\
 	3
-	\end{pmatrix},
+\end{pmatrix},
 \qquad
 x_0=
 \begin{pmatrix}
@@ -176,14 +176,14 @@ Der Spektralradius $\rho(G)$ wurde mit Matlab als
 ebenfalls in Matlab mit einer for-Schleife in Hundertstel-Schritten
 zwischen $\omega=1, ..., 2$ gesucht:
 \begin{figure}[!ht]\centering
-%			\includegraphics[width=0.66\textwidth]{img/Spektralradius.png}
+%	\includegraphics[width=0.66\textwidth]{img/Spektralradius.png}
 \caption{Spektralradius des Problems in Abh"angigkeit von $\omega$.}
 \label{fig:Spekt.rad.vs.omega}
 \end{figure}
 
 Vergleicht man nun den Spektralradius der verschiedenen Verfahren und $\omega$, kann man deutliche Unterschiede erkennen:
 \begin{figure}[!ht]\centering
-%			\includegraphics[width=0.75\textwidth]{img/Spektralradius_Diagramm.png}
+%	\includegraphics[width=0.75\textwidth]{img/Spektralradius_Diagramm.png}
 \caption{Spektralradien verschiedener Verfahren und $\omega$.}
 \label{fig:Spekt.rad. Diagr.}
 \end{figure}\\
@@ -196,12 +196,12 @@ wurde die notwendige Anzahl Iterationsschritte f"ur eine Genauigkeit von
 $k=4$ Nachkommastellen berechnet und ebenfalls f"ur die verschiedenen
 Verfahren und $\omega$ visualisiert:
 \begin{figure}[!ht]\centering
-%			\includegraphics[width=0.66\textwidth]{img/NumIt.png}
+%	\includegraphics[width=0.66\textwidth]{img/NumIt.png}
 \caption{Notwendige Anzahl Iterationen f"ur  eine Genauigkeit von 4 Nachkommastellen in Abh"angigkeit von $\omega$.}
 \label{fig:Spekt.rad.vs.Anz.It.}
 \end{figure}
 \begin{figure}[!ht]\centering
-%			\includegraphics[width=0.75\textwidth]{img/NumIt_Diagramm.png}
+%	\includegraphics[width=0.75\textwidth]{img/NumIt_Diagramm.png}
 \caption{Notwendige Anzahl Iterationen f"ur  eine Genauigkeit von 4 Nachkommastellen verschiedener Verfahren und $\omega$.}
 \label{fig:It.vs.omega}
 \end{figure}
@@ -237,7 +237,7 @@ Jacobi-Algorithmus aus Kapitel \ref{Algorithmus!Jacobi} erstellt.
 \end{figure}
 \begin{figure}[!ht]\centering
 %\includegraphics[width=0.5\textwidth]{img/SOR_2D_4_It_w_1_08.png}
-\caption{SOR, 4 Iterationen, $\omega=1.08=\omega_{opt}$}
+\caption{SOR, 4 Iterationen, $\omega=1.08=\omega_{\text{opt}}$}
 \label{fig:SOR w=1.08= 2D Bsp}
 \end{figure}
 
@@ -273,7 +273,7 @@ Gauss-Seidel-Algorithmus aus Kapitel \ref{section-matrix-aufteilung}
 \end{figure}
 \begin{figure}[!ht]\centering
 %	\includegraphics[width=0.5\textwidth]{img/SOR_3D_8_It_w_1_27.png}
-	\caption{SOR, 8 Iterationen, $\omega=1.27=\omega_{opt}$}
+	\caption{SOR, 8 Iterationen, $\omega=1.27=\omega_{\text{opt}}$}
 	\label{fig:SOR w=1.27 3D Bsp}
 \end{figure}
 \begin{figure}[!ht]\centering
@@ -283,10 +283,10 @@ Gauss-Seidel-Algorithmus aus Kapitel \ref{section-matrix-aufteilung}
 \end{figure}
 			
 \section{SSOR-Prinzip}
-"'Symmetric SOR"' ist eine Erweiterung des in Kapitel \ref{sec: SOR-Alg.}
+``Symmetric SOR'' ist eine Erweiterung des in Kapitel \ref{sec: SOR-Alg.}
 beschriebenen SOR-Algorithmus. In einem einzelnen Iterationsschritt
 folgt bei SSOR auf den in Gleichung (\ref{eq: SOR-It.formel1})
-beschriebenen "'Vorw"arts-Schritt"' von SOR (mit $i=1,\ ...,\ n$) nun
+beschriebenen ``Vorw"arts-Schritt'' von SOR (mit $i=1,\ ...,\ n$) nun
 noch ein zus"atzlicher Schritt, bei dem die Vektor-Komponenten $x_i$ in
 umgekehrter Reihenfolge (also mit $i=n,\ ...,\ 1$) berechnet werden. Dies
 f"uhrt somit zu dem folgenden, vollst"andigen SSOR-Iterationsschritt
@@ -304,7 +304,7 @@ Resultate der einzelnen $x_i$ sind abh"angig von der Reihenfolge derer
 Berechnung, da bei Gauss-Seidel jedes $x_i$ mit $i>1$ (bzw. in Gleichung
 \ref{eq: SSOR-It.formel-k+1} mit $i<n$) abh"angig von im aktuellen
 Iterationsschritt bereits berechneten $x_i$ ist. Deshalb auch der Name
-"'\textbf{Successive} Overrelaxation"'.
+``\textbf{Successive} Overrelaxation''.
 
 W"urde man das SSOR-Prinzip auf den Jacobi-Algorithmus anwenden, so k"ame
 dies zwei gew"ohnlichen SOR-Iterationsschritten gleich, da bei Jacobi
@@ -315,7 +315,7 @@ Es soll an dieser Stelle erw"ahnt sein, dass SSOR "ublicherweise keine
 Effizienzsteigerung gegen"uber SOR bietet. Die Konvergenz ist meist sogar
 schlechter als mit SOR. Der Einsatz des SSOR-Verfahrens dient deshalb
 eher der Vorkonditionierung \cite{Vorkonditionierung_Dorn} eines Problems
-(sogenannter "'Preconditioner"'). Dies bezeichnet die Umwandlung des
+(sogenannter ``Preconditioner''). Dies bezeichnet die Umwandlung des
 eigentlichen Ausgangsproblems in ein effizienter l"osbares Problem, zum
 Beispiel f"ur nicht station"are iterative Verfahren. Die Ausgangsmatrix
 soll auf diese Weise dahingehend vorbereitet werden, dass sich in der
