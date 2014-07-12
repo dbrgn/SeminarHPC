@@ -342,7 +342,7 @@ __kernel void crack(__global const unsigned char *hash, __global char *result, c
     __private char string[MAX_PW_LEN];
     __private MD5_CTX context;
     __private unsigned int global_id;
-    __private unsigned char triplet_id;
+    __private unsigned char triplet_id, max_triplet_id;
     __private unsigned int power;
     __private unsigned char digest[16];
 
@@ -360,8 +360,9 @@ __kernel void crack(__global const unsigned char *hash, __global char *result, c
         ids[i] = global_id;
 
         // Loop through triplets
+        max_triplet_id = (len - 1) / 3;
         power = 1;
-        for (triplet_id = 0; triplet_id <= (len - 1) / 3; triplet_id += 1) {
+        for (triplet_id = 0; triplet_id <= max_triplet_id; triplet_id += 1) {
             if (triplet_id > 0) {
                 power *= 26; // 26^triplet_id
             }
