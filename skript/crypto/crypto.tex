@@ -342,7 +342,8 @@ Buchstaben des Wortes in Dreiergruppen aufteilt (Sliding Window Algorithmus).
 // Initialize private variables
 __private char string[MAX_PW_LEN];
 __private unsigned int global_id;
-__private unsigned char triplet_id;
+__private unsigned char triplet_id, max_triplet_id;
+__private unsigned int power;
 
 for (int i = 0; i < 3; i++) {
 
@@ -350,8 +351,10 @@ for (int i = 0; i < 3; i++) {
   global_id = get_global_id(i);
 
   // Loop through triplets
-  for (triplet_id = 0; triplet_id <= (len - 1) / 3; triplet_id += 1) {
-    string[triplet_id * 3 + i] = 0x61 + ((int)(global_id / pown(26., triplet_id)) % 26);
+  max_triplet_id = (len - 1) / 3;
+  for (triplet_id = 0, power = 1; triplet_id <= max_triplet_id; triplet_id += 1) {
+    if (triplet_id > 0) power *= 26; // 26^triplet_id
+    string[triplet_id * 3 + i] = 0x61 + ((global_id / power) % 26);
   }
 
 }
@@ -1117,7 +1120,7 @@ derselben Hardware auszuf"uhren. Das zeigt wiedermal die grossen Unterschiede
 bei der Qualit"at der OpenCL Implementierungen auf.
 
 Um den Geschwindigkeits-Gewinn durch OpenCL etwas zu verdeutlichen, haben wir
-zus"atzlich den selben C-Code als eigenst"andiges Programm ohne Parallelisierung
+zus"atzlich denselben C-Code als eigenst"andiges Programm ohne Parallelisierung
 implementiert. Die Resultate fallen deutlich aus: Die OpenCL Implementierung des
 MD5 Crackers ist auf der \textit{Intel Xeon X7550} rund um Faktor 74 schneller
 als die Single Threaded Variante.
