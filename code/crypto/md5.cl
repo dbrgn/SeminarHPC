@@ -361,8 +361,7 @@ __kernel void crack(__global const unsigned char *hash, __global char *result, c
 
         // Loop through triplets
         max_triplet_id = (len - 1) / 3;
-        power = 1;
-        for (triplet_id = 0; triplet_id <= max_triplet_id; triplet_id += 1) {
+        for (triplet_id = 0, power = 1; triplet_id <= max_triplet_id; triplet_id += 1) {
             if (triplet_id > 0) {
                 power *= 26; // 26^triplet_id
             }
